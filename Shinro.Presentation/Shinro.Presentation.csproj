@@ -3,4 +3,9 @@
   <PropertyGroup>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Shinro.Application\Shinro.Application.csproj" />
+    <ProjectReference Include="..\Shinro.Shared\Shinro.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

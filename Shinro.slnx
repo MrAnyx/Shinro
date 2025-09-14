@@ -1,16 +1,17 @@
 <Solution>
   <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
-  <Project Path="docker-compose.dcproj">
+  <Project Path="Shinro.Application/Shinro.Application.csproj" />
+  <Project Path="Shinro.Core/Shinro.Core.csproj" />
+  <Project Path="Shinro.Docker.dcproj">
     <Build />
   </Project>
-  <Project Path="Shinro.Application/Shinro.Application.csproj" />
   <Project Path="Shinro.Domain/Shinro.Domain.csproj" />
   <Project Path="Shinro.Infrastructure/Shinro.Infrastructure.csproj" />
   <Project Path="Shinro.Persistence/Shinro.Persistence.csproj" />
   <Project Path="Shinro.Presentation/Shinro.Presentation.csproj" />
   <Project Path="Shinro.Shared/Shinro.Shared.csproj" />
-  <Project Path="Shinro.Core/Shinro.Core.csproj" />
 </Solution>

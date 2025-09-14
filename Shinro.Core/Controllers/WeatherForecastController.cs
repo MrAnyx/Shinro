@@ -4,6 +4,6 @@ namespace Shinro.Core.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class WeatherForecastController : ControllerBase
+internal class WeatherForecastController : ControllerBase
 {
 }
