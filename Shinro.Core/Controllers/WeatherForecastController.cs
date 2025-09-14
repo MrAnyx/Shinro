@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Shinro.Controllers;
+namespace Shinro.Core.Controllers;
 
 [ApiController]
 [Route("[controller]")]
