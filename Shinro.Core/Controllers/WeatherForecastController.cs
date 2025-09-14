@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace Shinro.Core.Controllers;
 
@@ -6,4 +7,8 @@ namespace Shinro.Core.Controllers;
 [Route("[controller]")]
 internal class WeatherForecastController : ControllerBase
 {
+    public ActionResult<int> GetTest()
+    {
+        return DateTime.DaysInMonth(2024, 12);
+    }
 }

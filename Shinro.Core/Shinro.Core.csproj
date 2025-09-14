@@ -1,18 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <UserSecretsId>e6f7bb85-ff41-4245-80e9-af9a64b3dd3b</UserSecretsId>
-    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
-  </PropertyGroup>
+    <PropertyGroup>
+        <UserSecretsId>e6f7bb85-ff41-4245-80e9-af9a64b3dd3b</UserSecretsId>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Shinro.Application\Shinro.Application.csproj" />
-    <ProjectReference Include="..\Shinro.Domain\Shinro.Domain.csproj" />
-    <ProjectReference Include="..\Shinro.Infrastructure\Shinro.Infrastructure.csproj" />
-    <ProjectReference Include="..\Shinro.Persistence\Shinro.Persistence.csproj" />
-    <ProjectReference Include="..\Shinro.Presentation\Shinro.Presentation.csproj" />
-    <ProjectReference Include="..\Shinro.Shared\Shinro.Shared.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="NLog.Web.AspNetCore" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Shinro.Application\Shinro.Application.csproj" />
+        <ProjectReference Include="..\Shinro.Domain\Shinro.Domain.csproj" />
+        <ProjectReference Include="..\Shinro.Infrastructure\Shinro.Infrastructure.csproj" />
+        <ProjectReference Include="..\Shinro.Persistence\Shinro.Persistence.csproj" />
+        <ProjectReference Include="..\Shinro.Presentation\Shinro.Presentation.csproj" />
+        <ProjectReference Include="..\Shinro.Shared\Shinro.Shared.csproj" />
+    </ItemGroup>
 
 </Project>
