@@ -7,7 +7,7 @@ namespace Shinro.Core.Controllers;
 [Route("[controller]")]
 internal sealed class WeatherForecastController : ControllerBase
 {
-    public static ActionResult<int> GetTest()
+    public ActionResult<int> GetTest()
     {
         return DateTime.DaysInMonth(2024, 12);
     }
