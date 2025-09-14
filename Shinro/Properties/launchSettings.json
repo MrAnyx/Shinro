@@ -1,0 +1,12 @@
+{
+    "profiles": {
+        "Terminal": {
+            "commandName": "Project",
+            "environmentVariables": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "dotnetRunMessages": true,
+            "applicationUrl": "http://localhost:5276;https://localhost:7274"
+        }
+    }
+}
