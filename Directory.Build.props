@@ -3,10 +3,11 @@
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
-        <AnalysisLevel>latest</AnalysisLevel>
-        <AnalysisMode>all</AnalysisMode>
+        <AnalysisLevel>latest-recommended</AnalysisLevel>
+        <AnalysisMode>recommended</AnalysisMode>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
     </PropertyGroup>
 
     <ItemGroup>
