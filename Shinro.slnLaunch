@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "Shinro",
+    "Projects": [
+      {
+        "Path": "Shinro.Docker.dcproj",
+        "Action": "StartWithoutDebugging",
+        "DebugTarget": "Docker Compose"
+      },
+      {
+        "Path": "Shinro.Core\\Shinro.Core.csproj",
+        "Action": "Start",
+        "DebugTarget": "Terminal"
+      }
+    ]
+  }
+]

@@ -19,20 +19,6 @@ services:
         volumes:
             - redis_data:/data
 
-    shinro.queue:
-        image: rabbitmq:4-alpine
-        container_name: shinro.queue
-        ports:
-            - 5672:5672
-            # Uncomment the next line if you want the management UI:
-            # - "15672:15672"
-        environment:
-            RABBITMQ_DEFAULT_USER: shinro
-            RABBITMQ_DEFAULT_PASS: shinro
-        volumes:
-            - rabbitmq_data:/var/lib/rabbitmq
-
 volumes:
     postgres_data:
     redis_data:
-    rabbitmq_data:

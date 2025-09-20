@@ -7,5 +7,18 @@
         <ProjectReference Include="..\Shinro.Domain\Shinro.Domain.csproj" />
         <ProjectReference Include="..\Shinro.Shared\Shinro.Shared.csproj" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+        <PackageReference Include="Scrutor" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Folder Include="Contract\" />
+        <Folder Include="Service\" />
+        <Folder Include="UseCase\" />
+    </ItemGroup>
+
 
 </Project>

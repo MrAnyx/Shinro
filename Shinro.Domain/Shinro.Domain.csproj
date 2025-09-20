@@ -3,4 +3,11 @@
     <PropertyGroup>
     </PropertyGroup>
 
+    <ItemGroup>
+      <Folder Include="Entity\" />
+      <Folder Include="Contract\" />
+      <Folder Include="Enum\" />
+      <Folder Include="ValueObject\" />
+    </ItemGroup>
+
 </Project>

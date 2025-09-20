@@ -8,13 +8,13 @@
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
         <CodeAnalysisTreatWarningsAsErrors>true</CodeAnalysisTreatWarningsAsErrors>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+        <Version>0.0.0.1</Version>
+        <Authors>MrAnyx</Authors>
+        <Company>Codeon</Company>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="SonarAnalyzer.CSharp">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
     </ItemGroup>
 
 </Project>

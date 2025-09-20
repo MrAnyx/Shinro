@@ -4,7 +4,6 @@
             "commandName": "DockerCompose",
             "commandVersion": "1.0",
             "serviceActions": {
-                "shinro.queue": "StartWithoutDebugging",
                 "shinro.cache": "StartWithoutDebugging",
                 "shinro.database": "StartWithoutDebugging"
             }
