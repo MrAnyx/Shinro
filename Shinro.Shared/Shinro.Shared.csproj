@@ -8,4 +8,8 @@
       <Folder Include="Extension\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Shinro.Domain\Shinro.Domain.csproj" />
+    </ItemGroup>
+
 </Project>

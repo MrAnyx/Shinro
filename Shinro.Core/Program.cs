@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 using Scalar.AspNetCore;
+using Shinro.Application.Contract.Persistence;
 using Shinro.Application.Extension;
+using Shinro.Core.Convention;
 using Shinro.Core.Transformer;
 using Shinro.Infrastructure.Extension;
 using Shinro.Persistence.Extension;
@@ -23,8 +26,12 @@ builder.Services
     {
         // Apply kebab-case transformation globally to [controller] and [action] tokens
         options.Conventions.Add(new RouteTokenTransformerConvention(new KebabCaseParameterTransformer()));
+
+        // Add the "/api" prefix to all routes
+        options.Conventions.Insert(0, new RoutePrefixConvention("api"));
     })
     .AddApplicationPart(typeof(Shinro.Presentation.AssemblyReference).Assembly);
+
 
 builder.Services.AddRouting(options =>
 {
@@ -43,10 +50,17 @@ builder.Services.AddOpenApi();
 builder.Services
     .AddApplication()
     .AddInfrastructure()
-    .AddPersistence()
+    .AddPersistence(builder.Configuration)
     .AddPresentation();
 
 var app = builder.Build();
+
+// Apply database migrations
+using (var scope = app.Services.CreateScope())
+{
+    var migration = scope.ServiceProvider.GetRequiredService<IMigration>();
+    await migration.MigrateAsync();
+}
 
 // Middlewares
 app.UseHttpsRedirection();
@@ -56,7 +70,11 @@ app.MapOpenApi();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapScalarApiReference();
+    // Scalar
+    app.MapScalarApiReference(options =>
+    {
+        options.DarkMode = true;
+    });
 }
 
 await app.RunAsync();

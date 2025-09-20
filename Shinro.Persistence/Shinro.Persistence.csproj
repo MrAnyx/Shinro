@@ -4,13 +4,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Shinro.Domain\Shinro.Domain.csproj" />
+        <ProjectReference Include="..\Shinro.Application\Shinro.Application.csproj" />
         <ProjectReference Include="..\Shinro.Shared\Shinro.Shared.csproj" />
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
         <PackageReference Include="Scrutor" />
     </ItemGroup>
 

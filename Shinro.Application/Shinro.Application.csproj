@@ -15,7 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Contract\" />
         <Folder Include="Service\" />
         <Folder Include="UseCase\" />
     </ItemGroup>
