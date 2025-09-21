@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -11,10 +12,21 @@ using Shinro.Application.Extension;
 using Shinro.Core.Convention;
 using Shinro.Core.Transformer;
 using Shinro.Infrastructure.Extension;
+using Shinro.Persistence;
 using Shinro.Persistence.Extension;
 using Shinro.Presentation.Extension;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load configuration
+builder.Configuration
+    .AddJsonFile("appsettings.json", false, false)
+    .AddEnvironmentVariables();
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
 
 // Logging
 builder.Logging.ClearProviders();
@@ -30,7 +42,7 @@ builder.Services
         // Add the "/api" prefix to all routes
         options.Conventions.Insert(0, new RoutePrefixConvention("api"));
     })
-    .AddApplicationPart(typeof(Shinro.Presentation.AssemblyReference).Assembly);
+    .AddApplicationPart(typeof(AssemblyReference).Assembly);
 
 
 builder.Services.AddRouting(options =>

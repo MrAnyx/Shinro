@@ -11,7 +11,10 @@ public static class PersistenceExtension
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
         return services
-            .AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(configuration.GetConnectionString("MainConnection")))
+            .AddDbContext<ApplicationDbContext>(options => options
+                //.UseLazyLoadingProxies()
+                .UseNpgsql(configuration.GetConnectionString("MainConnection"), opt => opt.MigrationsAssembly(typeof(AssemblyReference).Assembly))
+            )
             .AddScoped<IMigration, Migration>()
             .AddScoped<IUnitOfWork, UnitOfWork>();
     }

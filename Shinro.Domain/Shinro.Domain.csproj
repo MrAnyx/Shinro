@@ -4,9 +4,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Entity\" />
-      <Folder Include="Enum\" />
+      <Folder Include="Error\" />
       <Folder Include="ValueObject\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Ulid" />
     </ItemGroup>
 
 </Project>
