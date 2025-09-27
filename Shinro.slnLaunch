@@ -8,7 +8,7 @@
         "DebugTarget": "Docker Compose"
       },
       {
-        "Path": "Shinro.Core\\Shinro.Core.csproj",
+        "Path": "src\\Shinro.Core\\Shinro.Core.csproj",
         "Action": "Start",
         "DebugTarget": "Terminal"
       }

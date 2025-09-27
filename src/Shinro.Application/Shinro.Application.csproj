@@ -9,6 +9,11 @@
     </ItemGroup>
     
     <ItemGroup>
+        <PackageReference Include="Mediator.Abstractions" />
+        <PackageReference Include="Mediator.SourceGenerator">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
         <PackageReference Include="Scrutor" />
@@ -16,7 +21,6 @@
 
     <ItemGroup>
         <Folder Include="Service\" />
-        <Folder Include="UseCase\" />
     </ItemGroup>
 
 

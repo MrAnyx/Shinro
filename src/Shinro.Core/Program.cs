@@ -12,7 +12,6 @@ using Shinro.Application.Extension;
 using Shinro.Core.Convention;
 using Shinro.Core.Transformer;
 using Shinro.Infrastructure.Extension;
-using Shinro.Persistence;
 using Shinro.Persistence.Extension;
 using Shinro.Presentation.Extension;
 
@@ -42,7 +41,7 @@ builder.Services
         // Add the "/api" prefix to all routes
         options.Conventions.Insert(0, new RoutePrefixConvention("api"));
     })
-    .AddApplicationPart(typeof(AssemblyReference).Assembly);
+    .AddApplicationPart(typeof(Shinro.Presentation.AssemblyReference).Assembly);
 
 
 builder.Services.AddRouting(options =>
