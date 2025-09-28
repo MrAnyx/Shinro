@@ -5,6 +5,7 @@
   <ItemGroup>
   </ItemGroup>
   <ItemGroup>
+    <PackageVersion Include="Mapster" Version="7.4.0" />
     <PackageVersion Include="Mediator.Abstractions" Version="3.0.1" />
     <PackageVersion Include="Mediator.SourceGenerator" Version="3.0.1" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
@@ -21,7 +22,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.9" />
     <PackageVersion Include="NLog.Web.AspNetCore" Version="6.0.4" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
-    <PackageVersion Include="Scalar.AspNetCore" Version="2.8.5" />
+    <PackageVersion Include="Scalar.AspNetCore" Version="2.8.7" />
     <PackageVersion Include="Scrutor" Version="6.1.0" />
   </ItemGroup>
 </Project>

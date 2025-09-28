@@ -11,6 +11,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AssemblyReference).Assembly);
 
+        modelBuilder.Entity<User>().HasQueryFilter(u => u.IsActive);
+
         modelBuilder.HasDefaultSchema("public");
 
         base.OnModelCreating(modelBuilder);
