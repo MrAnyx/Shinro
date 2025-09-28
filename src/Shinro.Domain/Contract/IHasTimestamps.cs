@@ -4,6 +4,6 @@ namespace Shinro.Domain.Contract;
 
 public interface IHasTimestamps
 {
-    DateTime CreatedAt { get; set; }
-    DateTime UpdatedAt { get; set; }
+    DateTimeOffset CreatedAt { get; set; }
+    DateTimeOffset UpdatedAt { get; set; }
 }

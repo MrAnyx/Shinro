@@ -2,7 +2,7 @@
 
 namespace Shinro.Domain.Model;
 
-public sealed record Error(string Code, string Description, eErrorType Type)
+public record Error(string Code, string Description, eErrorType Type)
 {
     public static readonly Error None = new(string.Empty, string.Empty, eErrorType.Failure);
 

@@ -17,16 +17,6 @@ using Shinro.Presentation.Extension;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Load configuration
-builder.Configuration
-    .AddJsonFile("appsettings.json", false, false)
-    .AddEnvironmentVariables();
-
-if (builder.Environment.IsDevelopment())
-{
-    builder.Configuration.AddUserSecrets<Program>();
-}
-
 // Logging
 builder.Logging.ClearProviders();
 builder.Logging.AddNLog();

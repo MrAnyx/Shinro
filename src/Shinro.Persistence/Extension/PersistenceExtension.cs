@@ -12,10 +12,17 @@ public static class PersistenceExtension
     {
         return services
             .AddDbContext<ApplicationDbContext>(options => options
-                //.UseLazyLoadingProxies()
-                .UseNpgsql(configuration.GetConnectionString("MainConnection"), opt => opt.MigrationsAssembly(typeof(AssemblyReference).Assembly))
+                .UseLazyLoadingProxies()
+                .UseNpgsql(configuration.GetConnectionString("Database"), opt => opt.MigrationsAssembly(typeof(AssemblyReference).Assembly))
             )
             .AddScoped<IMigration, Migration>()
-            .AddScoped<IUnitOfWork, UnitOfWork>();
+            .AddScoped<IUnitOfWork, UnitOfWork>()
+            .Scan(x => x
+                .FromAssemblyOf<AssemblyReference>()
+                .AddClasses(c => c.AssignableTo(typeof(IRepository<>)), publicOnly: false)
+                .AsImplementedInterfaces()
+                .WithScopedLifetime()
+            )
+        ;
     }
 }

@@ -1,3 +1,3 @@
 ﻿namespace Shinro.Persistence;
 
-public static class AssemblyReference { }
+public class AssemblyReference { }

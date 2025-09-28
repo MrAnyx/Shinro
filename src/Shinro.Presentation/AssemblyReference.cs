@@ -1,3 +1,3 @@
 ﻿namespace Shinro.Presentation;
 
-public static class AssemblyReference { }
+public class AssemblyReference { }
