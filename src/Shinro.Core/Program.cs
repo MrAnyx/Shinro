@@ -17,6 +17,9 @@ using Shinro.Presentation.Extension;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Problem details
+builder.Services.AddProblemDetails();
+
 // Logging
 builder.Logging.ClearProviders();
 builder.Logging.AddNLog();

@@ -1,6 +1,6 @@
 ﻿using Shinro.Domain.Enum;
 
-namespace Shinro.Domain.Model;
+namespace Shinro.Application.Model;
 
 public record Error(string Code, string Description, eErrorType Type)
 {

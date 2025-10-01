@@ -1,5 +1,5 @@
 ﻿using Mediator;
-using Shinro.Domain.Model;
+using Shinro.Application.Model;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,8 +14,9 @@ public sealed class RegisterCommand : ICommand<Result<Domain.Entity.User>>
 
 public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand, Result<Domain.Entity.User>>
 {
-    public ValueTask<Result<Domain.Entity.User>> Handle(RegisterCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Result<Domain.Entity.User>> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
-        return default;
+        await Task.CompletedTask;
+        return Error.Validation("code", "description");
     }
 }

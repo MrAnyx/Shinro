@@ -12,7 +12,10 @@ namespace Shinro.Presentation.Controller;
 public class AuthenticationController(IMediator mediator) : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<ActionResult<AccessTokenDTO>> Register([FromBody] RegisterDTO request, CancellationToken cancellationToken)
+    public async Task<ActionResult> Register(
+        [FromBody] RegisterDTO request,
+        CancellationToken cancellationToken
+    )
     {
         var command = new RegisterCommand
         {
@@ -22,18 +25,6 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
         };
         var result = await mediator.Send(command, cancellationToken);
 
-        if (result.IsSuccess)
-        {
-            return Ok(new AccessTokenDTO()
-            {
-                AccessToken = "",
-                RefreshToken = ""
-            });
-        }
-        else
-        {
-            return BadRequest();
-        }
-
+        return Ok();
     }
 }

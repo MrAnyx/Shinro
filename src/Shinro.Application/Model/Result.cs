@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Shinro.Domain.Model;
+namespace Shinro.Application.Model;
 
 public class Result
 {
@@ -28,6 +28,9 @@ public class Result
     public static Result<T> Success<T>(T value) => new(value, true, Error.None);
 
     public static Result<T> Failure<T>(Error error) => new(default!, false, error);
+
+    // Implicit conversions
+    public static implicit operator Result(Error error) => Failure(error);
 }
 
 public class Result<T> : Result
@@ -39,7 +42,8 @@ public class Result<T> : Result
         _value = value;
     }
 
-    public T Value => IsSuccess
-        ? _value
-        : throw new InvalidOperationException("The value of a failure result cannot be accessed.");
+    public T Value => IsSuccess ? _value : throw new InvalidOperationException("The value of a failure result cannot be accessed.");
+
+    // Implicit conversions
+    public static implicit operator Result<T>(Error error) => Failure<T>(error);
 }
