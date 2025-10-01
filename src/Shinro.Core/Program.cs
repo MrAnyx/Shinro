@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -9,16 +10,27 @@ using NLog.Extensions.Logging;
 using Scalar.AspNetCore;
 using Shinro.Application.Contract.Persistence;
 using Shinro.Application.Extension;
+using Shinro.Core;
 using Shinro.Core.Convention;
 using Shinro.Core.Transformer;
 using Shinro.Infrastructure.Extension;
 using Shinro.Persistence.Extension;
 using Shinro.Presentation.Extension;
+using System.Collections.Generic;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Problem details
-builder.Services.AddProblemDetails();
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+    {
+        context.ProblemDetails.Instance = $"{context.HttpContext.Request.Method} {context.HttpContext.Request.Path}";
+        context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+        context.ProblemDetails.Extensions.TryAdd("traceId", context.HttpContext.Features.Get<IHttpActivityFeature>()?.Activity?.Id);
+    };
+});
+builder.Services.AddExceptionHandler<ExceptionHandler>();
 
 // Logging
 builder.Logging.ClearProviders();
@@ -68,6 +80,7 @@ using (var scope = app.Services.CreateScope())
 
 // Middlewares
 app.UseHttpsRedirection();
+app.UseExceptionHandler();
 app.UseAuthorization();
 app.MapControllers();
 app.MapOpenApi();

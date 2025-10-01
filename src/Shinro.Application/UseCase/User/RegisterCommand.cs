@@ -1,5 +1,6 @@
 ﻿using Mediator;
 using Shinro.Application.Model;
+using Shinro.Domain.Exception;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,6 +18,7 @@ public sealed class RegisterCommandHandler : ICommandHandler<RegisterCommand, Re
     public async ValueTask<Result<Domain.Entity.User>> Handle(RegisterCommand command, CancellationToken cancellationToken)
     {
         await Task.CompletedTask;
-        return Error.Validation("code", "description");
+
+        throw new NotFoundException("Not found exception");
     }
 }

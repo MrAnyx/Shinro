@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Shinro.Application.Contract.Persistence;
-using Shinro.Domain.Exception;
+using Shinro.Domain.Exception.Entity;
 using Shinro.Domain.Model;
 using System;
 using System.Collections.Generic;
