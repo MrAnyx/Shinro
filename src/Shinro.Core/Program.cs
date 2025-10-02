@@ -6,12 +6,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using NLog.Extensions.Logging;
+using NLog.Web;
 using Scalar.AspNetCore;
 using Shinro.Application.Contract.Persistence;
 using Shinro.Application.Extension;
 using Shinro.Core;
 using Shinro.Core.Convention;
+using Shinro.Core.Middleware;
 using Shinro.Core.Transformer;
 using Shinro.Infrastructure.Extension;
 using Shinro.Persistence.Extension;
@@ -34,7 +35,15 @@ builder.Services.AddExceptionHandler<ExceptionHandler>();
 
 // Logging
 builder.Logging.ClearProviders();
-builder.Logging.AddNLog();
+builder.Host.UseNLog();
+
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+    });
+});
 
 // Routing and URLs
 builder.Services
@@ -48,7 +57,6 @@ builder.Services
     })
     .AddApplicationPart(typeof(Shinro.Presentation.AssemblyReference).Assembly);
 
-
 builder.Services.AddRouting(options =>
 {
     options.LowercaseUrls = true;
@@ -58,6 +66,8 @@ builder.Services.AddRouting(options =>
     // Constraints
     //options.ConstraintMap["slug"] = typeof(SlugRouteConstraint);
 });
+
+builder.Services.AddHealthChecks();
 
 // OpenAPI integration
 builder.Services.AddOpenApi();
@@ -81,9 +91,16 @@ using (var scope = app.Services.CreateScope())
 // Middlewares
 app.UseHttpsRedirection();
 app.UseExceptionHandler();
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseRouting();
+app.UseCors();
+app.UseAuthentication();
 app.UseAuthorization();
+
+// Endpoint mapping
 app.MapControllers();
 app.MapOpenApi();
+app.MapHealthChecks("/health");
 
 if (app.Environment.IsDevelopment())
 {
