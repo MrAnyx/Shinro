@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Shinro.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class AddUserMigration : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,7 +22,7 @@ namespace Shinro.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Username = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Email = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
-                    Password = table.Column<string>(type: "text", nullable: false),
+                    Password = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     LastLoginAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
@@ -32,6 +32,20 @@ namespace Shinro.Persistence.Migrations
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Email",
+                schema: "public",
+                table: "Users",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_Username",
+                schema: "public",
+                table: "Users",
+                column: "Username",
+                unique: true);
         }
 
         /// <inheritdoc />

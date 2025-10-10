@@ -6,9 +6,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shinro.Core;
+namespace Shinro.Core.ExceptionHandler;
 
-public class ExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
+public class GlobalExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {

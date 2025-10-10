@@ -9,45 +9,47 @@ using System.Threading.Tasks;
 
 namespace Shinro.Persistence.Service;
 
-internal abstract class Repository<TEntity>(ApplicationDbContext Context) : IRepository<TEntity> where TEntity : Entity
+internal abstract class Repository<TEntity>(ApplicationDbContext context) : IRepository<TEntity> where TEntity : Entity
 {
+    protected readonly ApplicationDbContext _context = context;
+
     public async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return await Context.Set<TEntity>().ToListAsync(cancellationToken);
+        return await _context.Set<TEntity>().ToListAsync(cancellationToken);
     }
 
     public Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return Context.Set<TEntity>().FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
+        return _context.Set<TEntity>().FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
     public TEntity Add(TEntity entity)
     {
-        var entry = Context.Set<TEntity>().Add(entity);
+        var entry = _context.Set<TEntity>().Add(entity);
         return entry.Entity;
     }
 
     public TEntity Update(TEntity entity)
     {
-        var entry = Context.Set<TEntity>().Update(entity);
+        var entry = _context.Set<TEntity>().Update(entity);
         return entry.Entity;
     }
 
     public TEntity Remove(TEntity entity)
     {
-        var entry = Context.Set<TEntity>().Remove(entity);
+        var entry = _context.Set<TEntity>().Remove(entity);
         return entry.Entity;
     }
 
     public async Task<TEntity> RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var entity = await GetByIdAsync(id, cancellationToken) ?? throw new EntityNotFoundException($"No {typeof(TEntity).Name} found with id {id}");
-        var entry = Context.Set<TEntity>().Remove(entity);
+        var entity = await GetByIdAsync(id, cancellationToken) ?? throw new EntityNotFoundException($"No type '{typeof(TEntity).Name}' found with id '{id}'");
+        var entry = _context.Set<TEntity>().Remove(entity);
         return entry.Entity;
     }
 
     public async Task<int> CountAllAsync(CancellationToken cancellationToken = default)
     {
-        return await Context.Set<TEntity>().CountAsync(cancellationToken);
+        return await _context.Set<TEntity>().CountAsync(cancellationToken);
     }
 }

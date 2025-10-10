@@ -9,6 +9,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <PackageReference Include="BCrypt.Net-Next" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
         <PackageReference Include="Scrutor" />

@@ -1,6 +1,7 @@
 ﻿using Mediator;
 using Microsoft.AspNetCore.Mvc;
 using Shinro.Application.UseCase.User;
+using Shinro.Domain.Entity;
 using Shinro.Presentation.Contract.Authentication;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace Shinro.Presentation.Controller;
 public class AuthenticationController(IMediator mediator) : ControllerBase
 {
     [HttpPost("register")]
-    public async Task<ActionResult> Register(
+    public async Task<ActionResult<User>> Register(
         [FromBody] RegisterDTO request,
         CancellationToken cancellationToken
     )
@@ -23,8 +24,9 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
             Email = request.Email,
             Password = request.Password,
         };
-        var result = await mediator.Send(command, cancellationToken);
 
-        return Ok();
+        var user = await mediator.Send(command, cancellationToken);
+
+        return Ok(user);
     }
 }

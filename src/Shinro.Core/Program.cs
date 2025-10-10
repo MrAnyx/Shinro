@@ -10,8 +10,8 @@ using NLog.Web;
 using Scalar.AspNetCore;
 using Shinro.Application.Contract.Persistence;
 using Shinro.Application.Extension;
-using Shinro.Core;
 using Shinro.Core.Convention;
+using Shinro.Core.ExceptionHandler;
 using Shinro.Core.Middleware;
 using Shinro.Core.Transformer;
 using Shinro.Infrastructure.Extension;
@@ -31,7 +31,8 @@ builder.Services.AddProblemDetails(options =>
         context.ProblemDetails.Extensions.TryAdd("traceId", context.HttpContext.Features.Get<IHttpActivityFeature>()?.Activity?.Id);
     };
 });
-builder.Services.AddExceptionHandler<ExceptionHandler>();
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 // Logging
 builder.Logging.ClearProviders();

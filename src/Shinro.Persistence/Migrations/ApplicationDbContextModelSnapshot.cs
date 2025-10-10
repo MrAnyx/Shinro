@@ -33,7 +33,6 @@ namespace Shinro.Persistence.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")
@@ -49,10 +48,10 @@ namespace Shinro.Persistence.Migrations
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
 
                     b.Property<DateTimeOffset>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Username")
@@ -61,6 +60,12 @@ namespace Shinro.Persistence.Migrations
                         .HasColumnType("character varying(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Username")
+                        .IsUnique();
 
                     b.ToTable("Users", "public");
                 });

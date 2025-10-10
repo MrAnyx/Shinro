@@ -4,17 +4,12 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Remove="Service\**" />
-      <EmbeddedResource Remove="Service\**" />
-      <None Remove="Service\**" />
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\Shinro.Domain\Shinro.Domain.csproj" />
         <ProjectReference Include="..\Shinro.Shared\Shinro.Shared.csproj" />
     </ItemGroup>
     
     <ItemGroup>
+        <PackageReference Include="FluentValidation.DependencyInjectionExtensions" />
         <PackageReference Include="Mapster" />
         <PackageReference Include="Mediator.Abstractions" />
         <PackageReference Include="Mediator.SourceGenerator">
