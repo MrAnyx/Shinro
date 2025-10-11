@@ -1,4 +1,4 @@
-﻿using Shinro.Domain.Model;
+﻿using Shinro.Domain.Entity;
 using System;
 using System.Collections.Generic;
 using System.Threading;

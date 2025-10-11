@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace Shinro.Core.Convention;
 
-public class RoutePrefixConvention(string prefix) : IApplicationModelConvention
+internal sealed class RoutePrefixConvention(string prefix) : IApplicationModelConvention
 {
     private readonly AttributeRouteModel _routePrefix = new(new RouteAttribute(prefix));
 

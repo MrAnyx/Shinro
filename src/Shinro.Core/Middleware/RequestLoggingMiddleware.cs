@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Shinro.Core.Middleware;
 
-public class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)
+internal sealed class RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)
 {
     public static IPAddress AnonymizeIp(IPAddress ip)
     {

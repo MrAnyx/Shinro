@@ -7,7 +7,7 @@ namespace Shinro.Core.Transformer;
 /// Transforms route tokens (e.g. controller/action names) into kebab-case.
 /// Example: "UserProfiles" => "user-profiles"
 /// </summary>
-public class KebabCaseParameterTransformer : IOutboundParameterTransformer
+internal sealed class KebabCaseParameterTransformer : IOutboundParameterTransformer
 {
     public string? TransformOutbound(object? value)
     {

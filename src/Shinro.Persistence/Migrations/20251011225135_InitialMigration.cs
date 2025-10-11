@@ -23,10 +23,11 @@ namespace Shinro.Persistence.Migrations
                     Username = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Email = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
                     Password = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    LastLoginAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    LastLoginAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false)
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {

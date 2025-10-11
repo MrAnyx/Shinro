@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Shinro.Persistence.Service;
 
-public class Migration(ApplicationDbContext context) : IMigration
+internal sealed class Migration(ApplicationDbContext context) : IMigration
 {
     public Task<IEnumerable<string>> GetPendingMigrationsAsync(CancellationToken cancellationToken = default)
     {

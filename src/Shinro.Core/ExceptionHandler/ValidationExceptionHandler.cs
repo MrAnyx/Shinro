@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Shinro.Core.ExceptionHandler;
 
-public class ValidationExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
+internal sealed class ValidationExceptionHandler(IProblemDetailsService problemDetailsService) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
     {

@@ -12,7 +12,7 @@ using Shinro.Persistence;
 namespace Shinro.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251010222424_InitialMigration")]
+    [Migration("20251011225135_InitialMigration")]
     partial class InitialMigration
     {
         /// <inheritdoc />
@@ -38,12 +38,15 @@ namespace Shinro.Persistence.Migrations
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
-                    b.Property<bool>("IsActive")
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LastLoginAt")

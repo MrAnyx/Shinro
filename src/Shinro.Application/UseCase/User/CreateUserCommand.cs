@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Shinro.Application.UseCase.User;
 
-public sealed class RegisterCommandValidator : AbstractValidator<RegisterCommand>
+public sealed class RegisterCommandValidator : AbstractValidator<CreateUserCommand>
 {
     public RegisterCommandValidator()
     {
@@ -29,20 +29,19 @@ public sealed class RegisterCommandValidator : AbstractValidator<RegisterCommand
     }
 }
 
-public sealed class RegisterCommand : ICommand<Domain.Entity.User>
-{
-    public required string Username { get; init; }
-    public required string Email { get; init; }
-    public required string Password { get; init; }
-}
+public sealed record CreateUserCommand(
+    string Username,
+    string Email,
+    string Password
+) : ICommand<Domain.Entity.User>;
 
-public sealed class RegisterCommandHandler(
+internal sealed class CreateUserCommandHandler(
     IPasswordHasher passwordHasher,
     IUnitOfWork unitOfWork,
     IUserRepository userRepository
-) : ICommandHandler<RegisterCommand, Domain.Entity.User>
+) : ICommandHandler<CreateUserCommand, Domain.Entity.User>
 {
-    public async ValueTask<Domain.Entity.User> Handle(RegisterCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Domain.Entity.User> Handle(CreateUserCommand command, CancellationToken cancellationToken)
     {
         if (await userRepository.EmailExistAsync(command.Email))
         {
