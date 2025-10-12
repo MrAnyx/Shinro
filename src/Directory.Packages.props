@@ -11,6 +11,7 @@
     <PackageVersion Include="Mapster" Version="7.4.0" />
     <PackageVersion Include="Mediator.Abstractions" Version="3.0.1" />
     <PackageVersion Include="Mediator.SourceGenerator" Version="3.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Diagnostics" Version="2.3.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Diagnostics.Abstractions" Version="2.3.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
@@ -31,5 +32,6 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.8.7" />
     <PackageVersion Include="Scrutor" Version="6.1.0" />
+    <PackageVersion Include="System.Threading.RateLimiting" Version="9.0.9" />
   </ItemGroup>
 </Project>

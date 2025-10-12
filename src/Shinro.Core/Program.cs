@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 using Scalar.AspNetCore;
 using Shinro.Application.Contract.Persistence;
@@ -17,7 +20,11 @@ using Shinro.Core.Transformer;
 using Shinro.Infrastructure.Extension;
 using Shinro.Persistence.Extension;
 using Shinro.Presentation.Extension;
+using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Threading.RateLimiting;
+using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,6 +53,56 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Rate limiter
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: partition => new FixedWindowRateLimiterOptions
+            {
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                PermitLimit = 100,
+                AutoReplenishment = true,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            }));
+
+    options.OnRejected += (context, cancellationToken) =>
+    {
+        context.HttpContext.Response.Headers.RetryAfter = "60";
+        return ValueTask.CompletedTask;
+    };
+});
+
+// JWT Authentication
+builder.Services.AddAuthorization();
+builder.Services
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.RequireHttpsMetadata = true;
+        options.SaveToken = false;
+
+        options.TokenValidationParameters = new TokenValidationParameters()
+        {
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("Jwt:Secret")!)),
+            ValidIssuer = builder.Configuration.GetValue<string>("Jwt:Issuer"),
+            ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
+            ClockSkew = System.TimeSpan.Zero,
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true
+        };
+    });
+
 // Routing and URLs
 builder.Services
     .AddControllers(options =>
@@ -73,6 +130,9 @@ builder.Services.AddHealthChecks();
 // OpenAPI integration
 builder.Services.AddOpenApi();
 
+// Http Context
+builder.Services.AddHttpContextAccessor();
+
 // Clean architecture layers
 builder.Services
     .AddApplication()
@@ -90,9 +150,11 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Middlewares
+app.UseHsts();
 app.UseHttpsRedirection();
 app.UseExceptionHandler();
 app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseRateLimiter();
 app.UseRouting();
 app.UseCors();
 app.UseAuthentication();

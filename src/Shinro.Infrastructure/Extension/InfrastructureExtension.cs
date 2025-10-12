@@ -9,7 +9,7 @@ public static class InfrastructureExtension
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
         return services
-            .AddScoped<IJwtTokenProvider, JwtTokenProvider>()
+            .AddSingleton<IJwtTokenProvider, JwtTokenProvider>()
             .AddScoped<IPasswordHasher, PasswordHasher>();
     }
 }
