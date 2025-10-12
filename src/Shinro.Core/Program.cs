@@ -28,7 +28,7 @@ using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Problem details
+#region Problem details
 builder.Services.AddProblemDetails(options =>
 {
     options.CustomizeProblemDetails = context =>
@@ -40,20 +40,23 @@ builder.Services.AddProblemDetails(options =>
 });
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+#endregion
 
-// Logging
+#region Logging
 builder.Logging.ClearProviders();
 builder.Host.UseNLog();
+#endregion
 
-// CORS
+#region CORS
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
     });
 });
+#endregion
 
-// Rate limiter
+#region Rate limiter
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -76,8 +79,9 @@ builder.Services.AddRateLimiter(options =>
         return ValueTask.CompletedTask;
     };
 });
+#endregion
 
-// JWT Authentication
+#region JWT Authentication
 builder.Services.AddAuthorization();
 builder.Services
     .AddAuthentication(options =>
@@ -102,8 +106,9 @@ builder.Services
             ValidateLifetime = true
         };
     });
+#endregion
 
-// Routing and URLs
+#region Routing and URLs
 builder.Services
     .AddControllers(options =>
     {
@@ -124,32 +129,39 @@ builder.Services.AddRouting(options =>
     // Constraints
     //options.ConstraintMap["slug"] = typeof(SlugRouteConstraint);
 });
+#endregion
 
+#region Health checks
 builder.Services.AddHealthChecks();
+#endregion
 
-// OpenAPI integration
+#region OpenAPI integration
 builder.Services.AddOpenApi();
+#endregion
 
-// Http Context
+#region Http Context
 builder.Services.AddHttpContextAccessor();
+#endregion
 
-// Clean architecture layers
+#region Clean architecture layers
 builder.Services
     .AddApplication()
     .AddInfrastructure()
     .AddPersistence(builder.Configuration)
     .AddPresentation();
+#endregion
 
 var app = builder.Build();
 
-// Apply database migrations
+#region Database migration
 using (var scope = app.Services.CreateScope())
 {
     var migration = scope.ServiceProvider.GetRequiredService<IMigration>();
     await migration.MigrateAsync();
 }
+#endregion
 
-// Middlewares
+#region Middlewares
 app.UseHsts();
 app.UseHttpsRedirection();
 app.UseExceptionHandler();
@@ -159,12 +171,15 @@ app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+#endregion
 
-// Endpoint mapping
+#region Endpoint mapping
 app.MapControllers();
 app.MapOpenApi();
 app.MapHealthChecks("/health");
+#endregion
 
+#region Scalar
 if (app.Environment.IsDevelopment())
 {
     // Scalar
@@ -173,5 +188,6 @@ if (app.Environment.IsDevelopment())
         options.DarkMode = true;
     });
 }
+#endregion
 
 await app.RunAsync();

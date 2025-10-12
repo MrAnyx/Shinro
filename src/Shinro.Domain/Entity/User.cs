@@ -11,6 +11,7 @@ public class User : Entity
 
     #region Security
     public required string Password { get; set; }
+    public RefreshToken? RefreshToken { get; set; }
     #endregion
 
     #region Audit

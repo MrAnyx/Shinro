@@ -3,14 +3,16 @@ using Mediator;
 using Shinro.Application.Contract;
 using Shinro.Application.Contract.Persistence;
 using Shinro.Application.Contract.Persistence.Repository;
+using Shinro.Domain.Entity;
 using Shinro.Domain.Exception.User;
+using Shinro.Domain.Model;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Shinro.Application.UseCase.User;
 
-public sealed class RegisterCommandValidator : AbstractValidator<CreateUserCommand>
+public sealed class RegisterCommandValidator : AbstractValidator<RegisterNewUserCommand>
 {
     public RegisterCommandValidator()
     {
@@ -29,19 +31,21 @@ public sealed class RegisterCommandValidator : AbstractValidator<CreateUserComma
     }
 }
 
-public sealed record CreateUserCommand(
+public sealed record RegisterNewUserCommand(
     string Username,
     string Email,
     string Password
-) : ICommand<Domain.Entity.User>;
+) : ICommand<JwtTokenPair>;
 
-internal sealed class CreateUserCommandHandler(
+internal sealed class RegisterNewUserCommandHandler(
     IPasswordHasher passwordHasher,
     IUnitOfWork unitOfWork,
-    IUserRepository userRepository
-) : ICommandHandler<CreateUserCommand, Domain.Entity.User>
+    IUserRepository userRepository,
+    IRefreshTokenRepository refreshTokenRepository,
+    IJwtTokenProvider jwtTokenService
+) : ICommandHandler<RegisterNewUserCommand, JwtTokenPair>
 {
-    public async ValueTask<Domain.Entity.User> Handle(CreateUserCommand command, CancellationToken cancellationToken)
+    public async ValueTask<JwtTokenPair> Handle(RegisterNewUserCommand command, CancellationToken cancellationToken)
     {
         if (await userRepository.EmailExistAsync(command.Email))
         {
@@ -64,6 +68,18 @@ internal sealed class CreateUserCommandHandler(
         userRepository.Add(user);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return user;
+        var accessToken = jwtTokenService.GenerateAccessToken(user);
+
+        var refreshToken = new RefreshToken()
+        {
+            Token = jwtTokenService.GenerateRefreshToken(user),
+            UserId = user.Id,
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(7)
+        };
+
+        refreshTokenRepository.Add(refreshToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return new JwtTokenPair(accessToken, refreshToken.Token);
     }
 }

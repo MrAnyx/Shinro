@@ -1,9 +1,9 @@
-﻿using Mediator;
+﻿using Mapster;
+using Mediator;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shinro.Application.Contract;
 using Shinro.Application.UseCase.User;
-using Shinro.Domain.Model;
-using Shinro.Presentation.Contract.Authentication;
+using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,25 +11,26 @@ namespace Shinro.Presentation.Controller;
 
 [ApiController]
 [Route("[controller]")]
-public class AuthenticationController(
-    IMediator mediator,
-    IJwtTokenProvider jwtTokenService
-) : ControllerBase
+[Consumes(MediaTypeNames.Application.Json)]
+[Produces(MediaTypeNames.Application.Json, MediaTypeNames.Application.ProblemJson)]
+public class AuthenticationController(IMediator mediator) : ControllerBase
 {
+    #region Register
+    public sealed record RegisterRequest(string Username, string Email, string Password);
+    public sealed record RegisterResponse(string AccessToken, string RefreshToken);
+
     [HttpPost("register")]
-    public async Task<ActionResult<JwtTokenPair>> Register(
-        [FromBody] CreateUserForm request,
-        CancellationToken cancellationToken
-    )
+    [ProducesResponseType(typeof(RegisterResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
-        var user = await mediator.Send(
-            new CreateUserCommand(request.Username, request.Email, request.Password),
+        var tokenPair = await mediator.Send(
+            new RegisterNewUserCommand(request.Username, request.Email, request.Password),
             cancellationToken
         );
 
-        var accessToken = jwtTokenService.GenerateAccessToken(user);
-        var refreshToken = jwtTokenService.GenerateRefreshToken(user);
-
-        return Ok(new JwtTokenPair(accessToken, refreshToken));
+        return Ok(tokenPair.Adapt<RegisterResponse>());
     }
+    #endregion
 }

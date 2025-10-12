@@ -5,6 +5,7 @@ using Shinro.Application.Contract;
 using Shinro.Domain.Entity;
 using System;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace Shinro.Infrastructure.Service;
@@ -39,5 +40,8 @@ internal sealed class JwtTokenProvider(IConfiguration configuration) : IJwtToken
         return token;
     }
 
-    public string GenerateRefreshToken(User user) => throw new System.NotImplementedException();
+    public string GenerateRefreshToken(User user)
+    {
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+    }
 }

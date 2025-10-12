@@ -10,6 +10,7 @@ namespace Shinro.Persistence;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users { get; set; }
+    public DbSet<RefreshToken> RefreshToken { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -22,49 +23,42 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
     public override int SaveChanges()
     {
-        HandleSoftDeletes();
-        UpdateTimestamps();
+        UpdateEntriesBeforeSave();
         return base.SaveChanges();
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        HandleSoftDeletes();
-        UpdateTimestamps();
+        UpdateEntriesBeforeSave();
         return base.SaveChangesAsync(cancellationToken);
     }
 
-    private void HandleSoftDeletes()
-    {
-        var now = DateTimeOffset.UtcNow;
-
-        var deletedEntries = ChangeTracker
-            .Entries<Entity>()
-            .Where(e => e.State == EntityState.Deleted);
-
-        foreach (var entry in deletedEntries)
-        {
-            entry.State = EntityState.Modified;
-            entry.Entity.IsDeleted = true;
-            entry.Entity.DeletedAt = now;
-        }
-    }
-
-    private void UpdateTimestamps()
+    private void UpdateEntriesBeforeSave()
     {
         var entries = ChangeTracker
             .Entries<Entity>()
-            .Where(e => e.State is EntityState.Added or EntityState.Modified);
+            .Where(e => e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted);
+
+        var now = DateTimeOffset.UtcNow;
 
         foreach (var entry in entries)
         {
             var entity = entry.Entity;
 
-            var now = DateTimeOffset.UtcNow;
-
-            if (entry.State == EntityState.Added)
+            switch (entry.State)
             {
-                entity.CreatedAt = now;
+                case EntityState.Added:
+                    entity.CreatedAt = now;
+                    break;
+
+                case EntityState.Modified:
+                    break;
+
+                case EntityState.Deleted:
+                    entry.State = EntityState.Modified;
+                    entry.Entity.IsDeleted = true;
+                    entry.Entity.DeletedAt = now;
+                    break;
             }
 
             entity.UpdatedAt = now;

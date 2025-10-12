@@ -12,7 +12,6 @@ public static class PersistenceExtension
     {
         return services
             .AddDbContext<ApplicationDbContext>(options => options
-                .UseLazyLoadingProxies()
                 .UseNpgsql(configuration.GetConnectionString("Database"), opt => opt.MigrationsAssembly(typeof(AssemblyReference).Assembly))
             )
             .AddScoped<IMigration, Migration>()

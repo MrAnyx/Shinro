@@ -13,42 +13,42 @@ internal abstract class Repository<TEntity>(ApplicationDbContext context) : IRep
 {
     protected readonly ApplicationDbContext _context = context;
 
-    public async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Set<TEntity>().ToListAsync(cancellationToken);
     }
 
-    public Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return _context.Set<TEntity>().FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public TEntity Add(TEntity entity)
+    public virtual TEntity Add(TEntity entity)
     {
         var entry = _context.Set<TEntity>().Add(entity);
         return entry.Entity;
     }
 
-    public TEntity Update(TEntity entity)
+    public virtual TEntity Update(TEntity entity)
     {
         var entry = _context.Set<TEntity>().Update(entity);
         return entry.Entity;
     }
 
-    public TEntity Remove(TEntity entity)
+    public virtual TEntity Remove(TEntity entity)
     {
         var entry = _context.Set<TEntity>().Remove(entity);
         return entry.Entity;
     }
 
-    public async Task<TEntity> RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual async Task<TEntity> RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var entity = await GetByIdAsync(id, cancellationToken) ?? throw new EntityNotFoundException($"No type '{typeof(TEntity).Name}' found with id '{id}'");
         var entry = _context.Set<TEntity>().Remove(entity);
         return entry.Entity;
     }
 
-    public async Task<int> CountAllAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<int> CountAllAsync(CancellationToken cancellationToken = default)
     {
         return await _context.Set<TEntity>().CountAsync(cancellationToken);
     }
