@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Shinro.Domain.Entity;
+using Shinro.Domain.Entities;
 using System;
 using System.Linq;
 using System.Threading;
