@@ -35,13 +35,11 @@ internal sealed class JwtTokenProvider(IConfiguration configuration) : IJwtToken
 
         var handler = new JsonWebTokenHandler();
 
-        var token = handler.CreateToken(tokenDescriptor);
-
-        return token;
+        return handler.CreateToken(tokenDescriptor);
     }
 
-    public string GenerateRefreshToken(User user)
+    public string GenerateRefreshToken()
     {
-        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(128));
     }
 }

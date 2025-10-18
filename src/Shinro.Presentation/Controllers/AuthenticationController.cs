@@ -2,7 +2,7 @@
 using Mediator;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Shinro.Application.UseCases.User;
+using Shinro.Application.UseCases.Authentication;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;

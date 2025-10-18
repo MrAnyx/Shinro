@@ -23,7 +23,11 @@ internal sealed class ValidationExceptionHandler(IProblemDetailsService problemD
             .GroupBy(e => e.PropertyName)
             .ToDictionary(
                 g => g.Key.ToLowerInvariant(),
-                g => g.Select(e => e.ErrorMessage).ToArray()
+                g => g.Select(e => new
+                {
+                    Message = e.ErrorMessage,
+                    Code = e.ErrorCode
+                }).ToArray()
             );
 
         httpContext.Response.StatusCode = StatusCodes.Status400BadRequest;

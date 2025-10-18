@@ -5,5 +5,5 @@ namespace Shinro.Application.Contracts;
 public interface IJwtTokenProvider
 {
     string GenerateAccessToken(User user);
-    string GenerateRefreshToken(User user);
+    string GenerateRefreshToken();
 }

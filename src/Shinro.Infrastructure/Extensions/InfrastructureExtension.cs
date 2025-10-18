@@ -10,6 +10,6 @@ public static class InfrastructureExtension
     {
         return services
             .AddSingleton<IJwtTokenProvider, JwtTokenProvider>()
-            .AddScoped<IHasher, Hasher>();
+            .AddSingleton<IHasher, Hasher>();
     }
 }

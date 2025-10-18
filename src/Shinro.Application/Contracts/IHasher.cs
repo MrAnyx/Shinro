@@ -1,7 +1,9 @@
-﻿namespace Shinro.Application.Contracts;
+﻿using Shinro.Domain.Enums;
+
+namespace Shinro.Application.Contracts;
 
 public interface IHasher
 {
-    string Hash(string password);
-    bool Verify(string password, string hash);
+    string Hash(string password, eHashAlgorithm algorithm);
+    bool Verify(string password, string hash, eHashAlgorithm algorithm);
 }

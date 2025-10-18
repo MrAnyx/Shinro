@@ -13,7 +13,7 @@ internal sealed class UserConfiguration : EntityConfiguration<User>
         builder.Property(u => u.Username).IsRequired().HasMaxLength(200);
         builder.HasIndex(u => u.Username).IsUnique();
 
-        builder.Property(u => u.Password).IsRequired().HasMaxLength(255);
+        builder.Property(u => u.PasswordHash).IsRequired().HasMaxLength(255);
 
         builder.Property(u => u.LastLoginAt).IsRequired(false);
     }

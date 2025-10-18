@@ -23,7 +23,7 @@ namespace Shinro.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Shinro.Domain.Entity.RefreshToken", b =>
+            modelBuilder.Entity("Shinro.Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -41,7 +41,10 @@ namespace Shinro.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
-                    b.Property<string>("Token")
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -54,16 +57,15 @@ namespace Shinro.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Token")
+                    b.HasIndex("TokenHash")
                         .IsUnique();
 
-                    b.HasIndex("UserId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("RefreshToken", "public");
                 });
 
-            modelBuilder.Entity("Shinro.Domain.Entity.User", b =>
+            modelBuilder.Entity("Shinro.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -86,7 +88,7 @@ namespace Shinro.Persistence.Migrations
                     b.Property<DateTimeOffset?>("LastLoginAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
@@ -110,20 +112,20 @@ namespace Shinro.Persistence.Migrations
                     b.ToTable("Users", "public");
                 });
 
-            modelBuilder.Entity("Shinro.Domain.Entity.RefreshToken", b =>
+            modelBuilder.Entity("Shinro.Domain.Entities.RefreshToken", b =>
                 {
-                    b.HasOne("Shinro.Domain.Entity.User", "User")
-                        .WithOne("RefreshToken")
-                        .HasForeignKey("Shinro.Domain.Entity.RefreshToken", "UserId")
+                    b.HasOne("Shinro.Domain.Entities.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.ClientCascade)
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Shinro.Domain.Entity.User", b =>
+            modelBuilder.Entity("Shinro.Domain.Entities.User", b =>
                 {
-                    b.Navigation("RefreshToken");
+                    b.Navigation("RefreshTokens");
                 });
 #pragma warning restore 612, 618
         }

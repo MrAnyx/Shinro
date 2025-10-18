@@ -4,6 +4,7 @@ using Shinro.Application.Contracts;
 using Shinro.Application.Contracts.Persistence;
 using Shinro.Application.Contracts.Persistence.Repository;
 using Shinro.Domain.Entities;
+using Shinro.Domain.Enums;
 using Shinro.Domain.Exceptions.User;
 using Shinro.Domain.Models;
 using System;
@@ -18,11 +19,13 @@ public sealed class RegisterCommandValidator : AbstractValidator<RegisterNewUser
     {
         RuleFor(x => x.Username)
             .NotEmpty()
+            .MinimumLength(3)
             .MaximumLength(200);
 
         RuleFor(x => x.Email)
             .NotEmpty()
             .EmailAddress()
+            .MinimumLength(3)
             .MaximumLength(200);
 
         RuleFor(x => x.Password)
@@ -60,7 +63,7 @@ internal sealed class RegisterNewUserCommandHandler(
         var user = new User
         {
             Email = command.Email,
-            Password = passwordHasher.Hash(command.Password),
+            PasswordHash = passwordHasher.Hash(command.Password, eHashAlgorithm.BCrypt),
             Username = command.Username,
             LastLoginAt = DateTimeOffset.UtcNow,
         };
@@ -69,17 +72,18 @@ internal sealed class RegisterNewUserCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var accessToken = jwtTokenService.GenerateAccessToken(user);
+        var rawRefreshToken = jwtTokenService.GenerateRefreshToken();
 
         var refreshToken = new RefreshToken()
         {
-            Token = jwtTokenService.GenerateRefreshToken(user),
+            TokenHash = passwordHasher.Hash(rawRefreshToken, eHashAlgorithm.HMAC512),
             UserId = user.Id,
-            ExpiresAt = DateTimeOffset.UtcNow.AddDays(7)
+            ExpiresAt = DateTimeOffset.UtcNow.AddDays(14)
         };
 
         refreshTokenRepository.Add(refreshToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new JwtTokenPair(accessToken, refreshToken.Token);
+        return new JwtTokenPair(accessToken, rawRefreshToken);
     }
 }
