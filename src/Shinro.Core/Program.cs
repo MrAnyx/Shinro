@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -105,6 +106,7 @@ builder.Services
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
+    .AddBearerToken(IdentityConstants.BearerScheme)
     .AddJwtBearer(options =>
     {
         options.RequireHttpsMetadata = true;
@@ -112,6 +114,8 @@ builder.Services
 
         options.TokenValidationParameters = jwtTokenValidationParameters;
     });
+
+builder.Services.AddAuthorizationBuilder();
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 #endregion
@@ -144,7 +148,7 @@ builder.Services.AddHealthChecks();
 #endregion
 
 #region OpenAPI integration
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi("v1", options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); });
 #endregion
 
 #region Http Context
@@ -183,17 +187,20 @@ app.UseAuthorization();
 
 #region Endpoint mapping
 app.MapControllers();
-app.MapOpenApi();
 app.MapHealthChecks("/health");
 #endregion
 
 #region Scalar
 if (app.Environment.IsDevelopment())
 {
+    app.MapOpenApi();
+
     // Scalar
     app.MapScalarApiReference(options =>
     {
-        options.DarkMode = true;
+        options
+            .WithDarkMode(true);
+        ;
     });
 }
 #endregion

@@ -43,15 +43,12 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        await Task.CompletedTask;
-        return Ok();
+        var tokenPair = await mediator.Send(
+            new LoginUserCommand(request.Identifier, request.Password),
+            cancellationToken
+        );
 
-        //var tokenPair = await mediator.Send(
-        //    new LoginUserCommand(request.Identifier, request.Password),
-        //    cancellationToken
-        //);
-
-        //return Ok(tokenPair.Adapt<LoginResponse>());
+        return Ok(tokenPair.Adapt<LoginResponse>());
     }
     #endregion
 
@@ -62,6 +59,7 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
     [HttpPost("refresh")]
     [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Login([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
     {
         var tokenPair = await mediator.Send(

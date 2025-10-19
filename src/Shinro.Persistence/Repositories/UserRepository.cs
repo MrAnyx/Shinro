@@ -10,4 +10,5 @@ internal sealed class UserRepository(ApplicationDbContext context) : Repository<
 {
     public async Task<bool> EmailExistAsync(string email) => await _context.Users.AnyAsync(u => u.Email == email);
     public async Task<bool> UsernameExistAsync(string username) => await _context.Users.AnyAsync(u => u.Username == username);
+    public async Task<User?> GetByIdentifierAsync(string identifier) => await _context.Users.FirstOrDefaultAsync(u => u.Username == identifier || u.Email == identifier);
 }

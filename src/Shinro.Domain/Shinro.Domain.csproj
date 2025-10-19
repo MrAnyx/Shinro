@@ -9,8 +9,4 @@
       <None Remove="ValueObject\**" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Errors\" />
-    </ItemGroup>
-
 </Project>
