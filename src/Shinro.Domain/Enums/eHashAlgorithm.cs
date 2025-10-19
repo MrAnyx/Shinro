@@ -2,5 +2,4 @@
 public enum eHashAlgorithm
 {
     BCrypt,
-    HMAC512
 }

@@ -32,6 +32,7 @@
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.8.7" />
     <PackageVersion Include="Scrutor" Version="6.1.0" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <PackageVersion Include="System.Threading.RateLimiting" Version="9.0.9" />
   </ItemGroup>
 </Project>

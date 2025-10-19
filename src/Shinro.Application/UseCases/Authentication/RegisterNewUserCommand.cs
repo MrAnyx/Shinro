@@ -71,18 +71,18 @@ internal sealed class RegisterNewUserCommandHandler(
         userRepository.Add(user);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        var accessToken = jwtTokenService.GenerateAccessToken(user);
         var rawRefreshToken = jwtTokenService.GenerateRefreshToken();
-
         var refreshToken = new RefreshToken()
         {
-            TokenHash = passwordHasher.Hash(rawRefreshToken, eHashAlgorithm.HMAC512),
+            TokenHash = passwordHasher.Hash(rawRefreshToken, eHashAlgorithm.BCrypt),
             UserId = user.Id,
             ExpiresAt = DateTimeOffset.UtcNow.AddDays(14)
         };
 
         refreshTokenRepository.Add(refreshToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var accessToken = jwtTokenService.GenerateAccessToken(user, refreshToken);
 
         return new JwtTokenPair(accessToken, rawRefreshToken);
     }

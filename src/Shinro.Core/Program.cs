@@ -22,6 +22,7 @@ using Shinro.Persistence.Extensions;
 using Shinro.Presentation.Extensions;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
@@ -82,30 +83,37 @@ builder.Services.AddRateLimiter(options =>
 #endregion
 
 #region JWT Authentication
+var jwtTokenValidationParameters = new TokenValidationParameters()
+{
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("Jwt:Secret")!)),
+    ValidIssuer = builder.Configuration.GetValue<string>("Jwt:Issuer"),
+    ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
+    ClockSkew = TimeSpan.Zero,
+    ValidateIssuer = true,
+    ValidateAudience = true,
+    ValidateIssuerSigningKey = true,
+    ValidateLifetime = true,
+};
+
+builder.Services.AddSingleton(jwtTokenValidationParameters);
+
 builder.Services.AddAuthorization();
 builder.Services
     .AddAuthentication(options =>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
     .AddJwtBearer(options =>
     {
         options.RequireHttpsMetadata = true;
         options.SaveToken = false;
 
-        options.TokenValidationParameters = new TokenValidationParameters()
-        {
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("Jwt:Secret")!)),
-            ValidIssuer = builder.Configuration.GetValue<string>("Jwt:Issuer"),
-            ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
-            ClockSkew = System.TimeSpan.Zero,
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateIssuerSigningKey = true,
-            ValidateLifetime = true
-        };
+        options.TokenValidationParameters = jwtTokenValidationParameters;
     });
+
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 #endregion
 
 #region Routing and URLs

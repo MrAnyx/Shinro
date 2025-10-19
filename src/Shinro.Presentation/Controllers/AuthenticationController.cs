@@ -33,4 +33,43 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
         return Ok(tokenPair.Adapt<RegisterResponse>());
     }
     #endregion
+
+    #region Login
+    public sealed record LoginRequest(string Identifier, string Password);
+    public sealed record LoginResponse(string AccessToken, string RefreshToken);
+
+    [HttpPost("login")]
+    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
+    {
+        await Task.CompletedTask;
+        return Ok();
+
+        //var tokenPair = await mediator.Send(
+        //    new LoginUserCommand(request.Identifier, request.Password),
+        //    cancellationToken
+        //);
+
+        //return Ok(tokenPair.Adapt<LoginResponse>());
+    }
+    #endregion
+
+    #region Refresh token
+    public sealed record RefreshTokenRequest(string AccessToken, string RefreshToken);
+    public sealed record RefreshTokenResponse(string AccessToken, string RefreshToken);
+
+    [HttpPost("refresh")]
+    [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Login([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
+    {
+        var tokenPair = await mediator.Send(
+            new RefreshTokenCommand(request.AccessToken, request.RefreshToken),
+            cancellationToken
+        );
+
+        return Ok(tokenPair.Adapt<RefreshTokenResponse>());
+    }
+    #endregion
 }
