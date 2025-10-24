@@ -198,9 +198,11 @@ if (app.Environment.IsDevelopment())
     // Scalar
     app.MapScalarApiReference(options =>
     {
-        options
-            .WithDarkMode(true);
-        ;
+        options.DarkMode = true;
+        options.Layout = ScalarLayout.Classic;
+        options.Theme = ScalarTheme.Kepler;
+        options.HideClientButton = true;
+        options.HideModels = true;
     });
 }
 #endregion

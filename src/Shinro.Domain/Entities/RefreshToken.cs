@@ -6,10 +6,11 @@ public class RefreshToken : Entity
 {
     #region Main properties
     public required string TokenHash { get; set; }
+    public required DateTimeOffset ExpiresAt { get; set; }
     #endregion
 
-    #region Security dates
-    public required DateTimeOffset ExpiresAt { get; set; }
+    #region Revokation
+    public bool IsRevoked { get; set; }
     public DateTimeOffset? RevokedAt { get; set; }
     #endregion
 

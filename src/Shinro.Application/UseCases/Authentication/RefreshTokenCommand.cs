@@ -7,7 +7,6 @@ using Shinro.Domain.Entities;
 using Shinro.Domain.Enums;
 using Shinro.Domain.Exceptions.Authentication;
 using Shinro.Domain.Exceptions.Entity;
-using Shinro.Domain.Exceptions.Global;
 using Shinro.Domain.Models;
 using System;
 using System.Threading;
@@ -42,17 +41,20 @@ internal sealed class RefreshTokenCommandHandler(
 {
     public async ValueTask<JwtTokenPair> Handle(RefreshTokenCommand command, CancellationToken cancellationToken)
     {
-        if (!jwtTokenProvider.TryGetClaim(command.AccessToken, JwtClaimName.Rtid, out var refreshTokenId))
+        var isTokenValid = jwtTokenProvider.IsAuthenticatedOrTokenValid(command.AccessToken, options =>
         {
-            throw new InvalidAccessTokenException($"Invalid access token, missing '{JwtClaimName.Rtid}' claim");
+            options.ValidateLifetime = false;
+        });
+
+        if (!isTokenValid)
+        {
+            throw new InvalidAccessTokenException($"Invalid access token");
         }
 
-        if (!Guid.TryParse(refreshTokenId, out var refreshTokenGuid))
-        {
-            throw new InvalidFormatException("The refresh token ID in the access token has an invalid format");
-        }
+        var refreshTokenId = jwtTokenProvider.GetRefreshTokenId(command.AccessToken)
+            ?? throw new InvalidAccessTokenException($"Invalid access token, invalid '{JwtClaimName.Rtid}' claim");
 
-        var refreshToken = await refreshTokenRepository.GetByIdAsync(refreshTokenGuid, cancellationToken)
+        var refreshToken = await refreshTokenRepository.GetByIdAsync(refreshTokenId, cancellationToken)
             ?? throw new EntityNotFoundException("Refresh token not found");
 
         if (refreshToken.ExpiresAt <= DateTimeOffset.UtcNow)
@@ -70,17 +72,10 @@ internal sealed class RefreshTokenCommandHandler(
             throw new InvalidRefreshTokenException("The provided refresh token does not match the stored token");
         }
 
-        if (!jwtTokenProvider.TryGetClaim(command.AccessToken, JwtClaimName.Sub, out var userId))
-        {
-            throw new InvalidAccessTokenException($"Invalid access token, missing '{JwtClaimName.Sub}' claim");
-        }
+        var userId = jwtTokenProvider.GetUserId(command.AccessToken)
+            ?? throw new InvalidAccessTokenException($"Invalid access token, invalid '{JwtClaimName.Sub}' claim");
 
-        if (!Guid.TryParse(userId, out var userGuid))
-        {
-            throw new InvalidFormatException("User ID from access token has an invalid format");
-        }
-
-        var user = await userRepository.GetByIdAsync(userGuid, cancellationToken)
+        var user = await userRepository.GetByIdAsync(userId, cancellationToken)
             ?? throw new EntityNotFoundException("User not found");
 
         refreshToken.RevokedAt = DateTimeOffset.UtcNow;

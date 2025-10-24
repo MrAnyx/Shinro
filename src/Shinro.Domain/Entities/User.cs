@@ -20,5 +20,6 @@ public class User : Entity
 
     #region Relationships
     public ICollection<RefreshToken> RefreshTokens { get; set; } = [];
+    public ICollection<Book> Books { get; set; } = [];
     #endregion
 }

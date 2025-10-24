@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata.Builders;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Shinro.Domain.Entities;
 
 namespace Shinro.Persistence.Configurations;
@@ -7,11 +8,15 @@ internal sealed class UserConfiguration : EntityConfiguration<User>
 {
     public override void Configure(EntityTypeBuilder<User> builder)
     {
-        builder.Property(u => u.Email).IsRequired().HasMaxLength(200);
-        builder.HasIndex(u => u.Email).IsUnique();
+        base.Configure(builder);
 
-        builder.Property(u => u.Username).IsRequired().HasMaxLength(200);
+        builder.ToTable(nameof(User));
+
+        builder.Property(u => u.Username).IsRequired().HasMaxLength(255);
         builder.HasIndex(u => u.Username).IsUnique();
+
+        builder.Property(u => u.Email).IsRequired().HasMaxLength(255);
+        builder.HasIndex(u => u.Email).IsUnique();
 
         builder.Property(u => u.PasswordHash).IsRequired().HasMaxLength(255);
 

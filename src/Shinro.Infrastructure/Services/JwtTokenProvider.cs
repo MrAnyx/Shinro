@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Shinro.Application.Contracts;
 using Shinro.Domain.Entities;
@@ -15,51 +16,87 @@ namespace Shinro.Infrastructure.Services;
 
 internal sealed class JwtTokenProvider(
     IConfiguration configuration,
-    TokenValidationParameters tokenValidationParameters
+    TokenValidationParameters tokenValidationParameters,
+    IHttpContextAccessor httpContextAccessor
 ) : IJwtTokenProvider
 {
+    private readonly static string SigningAlgorithm = SecurityAlgorithms.HmacSha512;
+
     public string GenerateAccessToken(User user, RefreshToken refreshToken)
     {
         var secretKey = configuration.GetValue<string>("Jwt:Secret")!;
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+        var credentials = new SigningCredentials(securityKey, SigningAlgorithm);
 
-        var tokenDescriptor = new SecurityTokenDescriptor()
+        var claims = new[]
         {
-            Subject = new ClaimsIdentity([
-                new Claim(JwtClaimName.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtClaimName.Rtid, refreshToken.Id.ToString()),
-                new Claim(JwtClaimName.Sub, user.Id.ToString()),
-                new Claim(JwtClaimName.Email, user.Email),
-                new Claim(JwtClaimName.Name, user.Username),
-            ]),
-            Expires = DateTime.UtcNow.AddMinutes(10),
-            SigningCredentials = credentials,
-            Issuer = configuration.GetValue<string>("Jwt:Issuer")!,
-            Audience = configuration.GetValue<string>("Jwt:Audience")!,
+            new Claim(JwtClaimName.Jti, Guid.NewGuid().ToString()),
+            new Claim(JwtClaimName.Rtid, refreshToken.Id.ToString()),
+            new Claim(JwtClaimName.Sub, user.Id.ToString()),
+            new Claim(JwtClaimName.Email, user.Email),
+            new Claim(JwtClaimName.Name, user.Username)
         };
 
-        var handler = new JwtSecurityTokenHandler();
-        var token = handler.CreateToken(tokenDescriptor);
-        return handler.WriteToken(token);
+        var token = new JwtSecurityToken(
+            issuer: configuration.GetValue<string>("Jwt:Issuer")!,
+            audience: configuration.GetValue<string>("Jwt:Audience")!,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(10),
+            signingCredentials: credentials
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    public string GenerateRefreshToken()
+    public string GenerateRefreshToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(128));
+
+    public ClaimsPrincipal? GetClaims(string? token = null)
     {
-        return Convert.ToBase64String(RandomNumberGenerator.GetBytes(128));
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            return GetValidatedClaims(token, options =>
+            {
+                options.ValidateLifetime = false;
+            });
+        }
+
+        var user = httpContextAccessor.HttpContext?.User;
+        return user?.Identity?.IsAuthenticated == true ? user : null;
     }
 
-    public ClaimsPrincipal? GetClaims(string token)
+    public bool IsAuthenticatedOrTokenValid(string? token, Action<TokenValidationParameters>? configuration = null)
     {
-        var tokenHandler = new JwtSecurityTokenHandler();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            return GetValidatedClaims(token, configuration) != null;
+        }
+
+        return httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
+    }
+
+    private ClaimsPrincipal? GetValidatedClaims(string token, Action<TokenValidationParameters>? configuration)
+    {
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return null;
+        }
 
         try
         {
-            var tokenParameters = tokenValidationParameters.Clone();
-            tokenParameters.ValidateLifetime = false;
-            var principal = tokenHandler.ValidateToken(token, tokenParameters, out var validatedToken);
-            return IsJwtWithValidSecurityAlgorithm(validatedToken) ? principal : null;
+            var handler = new JwtSecurityTokenHandler();
+            var parameters = tokenValidationParameters.Clone();
+
+            configuration?.Invoke(parameters);
+
+            var principals = handler.ValidateToken(token, parameters, out var validatedToken);
+
+            if (validatedToken is not JwtSecurityToken jwtToken || !jwtToken.Header.Alg.Equals(SigningAlgorithm, StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return principals;
         }
         catch
         {
@@ -67,34 +104,16 @@ internal sealed class JwtTokenProvider(
         }
     }
 
-    private static bool IsJwtWithValidSecurityAlgorithm(SecurityToken validatedToken)
+    public bool TryGetClaim(string? token, string claimKey, [NotNullWhen(true)] out string? claimValue)
     {
-        if (validatedToken is not JwtSecurityToken jwtSecurityToken)
-        {
-            return false;
-        }
-
-        return jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.OrdinalIgnoreCase);
+        claimValue = GetClaims(token)?.Claims.FirstOrDefault(c => c.Type == claimKey)?.Value;
+        return claimValue is not null;
     }
 
-    public bool TryGetClaim(string jwtToken, string claimKey, [NotNullWhen(true)] out string? claimResult)
-    {
-        claimResult = null;
-        var claims = GetClaims(jwtToken);
+    public string? GetClaimValue(string? token, string claimKey) => TryGetClaim(token, claimKey, out var value) ? value : null;
 
-        if (claims == null)
-        {
-            return false;
-        }
-
-        var claimValue = claims.Claims.FirstOrDefault(c => c.Type == claimKey)?.Value;
-
-        if (claimValue == null)
-        {
-            return false;
-        }
-
-        claimResult = claimValue;
-        return true;
-    }
+    public Guid? GetUserId(string? token = null) => Guid.TryParse(GetClaimValue(token, JwtClaimName.Sub), out var id) ? id : null;
+    public string? GetEmail(string? token = null) => GetClaimValue(token, JwtClaimName.Email);
+    public string? GetUsername(string? token = null) => GetClaimValue(token, JwtClaimName.Name);
+    public Guid? GetRefreshTokenId(string? token = null) => Guid.TryParse(GetClaimValue(token, JwtClaimName.Rtid), out var id) ? id : null;
 }

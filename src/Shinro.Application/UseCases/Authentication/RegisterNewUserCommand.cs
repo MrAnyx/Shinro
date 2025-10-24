@@ -20,13 +20,13 @@ public sealed class RegisterCommandValidator : AbstractValidator<RegisterNewUser
         RuleFor(x => x.Username)
             .NotEmpty()
             .MinimumLength(3)
-            .MaximumLength(200);
+            .MaximumLength(255);
 
         RuleFor(x => x.Email)
             .NotEmpty()
             .EmailAddress()
             .MinimumLength(3)
-            .MaximumLength(200);
+            .MaximumLength(255);
 
         RuleFor(x => x.Password)
             .NotEmpty()

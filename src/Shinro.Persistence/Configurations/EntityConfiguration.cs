@@ -14,9 +14,9 @@ internal abstract class EntityConfiguration<TEntity> : IEntityTypeConfiguration<
         // Common timestamps
         builder.Property(e => e.CreatedAt).IsRequired();
         builder.Property(e => e.UpdatedAt).IsRequired();
-        builder.Property(e => e.DeletedAt).IsRequired(false);
 
         // Soft-delete flag
+        builder.Property(e => e.DeletedAt).IsRequired(false);
         builder.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
 
         // Soft-delete global filter

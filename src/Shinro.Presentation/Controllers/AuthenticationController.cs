@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Shinro.Presentation.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("auth")]
 [Consumes(MediaTypeNames.Application.Json)]
 [Produces(MediaTypeNames.Application.Json, MediaTypeNames.Application.ProblemJson)]
 public class AuthenticationController(IMediator mediator) : ControllerBase

@@ -8,10 +8,15 @@ internal sealed class RefreshTokenConfiguration : EntityConfiguration<RefreshTok
 {
     public override void Configure(EntityTypeBuilder<RefreshToken> builder)
     {
-        builder.Property(rt => rt.TokenHash).IsRequired().HasMaxLength(500);
-        builder.HasIndex(rt => rt.TokenHash).IsUnique();
+        base.Configure(builder);
 
+        builder.ToTable(nameof(RefreshToken));
+
+        builder.Property(rt => rt.TokenHash).IsRequired().HasMaxLength(500);
         builder.Property(rt => rt.ExpiresAt).IsRequired();
+
+        builder.Property(rt => rt.IsRevoked).IsRequired().HasDefaultValue(false);
+        builder.Property(rt => rt.RevokedAt).IsRequired(false);
 
         builder.Property(rt => rt.UserId).IsRequired();
         builder.HasOne(rt => rt.User)

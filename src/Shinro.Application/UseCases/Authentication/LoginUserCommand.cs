@@ -20,7 +20,7 @@ public sealed class LoginCommandValidator : AbstractValidator<LoginUserCommand>
         RuleFor(x => x.Identifier)
             .NotEmpty()
             .MinimumLength(3)
-            .MaximumLength(200);
+            .MaximumLength(255);
 
         RuleFor(x => x.Password)
             .NotEmpty()
