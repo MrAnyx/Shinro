@@ -10,8 +10,8 @@ public interface IJwtTokenProvider
 {
     string GenerateAccessToken(User user, RefreshToken refreshToken);
     string GenerateRefreshToken();
-    bool IsAuthenticatedOrTokenValid(string? token, Action<TokenValidationParameters>? configuration);
     ClaimsPrincipal? GetClaims(string? token = null);
+    bool IsTokenValid(string token, Action<TokenValidationParameters>? configuration = null);
     bool TryGetClaim(string? token, string claimKey, [NotNullWhen(true)] out string? claimValue);
     string? GetClaimValue(string? token, string claimKey);
     Guid? GetUserId(string? token = null);

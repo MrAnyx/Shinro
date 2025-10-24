@@ -4,12 +4,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Helper\" />
-      <Folder Include="Extension\" />
+      <ProjectReference Include="..\Shinro.Domain\Shinro.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Shinro.Domain\Shinro.Domain.csproj" />
+        <PackageReference Include="RecursiveDataAnnotationsValidation" />
     </ItemGroup>
 
 </Project>

@@ -9,9 +9,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NLog.Web;
 using Scalar.AspNetCore;
+using Shinro.Application.Contracts.Configuration;
 using Shinro.Application.Contracts.Persistence;
 using Shinro.Application.Extensions;
 using Shinro.Core.Conventions;
@@ -19,8 +21,10 @@ using Shinro.Core.ExceptionHandlers;
 using Shinro.Core.Middlewares;
 using Shinro.Core.Transformers;
 using Shinro.Infrastructure.Extensions;
+using Shinro.Infrastructure.Models;
 using Shinro.Persistence.Extensions;
 using Shinro.Presentation.Extensions;
+using Shinro.Shared.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
@@ -42,6 +46,15 @@ builder.Services.AddProblemDetails(options =>
 });
 builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+#endregion
+
+#region Configuration Options Binding
+var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>()
+    ?? throw new OptionsValidationException("Jwt", typeof(JwtOptions), ["Missing Jwt configuration"]);
+
+Validator.Validate(jwtOptions);
+
+builder.Services.AddSingleton<IJwtOptions>(jwtOptions);
 #endregion
 
 #region Logging
@@ -84,19 +97,18 @@ builder.Services.AddRateLimiter(options =>
 #endregion
 
 #region JWT Authentication
-var jwtTokenValidationParameters = new TokenValidationParameters()
+var tokenValidationParameters = new TokenValidationParameters()
 {
-    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetValue<string>("Jwt:Secret")!)),
-    ValidIssuer = builder.Configuration.GetValue<string>("Jwt:Issuer"),
-    ValidAudience = builder.Configuration.GetValue<string>("Jwt:Audience"),
+    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
+    ValidIssuer = jwtOptions.Issuer,
+    ValidAudience = jwtOptions.Audience,
     ClockSkew = TimeSpan.Zero,
     ValidateIssuer = true,
     ValidateAudience = true,
     ValidateIssuerSigningKey = true,
     ValidateLifetime = true,
 };
-
-builder.Services.AddSingleton(jwtTokenValidationParameters);
+builder.Services.AddSingleton(tokenValidationParameters);
 
 builder.Services.AddAuthorization();
 builder.Services
@@ -112,7 +124,7 @@ builder.Services
         options.RequireHttpsMetadata = true;
         options.SaveToken = false;
 
-        options.TokenValidationParameters = jwtTokenValidationParameters;
+        options.TokenValidationParameters = tokenValidationParameters;
     });
 
 builder.Services.AddAuthorizationBuilder();

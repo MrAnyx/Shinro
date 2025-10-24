@@ -41,18 +41,15 @@ internal sealed class RefreshTokenCommandHandler(
 {
     public async ValueTask<JwtTokenPair> Handle(RefreshTokenCommand command, CancellationToken cancellationToken)
     {
-        var isTokenValid = jwtTokenProvider.IsAuthenticatedOrTokenValid(command.AccessToken, options =>
-        {
-            options.ValidateLifetime = false;
-        });
+        var isTokenValid = jwtTokenProvider.IsTokenValid(command.AccessToken, options => options.ValidateLifetime = false);
 
         if (!isTokenValid)
         {
-            throw new InvalidAccessTokenException($"Invalid access token");
+            throw new InvalidAccessTokenException($"Invalid JWT access token");
         }
 
         var refreshTokenId = jwtTokenProvider.GetRefreshTokenId(command.AccessToken)
-            ?? throw new InvalidAccessTokenException($"Invalid access token, invalid '{JwtClaimName.Rtid}' claim");
+            ?? throw new InvalidAccessTokenException($"Invalid JWT access token, invalid '{JwtClaimName.Rtid}' claim");
 
         var refreshToken = await refreshTokenRepository.GetByIdAsync(refreshTokenId, cancellationToken)
             ?? throw new EntityNotFoundException("Refresh token not found");
@@ -73,7 +70,7 @@ internal sealed class RefreshTokenCommandHandler(
         }
 
         var userId = jwtTokenProvider.GetUserId(command.AccessToken)
-            ?? throw new InvalidAccessTokenException($"Invalid access token, invalid '{JwtClaimName.Sub}' claim");
+            ?? throw new InvalidAccessTokenException($"Invalid JWT access token, invalid '{JwtClaimName.Sub}' claim");
 
         var user = await userRepository.GetByIdAsync(userId, cancellationToken)
             ?? throw new EntityNotFoundException("User not found");

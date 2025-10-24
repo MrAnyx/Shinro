@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Shinro.Application.Contracts;
+using Shinro.Application.Contracts.Configuration;
 using Shinro.Domain.Entities;
 using Shinro.Domain.Enums;
 using System;
@@ -15,7 +15,7 @@ using System.Text;
 namespace Shinro.Infrastructure.Services;
 
 internal sealed class JwtTokenProvider(
-    IConfiguration configuration,
+    IJwtOptions jwtOptions,
     TokenValidationParameters tokenValidationParameters,
     IHttpContextAccessor httpContextAccessor
 ) : IJwtTokenProvider
@@ -24,7 +24,7 @@ internal sealed class JwtTokenProvider(
 
     public string GenerateAccessToken(User user, RefreshToken refreshToken)
     {
-        var secretKey = configuration.GetValue<string>("Jwt:Secret")!;
+        var secretKey = jwtOptions.Secret;
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
         var credentials = new SigningCredentials(securityKey, SigningAlgorithm);
@@ -39,8 +39,8 @@ internal sealed class JwtTokenProvider(
         };
 
         var token = new JwtSecurityToken(
-            issuer: configuration.GetValue<string>("Jwt:Issuer")!,
-            audience: configuration.GetValue<string>("Jwt:Audience")!,
+            issuer: jwtOptions.Issuer,
+            audience: jwtOptions.Audience,
             claims: claims,
             expires: DateTime.UtcNow.AddMinutes(10),
             signingCredentials: credentials
@@ -48,38 +48,50 @@ internal sealed class JwtTokenProvider(
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-
     public string GenerateRefreshToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(128));
 
+    private ClaimsPrincipal? GetClaimsFromContext()
+    {
+        return httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated == true
+            ? httpContextAccessor.HttpContext!.User
+            : null;
+    }
+    private ClaimsPrincipal? GetClaimsFromToken(string token)
+    {
+        if (TryValidateToken(token, options => options.ValidateLifetime = false, out var claims))
+        {
+            return claims;
+        }
+
+        return null;
+    }
     public ClaimsPrincipal? GetClaims(string? token = null)
     {
         if (!string.IsNullOrWhiteSpace(token))
         {
-            return GetValidatedClaims(token, options =>
-            {
-                options.ValidateLifetime = false;
-            });
+            return GetClaimsFromToken(token);
         }
 
-        var user = httpContextAccessor.HttpContext?.User;
-        return user?.Identity?.IsAuthenticated == true ? user : null;
+        return GetClaimsFromContext();
     }
 
-    public bool IsAuthenticatedOrTokenValid(string? token, Action<TokenValidationParameters>? configuration = null)
+    public bool IsTokenValid(string token, Action<TokenValidationParameters>? configuration = null)
     {
         if (!string.IsNullOrWhiteSpace(token))
         {
-            return GetValidatedClaims(token, configuration) != null;
+            return TryValidateToken(token, configuration, out _);
         }
 
         return httpContextAccessor.HttpContext?.User?.Identity?.IsAuthenticated ?? false;
     }
 
-    private ClaimsPrincipal? GetValidatedClaims(string token, Action<TokenValidationParameters>? configuration)
+    private bool TryValidateToken(string token, Action<TokenValidationParameters>? configuration, [NotNullWhen(true)] out ClaimsPrincipal? claims)
     {
+        claims = null;
+
         if (string.IsNullOrWhiteSpace(token))
         {
-            return null;
+            return false;
         }
 
         try
@@ -93,14 +105,15 @@ internal sealed class JwtTokenProvider(
 
             if (validatedToken is not JwtSecurityToken jwtToken || !jwtToken.Header.Alg.Equals(SigningAlgorithm, StringComparison.OrdinalIgnoreCase))
             {
-                return null;
+                return false;
             }
 
-            return principals;
+            claims = principals;
+            return true;
         }
         catch
         {
-            return null;
+            return false;
         }
     }
 
