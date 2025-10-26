@@ -25,10 +25,9 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
-        var tokenPair = await mediator.Send(
-            new RegisterNewUserCommand(request.Username, request.Email, request.Password),
-            cancellationToken
-        );
+        var command = request.Adapt<RegisterNewUserCommand>();
+
+        var tokenPair = await mediator.Send(command, cancellationToken);
 
         return Ok(tokenPair.Adapt<RegisterResponse>());
     }
@@ -43,10 +42,9 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
-        var tokenPair = await mediator.Send(
-            new LoginUserCommand(request.Identifier, request.Password),
-            cancellationToken
-        );
+        var command = request.Adapt<LoginUserCommand>();
+
+        var tokenPair = await mediator.Send(command, cancellationToken);
 
         return Ok(tokenPair.Adapt<LoginResponse>());
     }
@@ -62,10 +60,9 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Login([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
     {
-        var tokenPair = await mediator.Send(
-            new RefreshTokenCommand(request.AccessToken, request.RefreshToken),
-            cancellationToken
-        );
+        var command = request.Adapt<RefreshTokenCommand>();
+
+        var tokenPair = await mediator.Send(command, cancellationToken);
 
         return Ok(tokenPair.Adapt<RefreshTokenResponse>());
     }

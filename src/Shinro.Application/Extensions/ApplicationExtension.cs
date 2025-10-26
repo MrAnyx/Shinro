@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using Mapster;
 using Microsoft.Extensions.DependencyInjection;
 using Shinro.Application.Behaviors;
 
@@ -9,6 +10,10 @@ public static class ApplicationExtension
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         ValidatorOptions.Global.LanguageManager.Enabled = false;
+
+        TypeAdapterConfig.GlobalSettings.Scan(typeof(AssemblyReference).Assembly);
+        TypeAdapterConfig.GlobalSettings.RequireExplicitMapping = true; // Fail if a mapping is missing
+        TypeAdapterConfig.GlobalSettings.RequireDestinationMemberSource = true; // Fail if a destination member isn’t mapped
 
         return services
             .AddValidatorsFromAssembly(typeof(AssemblyReference).Assembly, ServiceLifetime.Scoped, includeInternalTypes: true)
