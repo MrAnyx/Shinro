@@ -14,10 +14,12 @@ internal sealed class BookConfiguration : IEntityTypeConfiguration<Book>
         builder.Property(b => b.Author).IsRequired(false).HasMaxLength(255);
         builder.Property(b => b.PageCount).IsRequired(false);
 
-        builder.Property(rt => rt.UserId).IsRequired();
-        builder.HasOne(rt => rt.User)
+        builder.Property(b => b.UserId).IsRequired();
+        builder.HasOne(b => b.User)
             .WithMany(u => u.Books)
-            .HasForeignKey(rt => rt.UserId)
+            .HasForeignKey(b => b.UserId)
             .OnDelete(DeleteBehavior.ClientCascade);
+
+        builder.Navigation(b => b.User).AutoInclude();
     }
 }

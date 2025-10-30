@@ -2,9 +2,9 @@
 
 public static class JwtClaimName
 {
-    public const string Jti = "jti";
-    public const string Rtid = "rtid";
-    public const string Sub = "sub";
-    public const string Email = "email";
-    public const string Name = "name";
+    public const string JwtTokenId = "jti";
+    public const string RefreshTokenId = "rtid";
+    public const string UserId = "sub";
+    public const string UserEmail = "email";
+    public const string UserName = "name";
 }

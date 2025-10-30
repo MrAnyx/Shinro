@@ -31,11 +31,11 @@ internal sealed class JwtTokenProvider(
 
         var claims = new[]
         {
-            new Claim(JwtClaimName.Jti, Guid.NewGuid().ToString()),
-            new Claim(JwtClaimName.Rtid, refreshToken.Id.ToString()),
-            new Claim(JwtClaimName.Sub, user.Id.ToString()),
-            new Claim(JwtClaimName.Email, user.Email),
-            new Claim(JwtClaimName.Name, user.Username)
+            new Claim(JwtClaimName.JwtTokenId, Guid.NewGuid().ToString()),
+            new Claim(JwtClaimName.RefreshTokenId, refreshToken.Id.ToString()),
+            new Claim(JwtClaimName.UserId, user.Id.ToString()),
+            new Claim(JwtClaimName.UserEmail, user.Email),
+            new Claim(JwtClaimName.UserName, user.Username)
         };
 
         var token = new JwtSecurityToken(
@@ -125,8 +125,8 @@ internal sealed class JwtTokenProvider(
 
     public string? GetClaimValue(string? token, string claimKey) => TryGetClaim(token, claimKey, out var value) ? value : null;
 
-    public Guid? GetUserId(string? token = null) => Guid.TryParse(GetClaimValue(token, JwtClaimName.Sub), out var id) ? id : null;
-    public string? GetEmail(string? token = null) => GetClaimValue(token, JwtClaimName.Email);
-    public string? GetUsername(string? token = null) => GetClaimValue(token, JwtClaimName.Name);
-    public Guid? GetRefreshTokenId(string? token = null) => Guid.TryParse(GetClaimValue(token, JwtClaimName.Rtid), out var id) ? id : null;
+    public Guid? GetUserId(string? token = null) => Guid.TryParse(GetClaimValue(token, JwtClaimName.UserId), out var id) ? id : null;
+    public string? GetEmail(string? token = null) => GetClaimValue(token, JwtClaimName.UserEmail);
+    public string? GetUsername(string? token = null) => GetClaimValue(token, JwtClaimName.UserName);
+    public Guid? GetRefreshTokenId(string? token = null) => Guid.TryParse(GetClaimValue(token, JwtClaimName.RefreshTokenId), out var id) ? id : null;
 }

@@ -1,5 +1,7 @@
-﻿namespace Shinro.Domain.Exceptions;
+﻿using System;
 
-public class ConflictException(string message, System.Exception? innerException = null) : System.Exception(message, innerException)
+namespace Shinro.Domain.Exceptions;
+
+public class ConflictException(string message, Exception? innerException = null) : Exception(message, innerException)
 {
 }

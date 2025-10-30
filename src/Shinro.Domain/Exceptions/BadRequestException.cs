@@ -1,5 +1,7 @@
-﻿namespace Shinro.Domain.Exceptions;
+﻿using System;
 
-public class BadRequestException(string message, System.Exception? innerException = null) : System.Exception(message, innerException)
+namespace Shinro.Domain.Exceptions;
+
+public class BadRequestException(string message, Exception? innerException = null) : Exception(message, innerException)
 {
 }

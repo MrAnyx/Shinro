@@ -18,6 +18,7 @@ internal sealed class GlobalExceptionHandler(IProblemDetailsService problemDetai
             BadRequestException => StatusCodes.Status400BadRequest,
             ConflictException => StatusCodes.Status409Conflict,
             ForbiddenException => StatusCodes.Status403Forbidden,
+            UnauthorizedException => StatusCodes.Status401Unauthorized,
             _ => StatusCodes.Status500InternalServerError
         };
 

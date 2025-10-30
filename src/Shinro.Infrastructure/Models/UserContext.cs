@@ -16,7 +16,7 @@ internal sealed class UserContext(IHttpContextAccessor httpContextAccessor) : IU
     {
         get
         {
-            var idClaim = _user?.FindFirstValue(JwtClaimName.Sub);
+            var idClaim = _user?.FindFirstValue(JwtClaimName.UserId);
 
             return Guid.TryParse(idClaim, out var userId) ? userId : null;
         }

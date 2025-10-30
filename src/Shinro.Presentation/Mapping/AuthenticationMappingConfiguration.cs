@@ -5,7 +5,7 @@ using Shinro.Presentation.Controllers;
 
 namespace Shinro.Presentation.Mapping;
 
-public class AuthenticationMappingConfiguration : IRegister
+internal sealed class AuthenticationMappingConfiguration : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
