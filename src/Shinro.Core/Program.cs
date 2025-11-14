@@ -231,6 +231,7 @@ if (app.Environment.IsDevelopment())
         options.Theme = ScalarTheme.Kepler;
         options.HideClientButton = true;
         options.HideModels = true;
+        options.ExpandAllModelSections = true;
     });
 }
 #endregion
