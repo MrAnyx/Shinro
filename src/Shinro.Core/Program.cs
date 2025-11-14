@@ -1,10 +1,9 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -22,12 +21,14 @@ using Shinro.Core.Middlewares;
 using Shinro.Core.Transformers;
 using Shinro.Infrastructure.Extensions;
 using Shinro.Infrastructure.Models;
+using Shinro.Infrastructure.Services;
 using Shinro.Persistence.Extensions;
 using Shinro.Presentation.Extensions;
 using Shinro.Shared.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Text;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
@@ -97,6 +98,9 @@ builder.Services.AddRateLimiter(options =>
 #endregion
 
 #region JWT Authentication
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
+
 var tokenValidationParameters = new TokenValidationParameters()
 {
     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret)),
@@ -107,7 +111,9 @@ var tokenValidationParameters = new TokenValidationParameters()
     ValidateAudience = true,
     ValidateIssuerSigningKey = true,
     ValidateLifetime = true,
+    ValidAlgorithms = [JwtTokenProvider.SigningAlgorithm]
 };
+
 builder.Services.AddSingleton(tokenValidationParameters);
 
 builder.Services.AddAuthorization();
@@ -118,18 +124,16 @@ builder.Services
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     })
-    .AddBearerToken(IdentityConstants.BearerScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.RequireHttpsMetadata = true;
         options.SaveToken = false;
-
         options.TokenValidationParameters = tokenValidationParameters;
+        options.Events = new JwtBearerEvents { };
     });
 
 builder.Services.AddAuthorizationBuilder();
-
-JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 #endregion
 
 #region Routing and URLs
@@ -160,7 +164,10 @@ builder.Services.AddHealthChecks();
 #endregion
 
 #region OpenAPI integration
-builder.Services.AddOpenApi("v1", options => { options.AddDocumentTransformer<BearerSecuritySchemeTransformer>(); });
+builder.Services.AddOpenApi("v1", options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 #endregion
 
 #region Http Context
@@ -186,15 +193,24 @@ using (var scope = app.Services.CreateScope())
 #endregion
 
 #region Middlewares
+
+app.Use(async (ctx, next) =>
+{
+    var header = ctx.Request.Headers.Authorization.FirstOrDefault();
+    Console.WriteLine($"Authorization header seen by server: {header ?? "<none>"}");
+    await next();
+});
+
+app.UseExceptionHandler();
 app.UseHsts();
 app.UseHttpsRedirection();
-app.UseExceptionHandler();
 app.UseMiddleware<RequestLoggingMiddleware>();
-app.UseRateLimiter();
 app.UseRouting();
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
+
 #endregion
 
 #region Endpoint mapping

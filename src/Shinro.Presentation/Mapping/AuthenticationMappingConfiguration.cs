@@ -9,15 +9,18 @@ internal sealed class AuthenticationMappingConfiguration : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        #region Request to command
+        #region Register
         config.NewConfig<AuthenticationController.RegisterRequest, RegisterNewUserCommand>().TwoWays();
-        config.NewConfig<AuthenticationController.LoginRequest, LoginUserCommand>().TwoWays();
-        config.NewConfig<AuthenticationController.RefreshTokenRequest, RefreshTokenCommand>().TwoWays();
+        config.NewConfig<JwtTokenPair, AuthenticationController.RegisterResponse>().TwoWays();
         #endregion
 
-        #region Command result to response
-        config.NewConfig<JwtTokenPair, AuthenticationController.RegisterResponse>().TwoWays();
+        #region Login
+        config.NewConfig<AuthenticationController.LoginRequest, LoginUserCommand>().TwoWays();
         config.NewConfig<JwtTokenPair, AuthenticationController.LoginResponse>().TwoWays();
+        #endregion
+
+        #region Refresh token
+        config.NewConfig<AuthenticationController.RefreshTokenRequest, RefreshTokenCommand>().TwoWays();
         config.NewConfig<JwtTokenPair, AuthenticationController.RefreshTokenResponse>().TwoWays();
         #endregion
     }

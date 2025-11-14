@@ -6,7 +6,7 @@ namespace Shinro.Infrastructure.Models;
 public class JwtOptions : IJwtOptions
 {
     [Required]
-    [MinLength(200)]
+    [MinLength(100)]
     public required string Secret { get; init; }
 
     [Required]

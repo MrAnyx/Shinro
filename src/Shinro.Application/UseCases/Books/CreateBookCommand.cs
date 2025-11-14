@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 namespace Shinro.Application.UseCases.Books;
 
 
-public sealed class CreateNewBookCommandValidator : AbstractValidator<CreateNewBookCommand>
+public sealed class CreateBookCommandValidator : AbstractValidator<CreateBookCommand>
 {
-    public CreateNewBookCommandValidator()
+    public CreateBookCommandValidator()
     {
         RuleFor(x => x.Title)
             .NotEmpty()
@@ -34,7 +34,7 @@ public sealed class CreateNewBookCommandValidator : AbstractValidator<CreateNewB
     }
 }
 
-public sealed record CreateNewBookCommand(
+public sealed record CreateBookCommand(
     string Title,
     string? Description,
     DateTimeOffset? ReleasedAt,
@@ -44,13 +44,13 @@ public sealed record CreateNewBookCommand(
     uint? PageCount
 ) : ICommand<Book>;
 
-internal sealed class CreateNewBookCommandHandler(
+internal sealed class CreateBookCommandHandler(
     IUnitOfWork unitOfWork,
     IBookRepository bookRepository,
     IJwtTokenProvider jwtTokenProvider
-) : ICommandHandler<CreateNewBookCommand, Book>
+) : ICommandHandler<CreateBookCommand, Book>
 {
-    public async ValueTask<Book> Handle(CreateNewBookCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Book> Handle(CreateBookCommand command, CancellationToken cancellationToken)
     {
         if (jwtTokenProvider.GetUserId() is not Guid userId)
         {

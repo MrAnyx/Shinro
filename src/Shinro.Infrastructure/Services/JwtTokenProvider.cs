@@ -14,40 +14,42 @@ using System.Text;
 
 namespace Shinro.Infrastructure.Services;
 
-internal sealed class JwtTokenProvider(
+public sealed class JwtTokenProvider(
     IJwtOptions jwtOptions,
     TokenValidationParameters tokenValidationParameters,
     IHttpContextAccessor httpContextAccessor
 ) : IJwtTokenProvider
 {
-    private readonly static string SigningAlgorithm = SecurityAlgorithms.HmacSha512;
+    public readonly static string SigningAlgorithm = SecurityAlgorithms.HmacSha512;
 
     public string GenerateAccessToken(User user, RefreshToken refreshToken)
     {
         var secretKey = jwtOptions.Secret;
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-
         var credentials = new SigningCredentials(securityKey, SigningAlgorithm);
 
-        var claims = new[]
-        {
+        var claims = new ClaimsIdentity([
             new Claim(JwtClaimName.JwtTokenId, Guid.NewGuid().ToString()),
             new Claim(JwtClaimName.RefreshTokenId, refreshToken.Id.ToString()),
             new Claim(JwtClaimName.UserId, user.Id.ToString()),
             new Claim(JwtClaimName.UserEmail, user.Email),
             new Claim(JwtClaimName.UserName, user.Username)
+        ]);
+
+        var tokenDescriptor = new SecurityTokenDescriptor()
+        {
+            Subject = claims,
+            Expires = DateTime.UtcNow.AddMinutes(10),
+            SigningCredentials = credentials,
+            Issuer = jwtOptions.Issuer,
+            Audience = jwtOptions.Audience,
         };
 
-        var token = new JwtSecurityToken(
-            issuer: jwtOptions.Issuer,
-            audience: jwtOptions.Audience,
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(10),
-            signingCredentials: credentials
-        );
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var handler = new JwtSecurityTokenHandler();
+        var token = handler.CreateToken(tokenDescriptor);
+        return handler.WriteToken(token);
     }
+
     public string GenerateRefreshToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(128));
 
     private ClaimsPrincipal? GetClaimsFromContext()
@@ -56,6 +58,7 @@ internal sealed class JwtTokenProvider(
             ? httpContextAccessor.HttpContext!.User
             : null;
     }
+
     private ClaimsPrincipal? GetClaimsFromToken(string token)
     {
         if (TryValidateToken(token, options => options.ValidateLifetime = false, out var claims))

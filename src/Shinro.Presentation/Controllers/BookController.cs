@@ -29,7 +29,7 @@ public class BookController(
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateBooks([FromBody] CreateBookRequest request, CancellationToken cancellationToken)
     {
-        var command = request.Adapt<CreateNewBookCommand>();
+        var command = request.Adapt<CreateBookCommand>();
 
         var tokenPair = await mediator.Send(command, cancellationToken);
 

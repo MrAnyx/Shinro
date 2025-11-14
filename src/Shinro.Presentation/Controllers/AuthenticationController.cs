@@ -30,6 +30,9 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
         var tokenPair = await mediator.Send(command, cancellationToken);
 
         return Ok(tokenPair.Adapt<RegisterResponse>());
+
+        //TODO Update the location action
+        //return CreatedAtAction(string.Empty, tokenPair.Adapt<RegisterResponse>());
     }
     #endregion
 
