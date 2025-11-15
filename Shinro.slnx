@@ -4,11 +4,12 @@
     <File Path="src/Directory.Build.props" />
     <File Path="src/Directory.Packages.props" />
   </Folder>
-  <Project Path="src/Shinro.Application/Shinro.Application.csproj" />
-  <Project Path="src/Shinro.Core/Shinro.Core.csproj" />
+  <Folder Name="/Tests/" />
   <Project Path="Shinro.Docker.dcproj">
     <Build />
   </Project>
+  <Project Path="src/Shinro.Application/Shinro.Application.csproj" />
+  <Project Path="src/Shinro.Core/Shinro.Core.csproj" />
   <Project Path="src/Shinro.Domain/Shinro.Domain.csproj" />
   <Project Path="src/Shinro.Infrastructure/Shinro.Infrastructure.csproj" />
   <Project Path="src/Shinro.Persistence/Shinro.Persistence.csproj" />

@@ -13,5 +13,9 @@ internal sealed class BookMappingConfiguration : IRegister
         config.NewConfig<BookController.CreateBookRequest, CreateBookCommand>().TwoWays();
         config.NewConfig<Book, BookController.CreateBookResponse>().TwoWays();
         #endregion
+
+        #region Get one book
+        config.NewConfig<Book, BookController.GetOneBookResponse>().TwoWays();
+        #endregion
     }
 }

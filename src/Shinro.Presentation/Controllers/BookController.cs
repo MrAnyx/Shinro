@@ -22,7 +22,7 @@ public class BookController(
 {
     #region Create a new book
     public sealed record CreateBookRequest(string Title, string? Description, DateTimeOffset? ReleasedAt, double? Rating, string? Isbn, string? Author, uint? PageCount);
-    public sealed record CreateBookResponse(string Title, string? Description, DateTimeOffset? ReleasedAt, double? Rating, string? Isbn, string? Author, uint? PageCount);
+    public sealed record CreateBookResponse(Guid Id, string Title, string? Description, DateTimeOffset? ReleasedAt, double? Rating, string? Isbn, string? Author, uint? PageCount);
 
     [HttpPost]
     [ProducesResponseType(typeof(CreateBookResponse), StatusCodes.Status201Created)]
@@ -31,9 +31,25 @@ public class BookController(
     {
         var command = request.Adapt<CreateBookCommand>();
 
-        var tokenPair = await mediator.Send(command, cancellationToken);
+        var newBook = await mediator.Send(command, cancellationToken);
 
-        return Ok(tokenPair.Adapt<CreateBookResponse>());
+        return Ok(newBook.Adapt<CreateBookResponse>());
+    }
+    #endregion
+
+    #region Get one book
+    public sealed record GetOneBookResponse(Guid Id, string Title, string? Description, DateTimeOffset? ReleasedAt, double? Rating, string? Isbn, string? Author, uint? PageCount);
+
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(GetOneBookResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetOneBook(Guid id, CancellationToken cancellationToken)
+    {
+        var query = new GetOneGookQuery(id);
+
+        var book = await mediator.Send(query, cancellationToken);
+
+        return Ok(book.Adapt<GetOneBookResponse>());
     }
     #endregion
 }

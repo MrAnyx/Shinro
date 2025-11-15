@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 
 namespace Shinro.Application.UseCases.Books;
 
-
 public sealed class CreateBookCommandValidator : AbstractValidator<CreateBookCommand>
 {
     public CreateBookCommandValidator()

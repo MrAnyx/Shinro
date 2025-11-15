@@ -28,7 +28,6 @@ using Shinro.Shared.Helpers;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Text;
 using System.Threading.RateLimiting;
 using System.Threading.Tasks;
@@ -193,14 +192,6 @@ using (var scope = app.Services.CreateScope())
 #endregion
 
 #region Middlewares
-
-app.Use(async (ctx, next) =>
-{
-    var header = ctx.Request.Headers.Authorization.FirstOrDefault();
-    Console.WriteLine($"Authorization header seen by server: {header ?? "<none>"}");
-    await next();
-});
-
 app.UseExceptionHandler();
 app.UseHsts();
 app.UseHttpsRedirection();
