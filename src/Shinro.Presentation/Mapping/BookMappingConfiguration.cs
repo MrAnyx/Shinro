@@ -17,5 +17,10 @@ internal sealed class BookMappingConfiguration : IRegister
         #region Get one book
         config.NewConfig<Book, BookController.GetOneBookResponse>().TwoWays();
         #endregion
+
+        #region Delete one book
+        config.NewConfig<Book, BookController.DeleteOneBookResponse>().TwoWays();
+        #endregion
+    }
     }
 }

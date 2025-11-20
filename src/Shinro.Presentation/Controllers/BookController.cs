@@ -52,4 +52,20 @@ public class BookController(
         return Ok(book.Adapt<GetOneBookResponse>());
     }
     #endregion
+
+    #region Delete one book
+    public sealed record DeleteOneBookResponse(Guid Id, string Title, string? Description, DateTimeOffset? ReleasedAt, double? Rating, string? Isbn, string? Author, uint? PageCount);
+
+    [HttpGet("{id:guid}")]
+    [ProducesResponseType(typeof(DeleteOneBookResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetOneBook(Guid id, CancellationToken cancellationToken)
+    {
+        var command = new DeleteOneBookCommand(id);
+
+        var book = await mediator.Send(command, cancellationToken);
+
+        return Ok(book.Adapt<DeleteOneBookResponse>());
+    }
+    #endregion
 }
