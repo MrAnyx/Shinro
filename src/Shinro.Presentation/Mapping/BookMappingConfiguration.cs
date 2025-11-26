@@ -1,7 +1,6 @@
 ﻿using Mapster;
-using Shinro.Application.UseCases.Books;
 using Shinro.Domain.Entities;
-using Shinro.Presentation.Controllers;
+using Shinro.Presentation.Models.Books;
 
 namespace Shinro.Presentation.Mapping;
 
@@ -9,18 +8,6 @@ internal sealed class BookMappingConfiguration : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        #region Create book
-        config.NewConfig<BookController.CreateBookRequest, CreateBookCommand>().TwoWays();
-        config.NewConfig<Book, BookController.CreateBookResponse>().TwoWays();
-        #endregion
-
-        #region Get one book
-        config.NewConfig<Book, BookController.GetOneBookResponse>().TwoWays();
-        #endregion
-
-        #region Delete one book
-        config.NewConfig<Book, BookController.DeleteOneBookResponse>().TwoWays();
-        #endregion
-    }
+        config.NewConfig<Book, BookResponse>();
     }
 }

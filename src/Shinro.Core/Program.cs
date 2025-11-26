@@ -163,10 +163,7 @@ builder.Services.AddHealthChecks();
 #endregion
 
 #region OpenAPI integration
-builder.Services.AddOpenApi("v1", options =>
-{
-    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-});
+builder.Services.AddOpenApi("v1");
 #endregion
 
 #region Http Context
@@ -217,11 +214,11 @@ if (app.Environment.IsDevelopment())
     // Scalar
     app.MapScalarApiReference(options =>
     {
+        options.Title = "Shinro API";
         options.DarkMode = true;
-        options.Layout = ScalarLayout.Classic;
+        options.Layout = ScalarLayout.Modern;
         options.Theme = ScalarTheme.Kepler;
         options.HideClientButton = true;
-        options.HideModels = true;
         options.ExpandAllModelSections = true;
     });
 }

@@ -61,7 +61,7 @@ internal sealed class LoginCommandHandler(
             ExpiresAt = DateTimeOffset.UtcNow.AddDays(14)
         };
 
-        refreshTokenRepository.Add(refreshToken);
+        await refreshTokenRepository.AddAsync(refreshToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var accessToken = jwtTokenProvider.GenerateAccessToken(user, refreshToken);

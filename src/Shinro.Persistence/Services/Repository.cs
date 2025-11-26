@@ -1,9 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Shinro.Application.Contracts.Persistence;
+using Shinro.Application.Models;
 using Shinro.Domain.Entities;
+using Shinro.Domain.Enums;
 using Shinro.Domain.Exceptions.Entity;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,9 +16,20 @@ internal abstract class Repository<TEntity>(ApplicationDbContext context) : IRep
 {
     protected readonly ApplicationDbContext _context = context;
 
-    public virtual async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IEnumerable<TEntity>> GetAllAsync(Pagination pagination, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<TEntity>().ToListAsync(cancellationToken);
+        var query = _context.Set<TEntity>().AsQueryable();
+
+        query = pagination.SortOrder == eSortOrder.Ascending
+            ? query.OrderBy(x => x.CreatedAt)
+            : query.OrderByDescending(x => x.CreatedAt);
+
+        var items = await query
+            .Skip((pagination.PageNumber - 1) * pagination.PageSize)
+            .Take(pagination.PageSize)
+            .ToListAsync(cancellationToken);
+
+        return items;
     }
 
     public virtual Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -23,9 +37,9 @@ internal abstract class Repository<TEntity>(ApplicationDbContext context) : IRep
         return _context.Set<TEntity>().FirstOrDefaultAsync(x => x.Id == id, cancellationToken);
     }
 
-    public virtual TEntity Add(TEntity entity)
+    public virtual async Task<TEntity> AddAsync(TEntity entity)
     {
-        var entry = _context.Set<TEntity>().Add(entity);
+        var entry = await _context.Set<TEntity>().AddAsync(entity);
         return entry.Entity;
     }
 

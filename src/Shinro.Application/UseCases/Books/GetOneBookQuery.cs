@@ -9,19 +9,19 @@ using System.Threading.Tasks;
 
 namespace Shinro.Application.UseCases.Books;
 
-public sealed class GetOneGookQueryValidator : AbstractValidator<GetOneGookQuery>
+public sealed class GetOneBookQueryValidator : AbstractValidator<GetOneBookQuery>
 {
-    public GetOneGookQueryValidator()
+    public GetOneBookQueryValidator()
     {
         RuleFor(x => x.Id).NotEmpty();
     }
 }
 
-public sealed record GetOneGookQuery(Guid Id) : IQuery<Book>;
+public sealed record GetOneBookQuery(Guid Id) : IQuery<Book>;
 
-internal sealed class GetOneGookQueryHandler(IBookRepository bookRepository) : IQueryHandler<GetOneGookQuery, Book>
+internal sealed class GetOneBookQueryHandler(IBookRepository bookRepository) : IQueryHandler<GetOneBookQuery, Book>
 {
-    public async ValueTask<Book> Handle(GetOneGookQuery command, CancellationToken cancellationToken)
+    public async ValueTask<Book> Handle(GetOneBookQuery command, CancellationToken cancellationToken)
     {
         var book = await bookRepository.GetByIdAsync(command.Id, cancellationToken)
             ?? throw new EntityNotFoundException($"Book with id \"{command.Id}\" not found");

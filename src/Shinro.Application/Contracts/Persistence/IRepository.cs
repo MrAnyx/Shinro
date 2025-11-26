@@ -1,4 +1,5 @@
-﻿using Shinro.Domain.Entities;
+﻿using Shinro.Application.Models;
+using Shinro.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -8,9 +9,9 @@ namespace Shinro.Application.Contracts.Persistence;
 
 public interface IRepository<TEntity> where TEntity : Entity
 {
-    Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken = default);
+    Task<IEnumerable<TEntity>> GetAllAsync(Pagination pagination, CancellationToken cancellationToken = default);
     Task<TEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    TEntity Add(TEntity entity);
+    Task<TEntity> AddAsync(TEntity entity);
     TEntity Update(TEntity entity);
     TEntity Remove(TEntity entity);
     Task<TEntity> RemoveByIdAsync(Guid id, CancellationToken cancellationToken = default);

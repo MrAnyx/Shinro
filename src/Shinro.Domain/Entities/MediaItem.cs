@@ -10,7 +10,7 @@ public abstract class MediaItem : Entity
     public required string Title { get; set; }
     public string? Description { get; set; }
 
-    public DateTimeOffset? ReleasedAt { get; set; }
+    public DateOnly? ReleasedAt { get; set; }
 
     public double? Rating { get; set; }
 }

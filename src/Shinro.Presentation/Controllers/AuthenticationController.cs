@@ -3,6 +3,7 @@ using Mediator;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shinro.Application.UseCases.Authentication;
+using Shinro.Presentation.Models.Authentication;
 using System.Net.Mime;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,19 +18,16 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
 {
     #region Register
     public sealed record RegisterRequest(string Username, string Email, string Password);
-    public sealed record RegisterResponse(string AccessToken, string RefreshToken);
 
     [HttpPost("register")]
-    [ProducesResponseType(typeof(RegisterResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(JwtTokenPairResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken cancellationToken)
     {
         var command = request.Adapt<RegisterNewUserCommand>();
 
         var tokenPair = await mediator.Send(command, cancellationToken);
 
-        return Ok(tokenPair.Adapt<RegisterResponse>());
+        return Ok(tokenPair.Adapt<JwtTokenPairResponse>());
 
         //TODO Update the location action
         //return CreatedAtAction(string.Empty, tokenPair.Adapt<RegisterResponse>());
@@ -38,36 +36,31 @@ public class AuthenticationController(IMediator mediator) : ControllerBase
 
     #region Login
     public sealed record LoginRequest(string Identifier, string Password);
-    public sealed record LoginResponse(string AccessToken, string RefreshToken);
 
     [HttpPost("login")]
-    [ProducesResponseType(typeof(LoginResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(JwtTokenPairResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
     {
         var command = request.Adapt<LoginUserCommand>();
 
         var tokenPair = await mediator.Send(command, cancellationToken);
 
-        return Ok(tokenPair.Adapt<LoginResponse>());
+        return Ok(tokenPair.Adapt<JwtTokenPairResponse>());
     }
     #endregion
 
     #region Refresh token
     public sealed record RefreshTokenRequest(string AccessToken, string RefreshToken);
-    public sealed record RefreshTokenResponse(string AccessToken, string RefreshToken);
 
     [HttpPost("refresh")]
-    [ProducesResponseType(typeof(RefreshTokenResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(JwtTokenPairResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> Refresh([FromBody] RefreshTokenRequest request, CancellationToken cancellationToken)
     {
         var command = request.Adapt<RefreshTokenCommand>();
 
         var tokenPair = await mediator.Send(command, cancellationToken);
 
-        return Ok(tokenPair.Adapt<RefreshTokenResponse>());
+        return Ok(tokenPair.Adapt<JwtTokenPairResponse>());
     }
     #endregion
 }

@@ -2,7 +2,6 @@ using FluentValidation;
 using Mediator;
 using Shinro.Application.Contracts.Persistence.Repository;
 using Shinro.Domain.Entities;
-using Shinro.Domain.Exceptions.Entity;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

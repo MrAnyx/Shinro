@@ -36,7 +36,7 @@ public sealed class CreateBookCommandValidator : AbstractValidator<CreateBookCom
 public sealed record CreateBookCommand(
     string Title,
     string? Description,
-    DateTimeOffset? ReleasedAt,
+    DateOnly? ReleasedAt,
     double? Rating,
     string? Isbn,
     string? Author,
@@ -68,7 +68,7 @@ internal sealed class CreateBookCommandHandler(
             UserId = userId
         };
 
-        bookRepository.Add(book);
+        await bookRepository.AddAsync(book);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -68,7 +68,7 @@ internal sealed class RegisterNewUserCommandHandler(
             LastLoginAt = DateTimeOffset.UtcNow,
         };
 
-        userRepository.Add(user);
+        await userRepository.AddAsync(user);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var rawRefreshToken = jwtTokenService.GenerateRefreshToken();
@@ -79,7 +79,7 @@ internal sealed class RegisterNewUserCommandHandler(
             ExpiresAt = DateTimeOffset.UtcNow.AddDays(14)
         };
 
-        refreshTokenRepository.Add(refreshToken);
+        await refreshTokenRepository.AddAsync(refreshToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var accessToken = jwtTokenService.GenerateAccessToken(user, refreshToken);

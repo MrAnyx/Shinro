@@ -2,30 +2,29 @@
 
 #nullable disable
 
-namespace Shinro.Persistence.Migrations
+namespace Shinro.Persistence.Migrations;
+
+/// <inheritdoc />
+public partial class AddIsRevokedOnRefreshToken : Migration
 {
     /// <inheritdoc />
-    public partial class AddIsRevokedOnRefreshToken : Migration
+    protected override void Up(MigrationBuilder migrationBuilder)
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AddColumn<bool>(
-                name: "IsRevoked",
-                schema: "public",
-                table: "RefreshToken",
-                type: "boolean",
-                nullable: false,
-                defaultValue: false);
-        }
+        migrationBuilder.AddColumn<bool>(
+            name: "IsRevoked",
+            schema: "public",
+            table: "RefreshToken",
+            type: "boolean",
+            nullable: false,
+            defaultValue: false);
+    }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropColumn(
-                name: "IsRevoked",
-                schema: "public",
-                table: "RefreshToken");
-        }
+    /// <inheritdoc />
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(
+            name: "IsRevoked",
+            schema: "public",
+            table: "RefreshToken");
     }
 }
