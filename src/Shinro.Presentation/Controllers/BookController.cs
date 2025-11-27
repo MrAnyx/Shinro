@@ -21,14 +21,14 @@ namespace Shinro.Presentation.Controllers;
 [Produces(MediaTypeNames.Application.Json, MediaTypeNames.Application.ProblemJson)]
 public class BookController(IMediator mediator) : ControllerBase
 {
-    #region Create a new book
-    [HttpPost]
-    [ProducesResponseType(typeof(BookResponse), StatusCodes.Status201Created)]
-    public async Task<IActionResult> CreateBooks([FromBody] CreateBookCommand command, CancellationToken cancellationToken)
+    #region Get all books
+    [HttpGet]
+    [ProducesResponseType(typeof(PaginatedList<BookResponse>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllBooks([FromQuery] GetAllBooksQuery query, CancellationToken cancellationToken)
     {
-        var newBook = await mediator.Send(command, cancellationToken);
+        var (books, totalCount) = await mediator.Send(query, cancellationToken);
 
-        return CreatedAtAction(nameof(GetOneBook), new { id = newBook.Id }, newBook.Adapt<BookResponse>());
+        return Ok(new PaginatedList<BookResponse>(books.Adapt<IEnumerable<BookResponse>>(), query.PageNumber, query.PageSize, totalCount));
     }
     #endregion
 
@@ -45,27 +45,14 @@ public class BookController(IMediator mediator) : ControllerBase
     }
     #endregion
 
-    #region Delete one book
-    [HttpDelete("{id:guid}")]
-    [ProducesResponseType(typeof(BookResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> DeleteOneBook(Guid id, CancellationToken cancellationToken)
+    #region Create a new book
+    [HttpPost]
+    [ProducesResponseType(typeof(BookResponse), StatusCodes.Status201Created)]
+    public async Task<IActionResult> CreateOneBook([FromBody] CreateBookCommand command, CancellationToken cancellationToken)
     {
-        var command = new DeleteOneBookCommand(id);
+        var newBook = await mediator.Send(command, cancellationToken);
 
-        var book = await mediator.Send(command, cancellationToken);
-
-        return Ok(book.Adapt<BookResponse>());
-    }
-    #endregion
-
-    #region Get all books
-    [HttpGet]
-    [ProducesResponseType(typeof(PaginatedList<BookResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllBooks([FromQuery] GetAllBooksQuery query, CancellationToken cancellationToken)
-    {
-        var (books, totalCount) = await mediator.Send(query, cancellationToken);
-
-        return Ok(new PaginatedList<BookResponse>(books.Adapt<IEnumerable<BookResponse>>(), query.PageNumber, query.PageSize, totalCount));
+        return CreatedAtAction(nameof(GetOneBook), new { id = newBook.Id }, newBook.Adapt<BookResponse>());
     }
     #endregion
 
@@ -79,4 +66,18 @@ public class BookController(IMediator mediator) : ControllerBase
         return Ok(updatedBook.Adapt<BookResponse>());
     }
     #endregion
+
+    #region Delete one book
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> DeleteOneBook(Guid id, CancellationToken cancellationToken)
+    {
+        var command = new DeleteOneBookCommand(id);
+
+        await mediator.Send(command, cancellationToken);
+
+        return NoContent();
+    }
+    #endregion
+
 }

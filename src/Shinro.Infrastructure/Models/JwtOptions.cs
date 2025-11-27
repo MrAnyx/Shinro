@@ -16,6 +16,5 @@ public class JwtOptions : IJwtOptions
     public required string Audience { get; init; }
 
     [Required]
-    [Range(1, 5)]
     public required uint AccessTokenExpirationInMinutes { get; init; }
 }

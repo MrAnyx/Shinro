@@ -216,10 +216,11 @@ if (app.Environment.IsDevelopment())
     {
         options.Title = "Shinro API";
         options.DarkMode = true;
-        options.Layout = ScalarLayout.Modern;
+        options.Layout = ScalarLayout.Classic;
         options.Theme = ScalarTheme.Kepler;
         options.HideClientButton = true;
         options.ExpandAllModelSections = true;
+        options.DefaultOpenAllTags = true;
     });
 }
 #endregion
