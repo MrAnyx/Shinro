@@ -10,5 +10,7 @@ public sealed record BookResponse(
     double? Rating,
     string? Isbn,
     string? Author,
-    uint? PageCount
+    uint? PageCount,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset UpdatedAt
 );

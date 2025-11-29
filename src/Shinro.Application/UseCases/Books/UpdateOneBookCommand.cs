@@ -51,7 +51,9 @@ internal sealed class UpdateOneBookCommandHandler(IBookRepository bookRepository
     public async ValueTask<Book> Handle(UpdateOneBookCommand command, CancellationToken cancellationToken)
     {
         var book = await bookRepository.GetByIdAsync(command.Id, cancellationToken)
-            ?? throw new EntityNotFoundException("");
+            ?? throw new EntityNotFoundException($"Book with id '{command.Id}' not found");
+
+
 
         return book;
     }

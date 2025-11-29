@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Shinro.Application.Models;
 using Shinro.Application.UseCases.Books;
+using Shinro.Presentation.Models;
 using Shinro.Presentation.Models.Books;
 using System;
 using System.Collections.Generic;
@@ -24,8 +25,10 @@ public class BookController(IMediator mediator) : ControllerBase
     #region Get all books
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedList<BookResponse>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllBooks([FromQuery] GetAllBooksQuery query, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAllBooks([FromQuery] PaginationRequest request, CancellationToken cancellationToken)
     {
+        var query = request.Adapt<GetAllBooksQuery>();
+
         var (books, totalCount) = await mediator.Send(query, cancellationToken);
 
         return Ok(new PaginatedList<BookResponse>(books.Adapt<IEnumerable<BookResponse>>(), query.PageNumber, query.PageSize, totalCount));
@@ -46,10 +49,14 @@ public class BookController(IMediator mediator) : ControllerBase
     #endregion
 
     #region Create a new book
+    public sealed record CreateOneBookRequest(string Title, string? Description, DateOnly? ReleasedAt, double? Rating, string? Isbn, string? Author, uint? PageCount);
+
     [HttpPost]
     [ProducesResponseType(typeof(BookResponse), StatusCodes.Status201Created)]
-    public async Task<IActionResult> CreateOneBook([FromBody] CreateBookCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> CreateOneBook([FromBody] CreateOneBookRequest request, CancellationToken cancellationToken)
     {
+        var command = Request.Adapt<CreateBookCommand>();
+
         var newBook = await mediator.Send(command, cancellationToken);
 
         return CreatedAtAction(nameof(GetOneBook), new { id = newBook.Id }, newBook.Adapt<BookResponse>());
@@ -57,10 +64,14 @@ public class BookController(IMediator mediator) : ControllerBase
     #endregion
 
     #region Update one book
+    public sealed record UpdateOneBookRequest(string Title, string? Description, DateOnly? ReleasedAt, double? Rating, string? Isbn, string? Author, uint? PageCount);
+
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(BookResponse), StatusCodes.Status200OK)]
-    public async Task<IActionResult> UpdateOneBook(Guid id, [FromBody] UpdateOneBookCommand command, CancellationToken cancellationToken)
+    public async Task<IActionResult> UpdateOneBook(Guid id, [FromBody] UpdateOneBookRequest request, CancellationToken cancellationToken)
     {
+        var command = (id, request).Adapt<UpdateOneBookCommand>();
+
         var updatedBook = await mediator.Send(command, cancellationToken);
 
         return Ok(updatedBook.Adapt<BookResponse>());

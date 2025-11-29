@@ -20,9 +20,9 @@ public sealed class GetAllBooksQueryValidator : AbstractValidator<GetAllBooksQue
 }
 
 public sealed record GetAllBooksQuery(
-    int PageNumber = 1,
-    int PageSize = 50,
-    eSortOrder SortOrder = eSortOrder.Ascending
+    int PageNumber,
+    int PageSize,
+    eSortOrder SortOrder
 ) : IQuery<(IEnumerable<Book> Books, int TotalCount)>;
 
 internal sealed class GetAllBooksQueryHandler(IBookRepository bookRepository) : IQueryHandler<GetAllBooksQuery, (IEnumerable<Book> Books, int TotalCount)>
