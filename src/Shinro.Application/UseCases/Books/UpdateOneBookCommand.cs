@@ -1,7 +1,9 @@
 ﻿using FluentValidation;
 using Mediator;
+using Shinro.Application.Contracts;
 using Shinro.Application.Contracts.Persistence.Repository;
 using Shinro.Domain.Entities;
+using Shinro.Domain.Exceptions;
 using Shinro.Domain.Exceptions.Entity;
 using System;
 using System.Threading;
@@ -46,14 +48,25 @@ public sealed record UpdateOneBookCommand(
     uint? PageCount
 ) : ICommand<Book>;
 
-internal sealed class UpdateOneBookCommandHandler(IBookRepository bookRepository) : ICommandHandler<UpdateOneBookCommand, Book>
+internal sealed class UpdateOneBookCommandHandler(
+    IBookRepository bookRepository,
+    IJwtTokenProvider jwtTokenProvider
+) : ICommandHandler<UpdateOneBookCommand, Book>
 {
     public async ValueTask<Book> Handle(UpdateOneBookCommand command, CancellationToken cancellationToken)
     {
         var book = await bookRepository.GetByIdAsync(command.Id, cancellationToken)
             ?? throw new EntityNotFoundException($"Book with id '{command.Id}' not found");
 
+        if (jwtTokenProvider.GetUserId() is not Guid userId)
+        {
+            throw new UnauthorizedException("User not authenticated. You must login before acessing this ressource");
+        }
 
+        if (book.UserId != userId)
+        {
+            throw new UnauthorizedException("You are not the owner of this resource");
+        }
 
         return book;
     }

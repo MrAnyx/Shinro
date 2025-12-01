@@ -4,7 +4,7 @@ using Shinro.Domain.Entities;
 
 namespace Shinro.Persistence.Configurations;
 
-internal sealed class MediaItemConfiguration : EntityConfiguration<MediaItem>
+internal sealed class MediaItemConfiguration() : EntityConfiguration<MediaItem>
 {
     public override void Configure(EntityTypeBuilder<MediaItem> builder)
     {

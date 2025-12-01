@@ -13,15 +13,16 @@ internal sealed class BookMappingConfiguration : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<Book, BookResponse>()
-            .ConstructUsing(src => new BookResponse(src.Id, src.Title, src.Description, src.ReleasedAt, src.Rating, src.Isbn, src.Author, src.PageCount, src.CreatedAt, src.UpdatedAt));
+            .Map(dest => dest, src => src);
 
         config.NewConfig<PaginationRequest, GetAllBooksQuery>()
-            .ConstructUsing(src => new GetAllBooksQuery(src.PageNumber, src.PageSize, src.SortOrder));
+            .Map(dest => dest, src => src);
 
         config.NewConfig<BookController.CreateOneBookRequest, CreateBookCommand>()
-            .ConstructUsing(src => new CreateBookCommand(src.Title, src.Description, src.ReleasedAt, src.Rating, src.Isbn, src.Author, src.PageCount));
+            .Map(dest => dest, src => src);
 
         config.NewConfig<(Guid Id, BookController.UpdateOneBookRequest Request), UpdateOneBookCommand>()
-            .ConstructUsing(src => new UpdateOneBookCommand(src.Id, src.Request.Title, src.Request.Description, src.Request.ReleasedAt, src.Request.Rating, src.Request.Isbn, src.Request.Author, src.Request.PageCount));
+            .Map(dest => dest.Id, src => src.Id)
+            .Map(dest => dest, src => src.Request);
     }
 }

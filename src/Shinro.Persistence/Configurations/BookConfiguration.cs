@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Shinro.Application.Contracts;
 using Shinro.Domain.Entities;
 
 namespace Shinro.Persistence.Configurations;
 
-internal sealed class BookConfiguration : IEntityTypeConfiguration<Book>
+internal sealed class BookConfiguration(IJwtTokenProvider jwtTokenProvider) : IEntityTypeConfiguration<Book>
 {
     public void Configure(EntityTypeBuilder<Book> builder)
     {
@@ -20,6 +21,6 @@ internal sealed class BookConfiguration : IEntityTypeConfiguration<Book>
             .HasForeignKey(b => b.UserId)
             .OnDelete(DeleteBehavior.ClientCascade);
 
-        builder.Navigation(b => b.User).AutoInclude();
+        //builder.Navigation(b => b.User).AutoInclude();
     }
 }

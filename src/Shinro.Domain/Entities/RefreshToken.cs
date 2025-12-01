@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Shinro.Domain.Contracts;
+using System;
 
 namespace Shinro.Domain.Entities;
 
-public class RefreshToken : Entity
+public class RefreshToken : Entity, IHasOwner
 {
     #region Main properties
     public required string TokenHash { get; set; }

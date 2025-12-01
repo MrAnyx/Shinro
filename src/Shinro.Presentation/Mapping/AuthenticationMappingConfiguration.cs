@@ -11,15 +11,15 @@ internal sealed class AuthenticationMappingConfiguration : IRegister
     public void Register(TypeAdapterConfig config)
     {
         config.NewConfig<JwtTokenPair, JwtTokenPairResponse>()
-            .ConstructUsing(src => new JwtTokenPairResponse(AccessToken: src.AccessToken, RefreshToken: src.RefreshToken));
+            .Map(dest => dest, src => src);
 
         config.NewConfig<AuthenticationController.RegisterRequest, RegisterNewUserCommand>()
-            .ConstructUsing(src => new RegisterNewUserCommand(src.Username, src.Email, src.Password));
+            .Map(dest => dest, src => src);
 
         config.NewConfig<AuthenticationController.LoginRequest, LoginUserCommand>()
-            .ConstructUsing(src => new LoginUserCommand(src.Identifier, src.Password));
+            .Map(dest => dest, src => src);
 
         config.NewConfig<AuthenticationController.RefreshTokenRequest, RefreshTokenCommand>()
-            .ConstructUsing(src => new RefreshTokenCommand(src.AccessToken, src.RefreshToken));
+            .Map(dest => dest, src => src);
     }
 }
