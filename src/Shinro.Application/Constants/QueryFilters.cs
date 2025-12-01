@@ -2,5 +2,5 @@
 
 public class QueryFilters
 {
-    public const string EntitySoftDeleteFilter = "EntitySoftDelete";
+    public const string EntitySoftDeleteFilter = nameof(EntitySoftDeleteFilter);
 }

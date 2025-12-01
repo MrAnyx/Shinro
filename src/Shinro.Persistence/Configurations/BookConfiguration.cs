@@ -1,11 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Shinro.Application.Contracts;
 using Shinro.Domain.Entities;
 
 namespace Shinro.Persistence.Configurations;
 
-internal sealed class BookConfiguration(IJwtTokenProvider jwtTokenProvider) : IEntityTypeConfiguration<Book>
+internal sealed class BookConfiguration : IEntityTypeConfiguration<Book>
 {
     public void Configure(EntityTypeBuilder<Book> builder)
     {
