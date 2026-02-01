@@ -4,7 +4,6 @@
     <File Path="src/Directory.Build.props" />
     <File Path="src/Directory.Packages.props" />
   </Folder>
-  <Folder Name="/Tests/" />
   <Project Path="Shinro.Docker.dcproj">
     <Build />
   </Project>
