@@ -1,19 +1,13 @@
-/**
- * This is your entry point to setup the root configuration for tRPC on the server.
- * - `initTRPC` should only be used once per app.
- * - We export only the functionality that we use so we can enforce which base procedures should be used
- *
- * Learn how to create protected base procedures and other things below:
- * @see https://trpc.io/docs/v11/router
- * @see https://trpc.io/docs/v11/procedures
- */
 import { initTRPC } from "@trpc/server";
+import type { H3Event } from "h3";
 
-const trpc = initTRPC.create();
+export const createContext = async (_event: H3Event) => ({
+	// Add auth, user, db, etc. here
+});
 
-/**
- * Unprotected procedure
- **/
-export const publicProcedure = trpc.procedure;
+type Context = Awaited<ReturnType<typeof createContext>>;
+
+const trpc = initTRPC.context<Context>().create();
 
 export const router = trpc.router;
+export const publicProcedure = trpc.procedure;

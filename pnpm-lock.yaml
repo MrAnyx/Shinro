@@ -19,16 +19,13 @@ importers:
         version: 11.17.0(typescript@6.0.3)
       evlog:
         specifier: ^2.17.0
-        version: 2.17.0(@nuxt/kit@4.4.5(magicast@0.5.3))(h3@1.15.11)(nitropack@2.13.4(oxc-parser@0.131.0)(srvx@0.11.15))(ofetch@1.5.1)(vite@7.3.3(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.99.0)(terser@5.47.1)(yaml@2.9.0))
+        version: 2.17.0(@nuxt/kit@4.4.6(magicast@0.5.3))(h3@1.15.11)(nitropack@2.13.4(oxc-parser@0.131.0)(srvx@0.11.15))(ofetch@1.5.1)(vite@7.3.3(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.99.0)(terser@5.47.1)(yaml@2.9.0))
       nuxt:
         specifier: ^4.4.6
         version: 4.4.6(@babel/plugin-syntax-jsx@7.28.6(@babel/core@7.29.0))(@babel/plugin-syntax-typescript@7.28.6(@babel/core@7.29.0))(@parcel/watcher@2.5.6)(@vue/compiler-sfc@3.5.34)(cac@6.7.14)(db0@0.3.4)(ioredis@5.10.1)(lightningcss@1.32.0)(magicast@0.5.3)(oxlint@1.64.0)(rollup-plugin-visualizer@7.0.1(rollup@4.60.4))(rollup@4.60.4)(sass@1.99.0)(srvx@0.11.15)(terser@5.47.1)(typescript@6.0.3)(vite@7.3.3(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.99.0)(terser@5.47.1)(yaml@2.9.0))(vue-tsc@3.2.9(typescript@6.0.3))(yaml@2.9.0)
       tailwindcss:
         specifier: ^4.3.0
         version: 4.3.0
-      trpc-nuxt:
-        specifier: ^2.0.2
-        version: 2.0.2(@trpc/client@11.17.0(@trpc/server@11.17.0(typescript@6.0.3))(typescript@6.0.3))(@trpc/server@11.17.0(typescript@6.0.3))
       vue:
         specifier: ^3.5.34
         version: 3.5.34(typescript@6.0.3)
@@ -4312,13 +4309,6 @@ packages:
   tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
 
-  trpc-nuxt@2.0.2:
-    resolution: {integrity: sha512-BmNpXH5kW/EUJ9p0R6TEtihQ9z3s0o1X+rkPpgiyQ6bf0oVPSVzA9Kvo532wy0ALslXi7GfdXHOMQT42Wo//Eg==}
-    engines: {node: '>=22'}
-    peerDependencies:
-      '@trpc/client': ^11.0.0
-      '@trpc/server': ^11.0.0
-
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
 
@@ -7561,9 +7551,9 @@ snapshots:
 
   events@3.3.0: {}
 
-  evlog@2.17.0(@nuxt/kit@4.4.5(magicast@0.5.3))(h3@1.15.11)(nitropack@2.13.4(oxc-parser@0.131.0)(srvx@0.11.15))(ofetch@1.5.1)(vite@7.3.3(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.99.0)(terser@5.47.1)(yaml@2.9.0)):
+  evlog@2.17.0(@nuxt/kit@4.4.6(magicast@0.5.3))(h3@1.15.11)(nitropack@2.13.4(oxc-parser@0.131.0)(srvx@0.11.15))(ofetch@1.5.1)(vite@7.3.3(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.99.0)(terser@5.47.1)(yaml@2.9.0)):
     optionalDependencies:
-      '@nuxt/kit': 4.4.5(magicast@0.5.3)
+      '@nuxt/kit': 4.4.6(magicast@0.5.3)
       h3: 1.15.11
       nitropack: 2.13.4(oxc-parser@0.131.0)(srvx@0.11.15)
       ofetch: 1.5.1
@@ -9247,14 +9237,6 @@ snapshots:
   totalist@3.0.1: {}
 
   tr46@0.0.3: {}
-
-  trpc-nuxt@2.0.2(@trpc/client@11.17.0(@trpc/server@11.17.0(typescript@6.0.3))(typescript@6.0.3))(@trpc/server@11.17.0(typescript@6.0.3)):
-    dependencies:
-      '@trpc/client': 11.17.0(@trpc/server@11.17.0(typescript@6.0.3))(typescript@6.0.3)
-      '@trpc/server': 11.17.0(typescript@6.0.3)
-      h3: 1.15.11
-      ofetch: 1.5.1
-      ohash: 2.0.11
 
   tslib@2.8.1: {}
 

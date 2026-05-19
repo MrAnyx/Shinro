@@ -16,7 +16,8 @@
 		"no-console": "warn",
 		"prefer-const": ["error", { "destructuring": "all" }],
 		"prefer-destructuring": ["error", { "variableDeclarator": { "array": false, "object": true } }],
-		"no-ternary": "off"
+		"no-ternary": "off",
+		"no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
 	},
 	"overrides": []
 }

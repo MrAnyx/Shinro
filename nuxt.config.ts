@@ -1,7 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 	build: {
-		transpile: ["trpc-nuxt"],
+		transpile: ["@trpc/client"],
 	},
 	colorMode: {
 		fallback: "dark",
@@ -14,7 +14,7 @@ export default defineNuxtConfig({
 		env: {
 			service: "shinro",
 		},
-		minLevel: "info",
+		minLevel: "debug",
 		// Optional: only log specific routes (supports glob patterns)
 		// Include: ["/api/**"],
 	},
