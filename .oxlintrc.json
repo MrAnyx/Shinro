@@ -1,0 +1,22 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"plugins": ["eslint", "typescript", "unicorn", "oxc", "vue"],
+	"categories": {
+		"correctness": "error",
+		"style": "error",
+		"perf": "error"
+	},
+	"options": {
+		"typeAware": true,
+		"typeCheck": true
+	},
+	"rules": {
+		"sort-imports": "off",
+		"unicorn/filename-case": "off",
+		"no-console": "warn",
+		"prefer-const": ["error", { "destructuring": "all" }],
+		"prefer-destructuring": ["error", { "variableDeclarator": { "array": false, "object": true } }],
+		"no-ternary": "off"
+	},
+	"overrides": []
+}
