@@ -1,9 +1,15 @@
 <template>
-	<UButton>{{ data }}</UButton>
+	<div>
+		<pre v-if="!error">{{ data }}</pre>
+
+		<p v-if="error">{{ error }}</p>
+
+		<UButton :loading="pending" @click="refresh()">Refresh</UButton>
+	</div>
 </template>
 
 <script lang="ts" setup>
-const { $trpc } = useNuxtApp();
+const trpc = useTrpc();
 
-const data = await $trpc.hello.query({ name: "world" });
+const { data, refresh, pending, error } = useAsyncData("ee", () => trpc.users.login.query());
 </script>

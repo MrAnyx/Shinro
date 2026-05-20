@@ -15,9 +15,14 @@
 		"unicorn/filename-case": "off",
 		"no-console": "warn",
 		"prefer-const": ["error", { "destructuring": "all" }],
-		"prefer-destructuring": ["error", { "variableDeclarator": { "array": false, "object": true } }],
+		"prefer-destructuring": [
+			"error",
+			{ "variableDeclarator": { "array": false, "object": true } }
+		],
 		"no-ternary": "off",
-		"no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }]
+		"no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+		"id-length": "off",
+		"no-magic-numbers": "off"
 	},
 	"overrides": []
 }

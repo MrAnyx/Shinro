@@ -4,14 +4,13 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
 export default defineEventHandler((event) =>
 	fetchRequestHandler({
+		allowBatching: true,
 		createContext: () => createContext(event),
 		endpoint: "/api/trpc",
+		maxBatchSize: 10,
 		onError({ error }) {
-			const log = useLogger();
-
-			if (error.code === "INTERNAL_SERVER_ERROR") {
-				log.error("tRPC error:", error);
-			}
+			const log = useLogger(event);
+			log.error(error);
 		},
 		req: toWebRequest(event),
 		router: appRouter,

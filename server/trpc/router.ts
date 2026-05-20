@@ -1,13 +1,9 @@
-import { z } from 'zod'
-import { router, publicProcedure } from './init'
+import { router } from "./init";
+import { usersRouter } from "./routers/users";
 
 export const appRouter = router({
-  hello: publicProcedure
-    .input(z.object({ name: z.string() }))
-    .query(({ input }) => {
-      return `Hello, ${input.name}!`
-    }),
-})
+	users: usersRouter,
+});
 
 // Export the type only — never import this on the client
-export type AppRouter = typeof appRouter
+export type AppRouter = typeof appRouter;

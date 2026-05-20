@@ -11,6 +11,7 @@
 	"editor.quickSuggestions": {
 		"strings": "on"
 	},
+	"tailwindCSS.files.exclude": ["**/app.config.ts"],
 	"tailwindCSS.classAttributes": ["class", "ui"],
 	"tailwindCSS.classFunctions": ["defineAppConfig"]
 }
