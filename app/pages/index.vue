@@ -1,15 +1,18 @@
 <template>
 	<div>
-		<pre v-if="!error">{{ data }}</pre>
+		<!-- <pre v-if="!error">{{ data }}</pre>
 
 		<p v-if="error">{{ error }}</p>
 
-		<UButton :loading="pending" @click="refresh()">Refresh</UButton>
+		<UButton :loading="pending" @click="refresh()">Refresh</UButton> -->
 	</div>
 </template>
 
 <script lang="ts" setup>
-const trpc = useTrpc();
+// const trpc = useTrpc();
+const log = useLogger("index");
 
-const { data, refresh, pending, error } = useAsyncData("ee", () => trpc.users.login.query());
+log.trace("test");
+
+// const { data, refresh, pending, error } = useAsyncData("ee", () => trpc.users.login.query({}));
 </script>

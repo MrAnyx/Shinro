@@ -1,8 +1,8 @@
 <template>
-	<UAuthForm :schema="schema" title="Login" icon="i-lucide-user" :fields="fields" @submit="onSubmit" :submit="{ label: 'Login' }">
+	<UAuthForm :schema="schema" title="Login" icon="i-lucide-user-check" :fields="fields" @submit="onSubmit" :submit="{ label: 'Login' }">
 		<template #description>
 			Don't have an account?
-			<ULink to="/" class="text-primary font-medium">Sign up</ULink>.
+			<ULink to="/auth/register" class="text-primary font-medium">Sign up</ULink>.
 		</template>
 		<template #password-hint>
 			<ULink to="#" class="text-primary font-medium" tabindex="-1">Forgot password?</ULink>

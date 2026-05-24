@@ -1,10 +1,25 @@
-import { SignJWT } from "jose";
+import * as jwt from "jose";
 
-const config = useRuntimeConfig();
+export interface Payload extends jwt.JWTPayload {
+	id: string;
+	username: string;
+}
 
-export const signJwt = async () =>
-	new SignJWT({ sub: "test" })
+const secret = new TextEncoder().encode(process.env.DATABASE_URL);
+
+export const signJwt = (payload: Payload) =>
+	new jwt.SignJWT({ ...payload })
 		.setProtectedHeader({ alg: "HS256" })
-		.setExpirationTime("1d")
 		.setIssuedAt()
-		.sign(new TextEncoder().encode(config.jwtSecret));
+		.setExpirationTime("10m")
+		.setSubject(payload.id)
+		.sign(secret);
+
+export const verifyJwt = async (token: string) => {
+	const { payload } = await jwt.jwtVerify(token, secret, {
+		algorithms: ["HS256"],
+		clockTolerance: 0,
+	});
+
+	return payload as Payload;
+};

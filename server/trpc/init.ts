@@ -9,7 +9,9 @@ export const createContext = (event: H3Event) => {
 
 type Context = Awaited<ReturnType<typeof createContext>>;
 
-const trpc = initTRPC.context<Context>().create();
+const trpc = initTRPC.context<Context>().create({
+	isDev: false, // Remove the stacktrace from the http responses
+});
 
 export const router = trpc.router;
 export const publicProcedure = trpc.procedure;

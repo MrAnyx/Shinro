@@ -3,7 +3,6 @@
 	"plugins": ["eslint", "typescript", "unicorn", "oxc", "vue"],
 	"categories": {
 		"correctness": "error",
-		"style": "error",
 		"perf": "error"
 	},
 	"options": {
@@ -23,6 +22,15 @@
 		"no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
 		"id-length": "off",
 		"no-magic-numbers": "off"
+		// "unicorn/no-null": "off",
+		// "capitalized-comments": "off"
 	},
-	"overrides": []
+	"overrides": [
+		{
+			"files": ["server/database/schema.ts"],
+			"rules": {
+				"eslint/sort-keys": "off"
+			}
+		}
+	]
 }
