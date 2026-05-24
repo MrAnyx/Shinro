@@ -22,6 +22,6 @@ export const passwordRule = z
 	)
 	.refine((password) => /[0-9]/.test(password), "Must contain digits")
 	.refine(
-		(password) => /[!@#$%^&*]/.test(password),
+		(password) => /[!?@#$%^&*]/.test(password),
 		"Must contain special characters",
 	);

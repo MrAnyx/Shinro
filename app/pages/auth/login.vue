@@ -4,9 +4,6 @@
 			Don't have an account?
 			<ULink to="/auth/register" class="text-primary font-medium">Sign up</ULink>.
 		</template>
-		<template #password-hint>
-			<ULink to="#" class="text-primary font-medium" tabindex="-1">Forgot password?</ULink>
-		</template>
 		<template #footer>
 			By signing in, you agree to our
 			<ULink to="/" class="text-primary font-medium">Terms of Service</ULink>.
@@ -20,15 +17,20 @@ import * as z from "zod";
 
 definePageMeta({
 	layout: "auth",
+	middleware: ["guest-only"],
 });
+
+const trpc = useTrpc();
+const toast = useToast();
+const { setLoggedIn } = useAuthState();
 
 const fields: AuthFormField[] = [
 	{
-		label: "Email",
-		name: "email",
-		placeholder: "Enter your email",
+		label: "Username",
+		name: "username",
+		placeholder: "Enter your username",
 		required: true,
-		type: "email",
+		type: "text",
 	},
 	{
 		label: "Password",
@@ -37,22 +39,39 @@ const fields: AuthFormField[] = [
 		required: true,
 		type: "password",
 	},
-	{
-		label: "Remember me",
-		name: "remember",
-		type: "checkbox",
-	},
 ];
 
 const schema = z.object({
-	email: z.email("Invalid email"),
-	password: z.string("Password is required").min(8, "Must be at least 8 characters"),
-	remember: z.boolean().optional(),
+	username: usernameRule,
+	password: passwordRule,
 });
 
 type Schema = z.output<typeof schema>;
 
-const onSubmit = (payload: FormSubmitEvent<Schema>) => {
-	console.log("Submitted", payload);
+const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
+	try {
+		const user = await trpc.users.login.mutate({
+			username: payload.data.username,
+			password: payload.data.password,
+		});
+
+		setLoggedIn();
+
+		toast.add({
+			title: `Hello ${user.username}`,
+			description: "Welcome back",
+			color: "success",
+		});
+
+		await navigateTo({ path: "/" });
+	} catch (err) {
+		const message = err instanceof Error ? err.message : "Unknown error";
+
+		toast.add({
+			title: "Authentication failed",
+			description: message,
+			color: "error",
+		});
+	}
 };
 </script>

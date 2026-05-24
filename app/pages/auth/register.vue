@@ -21,17 +21,17 @@
 
 <script setup lang="ts">
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
-import { TRPCClientError } from "@trpc/client";
-import { TRPCError } from "@trpc/server";
 import * as z from "zod";
 
 definePageMeta({
 	layout: "auth",
+	middleware: ["guest-only"],
 });
 
 const trpc = useTrpc();
 const logger = useLogger("register");
 const toast = useToast();
+const { setLoggedIn } = useAuthState();
 
 const fields: AuthFormField[] = [
 	{
@@ -78,7 +78,15 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 			password: payload.data.password,
 		});
 
-		logger.debug("New user registered", user);
+		setLoggedIn();
+
+		toast.add({
+			title: `Hello ${user.username}`,
+			description: "Welcome on board",
+			color: "success",
+		});
+
+		await navigateTo({ path: "/" });
 	} catch (err) {
 		const message = err instanceof Error ? err.message : "Unknown error";
 
