@@ -25,13 +25,14 @@ import * as z from "zod";
 
 definePageMeta({
 	layout: "auth",
-	middleware: ["guest-only"],
+	middleware: ["registration", "guest-only"],
 });
 
 const trpc = useTrpc();
 const logger = useLogger("register");
 const toast = useToast();
-const { setLoggedIn } = useAuthState();
+const { setLoggedIn } = useAuth();
+const { usernameRule, passwordRule } = useValidationRule();
 
 const fields: AuthFormField[] = [
 	{

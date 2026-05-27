@@ -2,7 +2,10 @@ import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
 import cookie from "cookie";
 import z from "zod";
-import { router, publicProcedure } from "~~/server/trpc/init";
+
+import { router, publicProcedure } from "#server/trpc/init";
+
+const { usernameRule, passwordRule } = useValidationRule();
 
 export const usersRouter = router({
 	register: publicProcedure

@@ -22,7 +22,8 @@ definePageMeta({
 
 const trpc = useTrpc();
 const toast = useToast();
-const { setLoggedIn } = useAuthState();
+const { setLoggedIn } = useAuth();
+const { usernameRule, passwordRule } = useValidationRule();
 
 const fields: AuthFormField[] = [
 	{

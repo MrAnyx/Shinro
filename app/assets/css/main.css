@@ -1,2 +1,15 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+@theme {
+	--font-brand: "Caveat", handwriting;
+	--font-sans: "Albert Sans", sans-serif;
+}
+
+:root {
+	--ui-primary: black;
+}
+
+.dark {
+	--ui-primary: white;
+}
