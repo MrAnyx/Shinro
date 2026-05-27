@@ -7,9 +7,7 @@
 }
 
 :root {
-	--ui-primary: black;
 }
 
 .dark {
-	--ui-primary: white;
 }

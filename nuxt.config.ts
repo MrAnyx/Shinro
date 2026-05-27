@@ -3,6 +3,11 @@ export default defineNuxtConfig({
 	build: {
 		transpile: ["@trpc/client"],
 	},
+	vite: {
+		optimizeDeps: {
+			include: ["@unovis/ts", "@unovis/vue"],
+		},
+	},
 	colorMode: {
 		fallback: "dark",
 		preference: "dark",

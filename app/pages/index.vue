@@ -1,20 +1,5 @@
 <template>
-	<UDashboardPanel id="index">
-		<template #header>
-			<UDashboardNavbar title="Customers">
-				<template #leading>
-					<UDashboardSidebarCollapse />
-				</template>
-			</UDashboardNavbar>
-		</template>
-		<template #body>
-			<h1>Hello World</h1>
-		</template>
-	</UDashboardPanel>
+	<ULink to="/app">Application</ULink>
 </template>
 
-<script setup lang="ts">
-definePageMeta({
-	layout: "main",
-});
-</script>
+<script setup lang="ts"></script>

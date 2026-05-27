@@ -11,10 +11,10 @@
 			toggle-side="left"
 		>
 			<template #header="{ collapsed }">
-				<div class="flex flex-row items-center gap-x-1" :class="{ 'mx-auto': !collapsed }">
+				<ULink class="flex flex-row items-center gap-x-1 text-highlighted" :class="{ 'mx-auto': !collapsed }" to="/app">
 					<img src="~/assets/images/icone.svg" class="size-11" />
 					<span class="font-brand text-4xl" v-show="!collapsed">Shinro</span>
-				</div>
+				</ULink>
 			</template>
 
 			<template #default="{ collapsed }">

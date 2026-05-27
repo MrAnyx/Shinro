@@ -4,13 +4,14 @@ minimumReleaseAgeExclude: []
 trustPolicy: no-downgrade
 audit-level: low
 trustPolicyExclude:
-  - "chokidar@4.0.3"
-  - "semver@6.3.1"
+    - "chokidar@4.0.3"
+    - "semver@6.3.1"
 enablePrePostScripts: false
 allowBuilds:
-  "@parcel/watcher": false
-  "@prisma/engines": false
-  esbuild: false
-  prisma: false
-  sharp: set this to true or false
-  vue-demi: false
+    "@parcel/watcher": false
+    "@prisma/engines": false
+    esbuild: false
+    maplibre-gl: false
+    prisma: false
+    sharp: false
+    vue-demi: false
