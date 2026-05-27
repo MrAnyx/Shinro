@@ -20,7 +20,9 @@
 			<template #default="{ collapsed }">
 				<UDashboardSearchButton :collapsed="collapsed" variant="subtle" />
 
-				<UNavigationMenu :items="sidebarItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
+				<UNavigationMenu :items="dashboardItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
+				<UNavigationMenu :items="mediaItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
+				<UNavigationMenu :items="toolsItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
 				<UNavigationMenu :items="sidebarSecondaryItems" orientation="vertical" :collapsed="collapsed" tooltip popover class="mt-auto" />
 			</template>
 
@@ -57,7 +59,7 @@ const commandItems: CommandPaletteItem[] = [
 	},
 ];
 
-const sidebarItems: NavigationMenuItem[] = [
+const dashboardItems: NavigationMenuItem[] = [
 	{
 		label: "Dashboard",
 		type: "label",
@@ -80,11 +82,13 @@ const sidebarItems: NavigationMenuItem[] = [
 		disabled: true,
 		icon: "i-lucide-chart-pie",
 	},
+];
+
+const mediaItems: NavigationMenuItem[] = [
 	{
 		label: "Media",
 		type: "label",
 		badge: 4,
-		class: "mt-5",
 	},
 	{
 		label: "Movies",
@@ -127,10 +131,12 @@ const sidebarItems: NavigationMenuItem[] = [
 		disabled: true,
 		icon: "i-lucide-gamepad-2",
 	},
+];
+
+const toolsItems: NavigationMenuItem[] = [
 	{
 		label: "Tools",
 		type: "label",
-		class: "mt-5",
 	},
 	{
 		label: "Help",
