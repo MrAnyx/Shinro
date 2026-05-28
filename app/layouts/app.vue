@@ -1,5 +1,7 @@
 <template>
-	<UDashboardGroup unit="px">
+	<p v-if="isLoading || !isReady">Loading your workspace…</p>
+
+	<UDashboardGroup unit="px" v-else>
 		<UDashboardSidebar
 			:ui="{ footer: 'border-t border-default' }"
 			resizable
@@ -52,6 +54,12 @@
 <script setup lang="ts">
 import type { NavigationMenuItem, CommandPaletteItem } from "@nuxt/ui";
 
+const { isReady, isLoading, initialize } = useInitialization();
+
+onMounted(async () => {
+	await initialize();
+});
+
 const commandItems: CommandPaletteItem[] = [
 	{
 		description: "hello world",
@@ -67,11 +75,13 @@ const dashboardItems: NavigationMenuItem[] = [
 	{
 		label: "Home",
 		icon: "i-lucide-home",
+		to: "/app",
 	},
 	{
 		label: "Tags",
 		icon: "i-lucide-tags",
 		badge: 4,
+		to: "/app/tags",
 	},
 	{
 		label: "Stats",
