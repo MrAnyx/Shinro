@@ -1,5 +1,13 @@
 <template>
-	<UAuthForm :schema="schema" title="Login" icon="i-lucide-user-check" :fields="fields" @submit="onSubmit" :submit="{ label: 'Login' }">
+	<UAuthForm
+		:schema="schema"
+		title="Login"
+		icon="i-lucide-user-check"
+		:fields="fields"
+		@submit="onSubmit"
+		:submit="{ label: 'Login' }"
+		:validate-on="['change']"
+	>
 		<template #description>
 			Don't have an account?
 			<ULink to="/auth/register" class="text-primary font-medium">Sign up</ULink>.
@@ -51,20 +59,14 @@ type Schema = z.output<typeof schema>;
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
-		const user = await trpc.users.login.mutate({
+		await trpc.users.login.mutate({
 			username: payload.data.username,
 			password: payload.data.password,
 		});
 
 		setLoggedIn();
 
-		toast.add({
-			title: `Hello ${user.username}`,
-			description: "Welcome back",
-			color: "success",
-		});
-
-		await navigateTo({ path: "/" });
+		await navigateTo({ path: "/app" });
 	} catch (err) {
 		const message = err instanceof Error ? err.message : "Unknown error";
 

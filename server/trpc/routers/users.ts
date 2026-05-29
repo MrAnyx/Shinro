@@ -6,6 +6,7 @@ import z from "zod";
 import { router, publicProcedure } from "#server/trpc/init";
 
 const { usernameRule, passwordRule } = useValidationRule();
+const log = useLogger();
 
 export const usersRouter = router({
 	register: publicProcedure
@@ -37,7 +38,7 @@ export const usersRouter = router({
 
 			const user = await prisma.user.create({
 				data: {
-					password: password,
+					passwordHash: password,
 					username: input.username,
 				},
 				select: {
@@ -65,11 +66,6 @@ export const usersRouter = router({
 			});
 
 			ctx.event.node.res.appendHeader("Set-Cookie", serializedCookie);
-
-			return {
-				id: user.id,
-				username: user.username,
-			};
 		}),
 
 	login: publicProcedure
@@ -96,7 +92,7 @@ export const usersRouter = router({
 
 			const isPasswordValid = await bcrypt.compare(
 				input.password,
-				user.password,
+				user.passwordHash,
 			);
 
 			if (!isPasswordValid) {
@@ -126,10 +122,5 @@ export const usersRouter = router({
 			});
 
 			ctx.event.node.res.appendHeader("Set-Cookie", serializedCookie);
-
-			return {
-				id: user.id,
-				username: user.username,
-			};
 		}),
 });

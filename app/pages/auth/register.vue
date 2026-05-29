@@ -29,10 +29,10 @@ definePageMeta({
 });
 
 const trpc = useTrpc();
-const logger = useLogger("register");
 const toast = useToast();
 const { setLoggedIn } = useAuth();
 const { usernameRule, passwordRule } = useValidationRule();
+const log = useLogger();
 
 const fields: AuthFormField[] = [
 	{
@@ -74,20 +74,14 @@ type Schema = z.output<typeof schema>;
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
-		const user = await trpc.users.register.mutate({
+		await trpc.users.register.mutate({
 			username: payload.data.username,
 			password: payload.data.password,
 		});
 
 		setLoggedIn();
 
-		toast.add({
-			title: `Hello ${user.username}`,
-			description: "Welcome on board",
-			color: "success",
-		});
-
-		await navigateTo({ path: "/" });
+		await navigateTo({ path: "/app" });
 	} catch (err) {
 		const message = err instanceof Error ? err.message : "Unknown error";
 
@@ -96,8 +90,6 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 			description: message,
 			color: "error",
 		});
-
-		logger.error("Registration error", err);
 	}
 };
 </script>
