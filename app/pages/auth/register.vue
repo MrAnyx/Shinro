@@ -32,7 +32,6 @@ const trpc = useTrpc();
 const toast = useToast();
 const { setLoggedIn } = useAuth();
 const { usernameRule, passwordRule } = useValidationRule();
-const log = useLogger();
 
 const fields: AuthFormField[] = [
 	{

@@ -3,12 +3,15 @@ import * as jwt from "jose";
 
 import type { JwtClaims } from "#server/types/jwt";
 
+const DEFAULT_ALGORITHM = "HS256";
+const DEFAULT_CLOCK_TOLERANCE = 0;
+
 export const signJwt = (payload: JwtClaims, duration: number) => {
 	const { jwtSecret } = useRuntimeConfig();
 	const secret = new TextEncoder().encode(jwtSecret);
 
 	return new jwt.SignJWT({ ...payload })
-		.setProtectedHeader({ alg: "HS256" })
+		.setProtectedHeader({ alg: DEFAULT_ALGORITHM })
 		.setIssuedAt()
 		.setExpirationTime(addSeconds(new Date(), duration))
 		.setSubject(payload.id)
@@ -19,10 +22,9 @@ export const verifyJwt = async (token: string) => {
 	const { jwtSecret } = useRuntimeConfig();
 	const secret = new TextEncoder().encode(jwtSecret);
 
-	const { payload } = await jwt.jwtVerify(token, secret, {
-		algorithms: ["HS256"],
-		clockTolerance: 0,
+	const { payload } = await jwt.jwtVerify<JwtClaims>(token, secret, {
+		algorithms: [DEFAULT_ALGORITHM],
+		clockTolerance: DEFAULT_CLOCK_TOLERANCE,
 	});
-
-	return payload;
+	return payload as JwtClaims;
 };

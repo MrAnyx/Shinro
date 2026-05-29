@@ -3,10 +3,9 @@ import bcrypt from "bcryptjs";
 import cookie from "cookie";
 import z from "zod";
 
-import { router, publicProcedure } from "#server/trpc/init";
+import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
 
 const { usernameRule, passwordRule } = useValidationRule();
-const log = useLogger();
 
 export const usersRouter = router({
 	register: publicProcedure
@@ -17,7 +16,10 @@ export const usersRouter = router({
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
-			const userExist = await prisma.user.findFirst({
+			const totaluser = await prisma.user.count({ take: 1 });
+			const isFirstUser = totaluser === 0;
+
+			const userExist = await prisma.user.findUnique({
 				where: {
 					username: input.username,
 				},
@@ -40,10 +42,12 @@ export const usersRouter = router({
 				data: {
 					passwordHash: password,
 					username: input.username,
+					role: isFirstUser ? "ADMIN" : "USER",
 				},
 				select: {
 					id: true,
 					username: true,
+					role: true,
 				},
 			});
 
@@ -53,6 +57,7 @@ export const usersRouter = router({
 				{
 					id: user.id,
 					username: user.username,
+					role: user.role,
 				},
 				tokenDuration,
 			);
@@ -76,7 +81,7 @@ export const usersRouter = router({
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {
-			const user = await prisma.user.findFirst({
+			const user = await prisma.user.findUnique({
 				where: {
 					username: input.username,
 				},
@@ -109,6 +114,7 @@ export const usersRouter = router({
 				{
 					id: user.id,
 					username: user.username,
+					role: user.role,
 				},
 				tokenDuration,
 			);
@@ -123,4 +129,28 @@ export const usersRouter = router({
 
 			ctx.event.node.res.appendHeader("Set-Cookie", serializedCookie);
 		}),
+	me: protectedProcedure.query(async ({ ctx }) => {
+		const user = await prisma.user.findUnique({
+			where: {
+				id: ctx.jwtPayload.id,
+			},
+			select: {
+				id: true,
+				username: true,
+				createdAt: true,
+				updatedAt: true,
+				role: true,
+			},
+		});
+
+		if (!user) {
+			throw new TRPCError({
+				code: "BAD_REQUEST",
+				cause: "Unknown user id",
+				message: "The user id is not valid",
+			});
+		}
+
+		return user;
+	}),
 });
