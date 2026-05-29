@@ -27,6 +27,13 @@ export const createContext = async (event: H3Event) => {
 				message: "This token is invalid, please use a valid token",
 			});
 		}
+		if (error instanceof jwt.errors.JWTClaimValidationFailed) {
+			throw new TRPCError({
+				code: "BAD_REQUEST",
+				cause: "Missing JWT claim",
+				message: "This token is missing required claims",
+			});
+		}
 
 		throw new TRPCError({
 			code: "INTERNAL_SERVER_ERROR",
