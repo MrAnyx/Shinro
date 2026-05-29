@@ -1,5 +1,5 @@
 <template>
-	<p v-if="isLoading || !isReady">Loading your workspace…</p>
+	<SplashScreen v-if="isLoading || !isReady" />
 
 	<UDashboardGroup unit="px" v-else>
 		<UDashboardSidebar
@@ -13,7 +13,7 @@
 			toggle-side="left"
 		>
 			<template #header="{ collapsed }">
-				<ULink class="flex flex-row items-center gap-x-1 text-highlighted" :class="{ 'mx-auto': !collapsed }" to="/app">
+				<ULink class="flex flex-row items-center gap-x-1 text-highlighted" :class="{ 'mx-auto': !collapsed }" to="/">
 					<img src="~/assets/images/icone.svg" class="size-11" />
 					<span class="font-brand text-4xl" v-show="!collapsed">Shinro</span>
 				</ULink>
@@ -56,7 +56,7 @@ import type { NavigationMenuItem, CommandPaletteItem } from "@nuxt/ui";
 
 const { isReady, isLoading, initialize } = useInitialization();
 
-onMounted(async () => {
+callOnce(async () => {
 	await initialize();
 });
 
