@@ -1,6 +1,6 @@
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 
-import { createContext } from "#server/trpc/init";
+import { createContext } from "#server/trpc/context";
 import { appRouter } from "#server/trpc/router";
 
 const log = useLogger("trpc");

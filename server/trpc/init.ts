@@ -1,47 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import type { H3Event } from "h3";
-import * as jwt from "jose";
 
-export const createContext = async (event: H3Event) => {
-	const token = getCookie(event, "auth_token");
-
-	if (!token) {
-		return { event };
-	}
-
-	try {
-		const jwtPayload = await verifyJwt(token);
-		return { event, jwtPayload };
-	} catch (error) {
-		if (error instanceof jwt.errors.JWTExpired) {
-			throw new TRPCError({
-				code: "UNAUTHORIZED",
-				cause: "JWT token expired",
-				message: "Please refresh your token or login again",
-			});
-		}
-		if (error instanceof jwt.errors.JWSSignatureVerificationFailed) {
-			throw new TRPCError({
-				code: "FORBIDDEN",
-				cause: "Invalid JWT token",
-				message: "This token is invalid, please use a valid token",
-			});
-		}
-		if (error instanceof jwt.errors.JWTClaimValidationFailed) {
-			throw new TRPCError({
-				code: "BAD_REQUEST",
-				cause: "Missing JWT claim",
-				message: "This token is missing required claims",
-			});
-		}
-
-		throw new TRPCError({
-			code: "INTERNAL_SERVER_ERROR",
-			cause: "Can not verify the token",
-			message: "This token can not be verified. Please try again later",
-		});
-	}
-};
+import { createContext } from "#server/trpc/context";
 
 type Context = Awaited<ReturnType<typeof createContext>>;
 
@@ -55,8 +14,8 @@ export const publicProcedure = trpc.procedure;
 export const protectedProcedure = trpc.procedure.use(({ ctx, next }) => {
 	if (!ctx.jwtPayload) {
 		throw new TRPCError({
-			cause: "User is not authenticated",
 			code: "UNAUTHORIZED",
+			cause: "User is not authenticated",
 			message: "You must login first before using this procedure",
 		});
 	}
@@ -67,8 +26,8 @@ export const protectedProcedure = trpc.procedure.use(({ ctx, next }) => {
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 	if (ctx.jwtPayload.role !== "ADMIN") {
 		throw new TRPCError({
-			cause: "User is not authorized",
 			code: "FORBIDDEN",
+			cause: "User is not authorized",
 			message: "User doesn't have the right authorizations",
 		});
 	}

@@ -14,14 +14,12 @@
 		"unicorn/filename-case": "off",
 		"no-console": "warn",
 		"prefer-const": ["error", { "destructuring": "all" }],
-		"prefer-destructuring": [
-			"error",
-			{ "variableDeclarator": { "array": false, "object": true } }
-		],
+		"prefer-destructuring": ["error", { "variableDeclarator": { "array": false, "object": true } }],
 		"no-ternary": "off",
 		"no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
 		"id-length": "off",
-		"no-magic-numbers": "off"
+		"no-magic-numbers": "off",
+		"curly": ["error", "all"]
 		// "unicorn/no-null": "off",
 		// "capitalized-comments": "off"
 	},
