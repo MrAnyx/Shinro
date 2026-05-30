@@ -1,11 +1,10 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
 	build: {
 		transpile: ["@trpc/client"],
 	},
 	vite: {
 		optimizeDeps: {
-			include: ["@unovis/ts", "@unovis/vue"],
+			include: ["@unovis/ts", "@unovis/vue", "@vueuse/core", "zod"],
 		},
 	},
 	colorMode: {
@@ -16,7 +15,6 @@ export default defineNuxtConfig({
 		// Types must be defined in the shared/types/runtimeConfig.d.ts file as well
 		// It must also be validated in the server/plugin/runtimeConfig.ts file
 		jwtSecret: undefined,
-		databaseUrl: undefined,
 		public: {
 			allowRegistration: undefined,
 		},

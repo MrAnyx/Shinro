@@ -5,6 +5,7 @@ declare module "nuxt/schema" {
 	}
 	interface PublicRuntimeConfig {
 		allowRegistration: boolean;
+		version: string;
 	}
 }
 

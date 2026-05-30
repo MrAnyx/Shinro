@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
-import cookie from "cookie";
 import z from "zod";
 
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
+import { DEFAULT_JWT_TOKEN_EXPIRATION } from "#server/utils/auth";
 
 const { usernameRule, passwordRule } = useValidationRule();
 
@@ -51,26 +51,19 @@ export const usersRouter = router({
 				},
 			});
 
-			const tokenDuration = 10 * 60; // 10 minutes
+			const jwtToken = await signJwt({
+				id: user.id,
+				username: user.username,
+				role: user.role,
+			});
 
-			const jwtToken = await signJwt(
-				{
-					id: user.id,
-					username: user.username,
-					role: user.role,
-				},
-				tokenDuration,
-			);
-
-			const serializedCookie = cookie.serialize("auth_token", jwtToken, {
+			setCookie(ctx.event, "jwt_token", jwtToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
 				sameSite: "lax",
-				maxAge: tokenDuration,
+				maxAge: DEFAULT_JWT_TOKEN_EXPIRATION,
 				path: "/",
 			});
-
-			ctx.event.node.res.appendHeader("Set-Cookie", serializedCookie);
 		}),
 
 	login: publicProcedure
@@ -95,10 +88,7 @@ export const usersRouter = router({
 				});
 			}
 
-			const isPasswordValid = await bcrypt.compare(
-				input.password,
-				user.passwordHash,
-			);
+			const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
 
 			if (!isPasswordValid) {
 				throw new TRPCError({
@@ -108,27 +98,23 @@ export const usersRouter = router({
 				});
 			}
 
-			const tokenDuration = 10 * 60; // 10 minutes
+			const jwtToken = await signJwt({
+				id: user.id,
+				username: user.username,
+				role: user.role,
+			});
 
-			const jwtToken = await signJwt(
-				{
-					id: user.id,
-					username: user.username,
-					role: user.role,
-				},
-				tokenDuration,
-			);
-
-			const serializedCookie = cookie.serialize("auth_token", jwtToken, {
+			setCookie(ctx.event, "jwt_token", jwtToken, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
 				sameSite: "lax",
-				maxAge: tokenDuration,
+				maxAge: DEFAULT_JWT_TOKEN_EXPIRATION,
 				path: "/",
 			});
-
-			ctx.event.node.res.appendHeader("Set-Cookie", serializedCookie);
 		}),
+	logout: protectedProcedure.mutation(async ({ ctx }) => {
+		deleteCookie(ctx.event, "jwt_token");
+	}),
 	me: protectedProcedure.query(async ({ ctx }) => {
 		const user = await prisma.user.findUnique({
 			where: {

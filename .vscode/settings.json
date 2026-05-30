@@ -16,5 +16,7 @@
 	},
 	"tailwindCSS.files.exclude": ["**/app.config.ts"],
 	"tailwindCSS.classAttributes": ["class", "ui"],
-	"tailwindCSS.classFunctions": ["defineAppConfig"]
+	"tailwindCSS.classFunctions": ["defineAppConfig"],
+	"iconify.annotations": true,
+	"iconify.inplace": false
 }

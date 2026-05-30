@@ -1,5 +1,6 @@
 {
 	"name": "tmp",
+	"version": "0.0.1",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -19,7 +20,7 @@
 		"db:studio": "prisma studio"
 	},
 	"dependencies": {
-		"@nuxt/ui": "^4.7.1",
+		"@nuxt/ui": "^4.8.1",
 		"@prisma/adapter-pg": "^7.8.0",
 		"@prisma/client": "^7.8.0",
 		"@trpc/client": "^11.17.0",
@@ -28,7 +29,6 @@
 		"@unovis/vue": "^1.6.5",
 		"@vueuse/core": "^14.3.0",
 		"bcryptjs": "^3.0.3",
-		"cookie": "^1.1.1",
 		"date-fns": "^4.3.0",
 		"jose": "^6.2.3",
 		"nuxt": "^4.4.6",

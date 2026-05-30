@@ -3,7 +3,7 @@ import type { H3Event } from "h3";
 import * as jwt from "jose";
 
 export const createContext = async (event: H3Event) => {
-	const token = getCookie(event, "auth_token");
+	const token = getCookie(event, "jwt_token");
 
 	if (!token) {
 		return { event };
