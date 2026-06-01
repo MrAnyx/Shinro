@@ -11,8 +11,10 @@ const trpc = initTRPC.context<Context>().create({
 export const router = trpc.router;
 export const publicProcedure = trpc.procedure;
 
-export const protectedProcedure = trpc.procedure.use(({ ctx, next }) => {
-	if (!ctx.jwtPayload) {
+export const protectedProcedure = trpc.procedure.use(async ({ ctx, next }) => {
+	const sessionId = getCookie(ctx.event, "session_id");
+
+	if (!sessionId) {
 		throw new TRPCError({
 			code: "UNAUTHORIZED",
 			cause: "User is not authenticated",
@@ -20,11 +22,42 @@ export const protectedProcedure = trpc.procedure.use(({ ctx, next }) => {
 		});
 	}
 
-	return next({ ctx: { ...ctx, jwtPayload: ctx.jwtPayload } });
+	const session = await prisma.session.findUnique({
+		where: {
+			sessionId: sessionId,
+		},
+		select: {
+			expiresAt: true,
+			user: {
+				select: {
+					id: true,
+					role: true,
+				},
+			},
+		},
+	});
+
+	if (!session || !session.user) {
+		throw new TRPCError({
+			code: "FORBIDDEN",
+			cause: "Session doesn't exist or is invalid",
+			message: "This session is invalid or doesn't exist",
+		});
+	}
+
+	if (session.expiresAt < new Date()) {
+		throw new TRPCError({
+			code: "UNAUTHORIZED",
+			cause: "Session expired",
+			message: "This session has expired. You must login again",
+		});
+	}
+
+	return next({ ctx: { ...ctx, user: session.user } });
 });
 
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-	if (ctx.jwtPayload.role !== "ADMIN") {
+	if (ctx.user.role !== "ADMIN") {
 		throw new TRPCError({
 			code: "FORBIDDEN",
 			cause: "User is not authorized",
@@ -32,5 +65,5 @@ export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 		});
 	}
 
-	return next({ ctx: { ...ctx, jwtPayload: ctx.jwtPayload } });
+	return next();
 });

@@ -1,32 +1,9 @@
-import { addSeconds } from "date-fns";
-import * as jwt from "jose";
+import { randomBytes } from "crypto";
 
-import type { JwtClaims } from "#server/types/jwt";
+export const DEFAULT_SESSION_EXPIRATION = 60 * 60 * 24 * 10; // 10 days
 
-const DEFAULT_JWT_ALGORITHM = "HS256";
-const DEFAULT_JWT_CLOCK_TOLERANCE = 0;
-export const DEFAULT_JWT_TOKEN_EXPIRATION = 10 * 60; // 10 minutes
-const DEFAULT_SESSION_EXPIRATION = 60 * 60 * 24 * 60; // 60 days
-
-export const signJwt = (payload: JwtClaims) => {
-	const { jwtSecret } = useRuntimeConfig();
-	const secret = new TextEncoder().encode(jwtSecret);
-
-	return new jwt.SignJWT({ ...payload })
-		.setProtectedHeader({ alg: DEFAULT_JWT_ALGORITHM })
-		.setIssuedAt()
-		.setExpirationTime(addSeconds(new Date(), DEFAULT_JWT_TOKEN_EXPIRATION))
-		.setSubject(payload.id)
-		.sign(secret);
-};
-
-export const verifyJwt = async (token: string) => {
-	const { jwtSecret } = useRuntimeConfig();
-	const secret = new TextEncoder().encode(jwtSecret);
-
-	const { payload } = await jwt.jwtVerify<JwtClaims>(token, secret, {
-		algorithms: [DEFAULT_JWT_ALGORITHM],
-		clockTolerance: DEFAULT_JWT_CLOCK_TOLERANCE,
-	});
-	return payload as JwtClaims;
+export const generateSessionId = (length: number = 255): string => {
+	// Hex encodes 4 bits per char, so we need (length * 4 / 8) bytes
+	const byteLength = Math.ceil((length * 4) / 8);
+	return randomBytes(byteLength).toString("hex").substring(0, length);
 };

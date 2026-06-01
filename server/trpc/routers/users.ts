@@ -1,9 +1,10 @@
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
+import { addSeconds } from "date-fns";
 import z from "zod";
+import { DEFAULT_SESSION_EXPIRATION, generateSessionId } from "~~/server/utils/auth";
 
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
-import { DEFAULT_JWT_TOKEN_EXPIRATION } from "#server/utils/auth";
 
 const { usernameRule, passwordRule } = useValidationRule();
 
@@ -46,22 +47,24 @@ export const usersRouter = router({
 				},
 				select: {
 					id: true,
-					username: true,
-					role: true,
 				},
 			});
 
-			const jwtToken = await signJwt({
-				id: user.id,
-				username: user.username,
-				role: user.role,
+			const sessionId = generateSessionId(255);
+
+			await prisma.session.create({
+				data: {
+					expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
+					sessionId: sessionId,
+					userId: user.id,
+				},
 			});
 
-			setCookie(ctx.event, "jwt_token", jwtToken, {
+			setCookie(ctx.event, "session_id", sessionId, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
 				sameSite: "lax",
-				maxAge: DEFAULT_JWT_TOKEN_EXPIRATION,
+				maxAge: DEFAULT_SESSION_EXPIRATION,
 				path: "/",
 			});
 		}),
@@ -98,17 +101,21 @@ export const usersRouter = router({
 				});
 			}
 
-			const jwtToken = await signJwt({
-				id: user.id,
-				username: user.username,
-				role: user.role,
+			const sessionId = generateSessionId(255);
+
+			await prisma.session.create({
+				data: {
+					expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
+					sessionId: sessionId,
+					userId: user.id,
+				},
 			});
 
-			setCookie(ctx.event, "jwt_token", jwtToken, {
+			setCookie(ctx.event, "jwt_token", sessionId, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
 				sameSite: "lax",
-				maxAge: DEFAULT_JWT_TOKEN_EXPIRATION,
+				maxAge: DEFAULT_SESSION_EXPIRATION,
 				path: "/",
 			});
 		}),
@@ -118,7 +125,7 @@ export const usersRouter = router({
 	me: protectedProcedure.query(async ({ ctx }) => {
 		const user = await prisma.user.findUnique({
 			where: {
-				id: ctx.jwtPayload.id,
+				id: ctx.user.id,
 			},
 			select: {
 				id: true,
