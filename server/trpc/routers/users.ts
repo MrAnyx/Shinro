@@ -2,9 +2,9 @@ import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
 import { addSeconds } from "date-fns";
 import z from "zod";
-import { DEFAULT_SESSION_EXPIRATION, generateSessionId } from "~~/server/utils/auth";
 
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
+import { DEFAULT_SESSION_EXPIRATION, generateSessionId } from "#server/utils/auth";
 
 const { usernameRule, passwordRule } = useValidationRule();
 
@@ -45,9 +45,6 @@ export const usersRouter = router({
 					username: input.username,
 					role: isFirstUser ? "ADMIN" : "USER",
 				},
-				select: {
-					id: true,
-				},
 			});
 
 			const sessionId = generateSessionId(255);
@@ -63,7 +60,7 @@ export const usersRouter = router({
 			setCookie(ctx.event, "session_id", sessionId, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
-				sameSite: "lax",
+				sameSite: "strict",
 				maxAge: DEFAULT_SESSION_EXPIRATION,
 				path: "/",
 			});
@@ -83,21 +80,11 @@ export const usersRouter = router({
 				},
 			});
 
-			if (!user) {
+			if (!user || (await bcrypt.compare(input.password, user.passwordHash))) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					cause: "Unknown username",
-					message: "User doesn't exist",
-				});
-			}
-
-			const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
-
-			if (!isPasswordValid) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					cause: "Invalid password",
-					message: "Invalid password",
+					cause: "Invalid username or password",
+					message: "Your username or password are not valid",
 				});
 			}
 
@@ -111,16 +98,22 @@ export const usersRouter = router({
 				},
 			});
 
-			setCookie(ctx.event, "jwt_token", sessionId, {
+			setCookie(ctx.event, "session_id", sessionId, {
 				httpOnly: true,
 				secure: process.env.NODE_ENV === "production",
-				sameSite: "lax",
+				sameSite: "strict",
 				maxAge: DEFAULT_SESSION_EXPIRATION,
 				path: "/",
 			});
 		}),
 	logout: protectedProcedure.mutation(async ({ ctx }) => {
-		deleteCookie(ctx.event, "jwt_token");
+		await prisma.session.deleteMany({
+			where: {
+				sessionId: ctx.sessionId,
+			},
+		});
+
+		deleteCookie(ctx.event, "session_id");
 	}),
 	me: protectedProcedure.query(async ({ ctx }) => {
 		const user = await prisma.user.findUnique({
@@ -138,9 +131,9 @@ export const usersRouter = router({
 
 		if (!user) {
 			throw new TRPCError({
-				code: "BAD_REQUEST",
-				cause: "Unknown user id",
-				message: "The user id is not valid",
+				code: "NOT_FOUND",
+				cause: "User not found",
+				message: "The user doesn't exist",
 			});
 		}
 
