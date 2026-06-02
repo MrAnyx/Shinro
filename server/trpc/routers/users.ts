@@ -45,6 +45,13 @@ export const usersRouter = router({
 					username: input.username,
 					role: isFirstUser ? "ADMIN" : "USER",
 				},
+				select: {
+					id: true,
+					username: true,
+					createdAt: true,
+					updatedAt: true,
+					role: true,
+				},
 			});
 
 			const sessionId = generateSessionId(255);
@@ -64,6 +71,8 @@ export const usersRouter = router({
 				maxAge: DEFAULT_SESSION_EXPIRATION,
 				path: "/",
 			});
+
+			return user;
 		}),
 
 	login: publicProcedure
@@ -80,9 +89,9 @@ export const usersRouter = router({
 				},
 			});
 
-			if (!user || (await bcrypt.compare(input.password, user.passwordHash))) {
+			if (!user || !(await bcrypt.compare(input.password, user.passwordHash))) {
 				throw new TRPCError({
-					code: "BAD_REQUEST",
+					code: "UNAUTHORIZED",
 					cause: "Invalid username or password",
 					message: "Your username or password are not valid",
 				});
@@ -105,6 +114,14 @@ export const usersRouter = router({
 				maxAge: DEFAULT_SESSION_EXPIRATION,
 				path: "/",
 			});
+
+			return {
+				id: user.id,
+				username: user.username,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
+				role: user.role,
+			};
 		}),
 	logout: protectedProcedure.mutation(async ({ ctx }) => {
 		await prisma.session.deleteMany({

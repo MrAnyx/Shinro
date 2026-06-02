@@ -53,11 +53,25 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem, CommandPaletteItem } from "@nuxt/ui";
+import { isTRPCClientError } from "@trpc/client";
 
-const { isReady, isLoading, initialize } = useInitialization();
+const authStore = useAuthStore();
+
+const isReady = ref(false);
+const isLoading = ref(false);
 
 callOnce(async () => {
-	await initialize();
+	try {
+		isLoading.value = true;
+		await authStore.fetchMe();
+		isReady.value = true;
+	} catch (err: any) {
+		if (isTRPCClientError(err) && err.data?.code === "UNAUTHORIZED") {
+			await navigateTo("/auth/login");
+		}
+	} finally {
+		isLoading.value = false;
+	}
 });
 
 const commandItems: CommandPaletteItem[] = [

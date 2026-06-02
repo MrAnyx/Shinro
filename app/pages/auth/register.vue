@@ -5,6 +5,7 @@
 		icon="i-lucide-user-plus"
 		:fields="fields"
 		@submit="onSubmit"
+		:loading="authStore.isLoading"
 		:submit="{ label: 'Register' }"
 		:validate-on="['change']"
 	>
@@ -21,6 +22,7 @@
 
 <script setup lang="ts">
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
+import { isTRPCClientError } from "@trpc/client";
 import * as z from "zod";
 
 definePageMeta({
@@ -30,7 +32,7 @@ definePageMeta({
 
 const trpc = useTrpc();
 const toast = useToast();
-const { setLoggedIn } = useAuth();
+const authStore = useAuthStore();
 const { usernameRule, passwordRule } = useValidationRule();
 
 const fields: AuthFormField[] = [
@@ -73,16 +75,10 @@ type Schema = z.output<typeof schema>;
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
-		await trpc.users.register.mutate({
-			username: payload.data.username,
-			password: payload.data.password,
-		});
-
-		setLoggedIn();
-
+		await authStore.register(payload.data);
 		await navigateTo({ path: "/app" });
 	} catch (err) {
-		const message = err instanceof Error ? err.message : "Unknown error";
+		const message = isTRPCClientError(err) ? err.message : "Unknown error";
 
 		toast.add({
 			title: "Registration failed",
