@@ -1,4 +1,5 @@
 import { initTRPC, TRPCError } from "@trpc/server";
+import { addSeconds } from "date-fns";
 
 import { createContext } from "#server/trpc/context";
 
@@ -11,50 +12,65 @@ const trpc = initTRPC.context<Context>().create({
 export const router = trpc.router;
 export const publicProcedure = trpc.procedure;
 
-export const protectedProcedure = trpc.procedure.use(async ({ ctx, next }) => {
-	const sessionId = getCookie(ctx.event, "session_id");
+export const protectedProcedure = publicProcedure
+	// Get user from session
+	.use(async ({ ctx, next }) => {
+		const sessionId = getCookie(ctx.event, "session_id");
 
-	if (!sessionId) {
-		throw new TRPCError({
-			code: "UNAUTHORIZED",
-			cause: "User is not authenticated",
-			message: "You must login first before using this procedure",
-		});
-	}
+		if (!sessionId) {
+			throw new TRPCError({
+				code: "UNAUTHORIZED",
+				cause: "User is not authenticated",
+				message: "You must login first before using this procedure",
+			});
+		}
 
-	const session = await prisma.session.findUnique({
-		where: {
-			sessionId: sessionId,
-		},
-		select: {
-			expiresAt: true,
-			user: {
-				select: {
-					id: true,
-					role: true,
+		const session = await prisma.session.findUnique({
+			where: {
+				sessionId: sessionId,
+			},
+			select: {
+				expiresAt: true,
+				user: {
+					select: {
+						id: true,
+						role: true,
+					},
 				},
 			},
-		},
+		});
+
+		if (!session || !session.user) {
+			throw new TRPCError({
+				code: "UNAUTHORIZED",
+				cause: "Session doesn't exist or is invalid",
+				message: "This session is invalid or doesn't exist",
+			});
+		}
+
+		if (session.expiresAt < new Date()) {
+			throw new TRPCError({
+				code: "UNAUTHORIZED",
+				cause: "Session expired",
+				message: "This session has expired. You must login again",
+			});
+		}
+
+		return next({ ctx: { ...ctx, sessionId, user: session.user } });
+	})
+	// Refresh session expiration
+	.use(async ({ ctx, next }) => {
+		await prisma.session.update({
+			data: {
+				expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
+			},
+			where: {
+				sessionId: ctx.sessionId,
+			},
+		});
+
+		return next();
 	});
-
-	if (!session || !session.user) {
-		throw new TRPCError({
-			code: "FORBIDDEN",
-			cause: "Session doesn't exist or is invalid",
-			message: "This session is invalid or doesn't exist",
-		});
-	}
-
-	if (session.expiresAt < new Date()) {
-		throw new TRPCError({
-			code: "UNAUTHORIZED",
-			cause: "Session expired",
-			message: "This session has expired. You must login again",
-		});
-	}
-
-	return next({ ctx: { ...ctx, user: session.user } });
-});
 
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 	if (ctx.user.role !== "ADMIN") {
