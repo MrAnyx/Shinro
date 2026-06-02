@@ -1,5 +1,6 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { addSeconds } from "date-fns";
+import superjson from "superjson";
 
 import { createContext } from "#server/trpc/context";
 
@@ -7,6 +8,7 @@ type Context = Awaited<ReturnType<typeof createContext>>;
 
 const trpc = initTRPC.context<Context>().create({
 	isDev: false, // Remove the stacktrace from the http responses
+	transformer: superjson,
 });
 
 export const router = trpc.router;
