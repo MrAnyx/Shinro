@@ -7,6 +7,7 @@ export default defineNuxtConfig({
 			include: ["@unovis/ts", "@unovis/vue", "@vueuse/core", "zod", "superjson"],
 		},
 	},
+	telemetry: false,
 	colorMode: {
 		fallback: "dark",
 		preference: "dark",
