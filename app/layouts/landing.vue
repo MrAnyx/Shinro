@@ -11,9 +11,7 @@
 
 		<template #right>
 			<UColorModeButton />
-
-			<UButton color="neutral" label="Sign in" variant="subtle" to="/auth/login" />
-			<UButton color="neutral" label="Sign up" variant="solid" trailing-icon="i-lucide-arrow-right" to="/auth/register" />
+			<UButton color="neutral" label="Get started" variant="solid" trailing-icon="i-lucide-arrow-right" to="/app" />
 		</template>
 
 		<template #body>

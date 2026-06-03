@@ -1,55 +1,68 @@
-const trpc = useTrpc();
-
 export const useAuthStore = defineStore("auth", {
 	state: () => ({
 		user: null as UserInfo | null,
-		isLoading: false,
+		isLoadingLogin: false,
+		isLoadingRegister: false,
+		isLoadingLogout: false,
+		isLoadingFetchMe: false,
 	}),
 	getters: {
 		isAuthenticated: (state) => !!state.user,
+		isLoading: (state) => state.isLoadingLogin || state.isLoadingRegister || state.isLoadingLogout || state.isLoadingFetchMe,
 	},
 	actions: {
 		async login(payload: { username: string; password: string }) {
+			const trpc = useTrpc();
+
 			try {
-				this.isLoading = true;
-				this.user = await trpc.user.login.mutate(payload);
+				this.isLoadingLogin = true;
+				this.user = await trpc.users.login.mutate(payload);
 			} catch (error) {
 				this.user = null;
 				throw error;
 			} finally {
-				this.isLoading = false;
+				this.isLoadingLogin = false;
 			}
 		},
 		async register(payload: { username: string; password: string }) {
+			const trpc = useTrpc();
+
 			try {
-				this.isLoading = true;
-				this.user = await trpc.user.register.mutate(payload);
+				this.isLoadingRegister = true;
+				this.user = await trpc.users.register.mutate(payload);
 			} catch (error) {
 				this.user = null;
 				throw error;
 			} finally {
-				this.isLoading = false;
+				this.isLoadingRegister = false;
 			}
 		},
 		async logout() {
+			const trpc = useTrpc();
+
 			try {
-				await trpc.user.logout.mutate();
+				this.isLoadingLogout = true;
+				await trpc.users.logout.mutate();
 			} finally {
 				this.user = null;
+				this.isLoadingLogout = false;
 			}
 		},
-		async fetchMe() {
-			if (this.isAuthenticated) {
+		async fetchMe(force: boolean = false) {
+			if (this.isAuthenticated && !force) {
 				return;
 			}
 
+			const trpc = useTrpc();
+
 			try {
-				this.isLoading = true;
-				this.user = await trpc.user.me.query();
-			} catch {
+				this.isLoadingFetchMe = true;
+				this.user = await trpc.users.me.query();
+			} catch (err) {
 				this.user = null;
+				throw err;
 			} finally {
-				this.isLoading = false;
+				this.isLoadingFetchMe = false;
 			}
 		},
 	},

@@ -1,5 +1,5 @@
 import type { AppRouter } from "@@/server/trpc/router";
-import { createTRPCClient, httpBatchLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink, TRPCClientError } from "@trpc/client";
 import superjson from "superjson";
 
 export default defineNuxtPlugin(() => {

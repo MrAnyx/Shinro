@@ -1,5 +1,5 @@
 <template>
-	<SplashScreen v-if="isLoading || !isReady" />
+	<SplashScreen v-if="!initializationStore.isFullyInitialized" />
 
 	<UDashboardGroup unit="px" v-else>
 		<UDashboardSidebar
@@ -55,22 +55,21 @@
 import type { NavigationMenuItem, CommandPaletteItem } from "@nuxt/ui";
 import { isTRPCClientError } from "@trpc/client";
 
-const authStore = useAuthStore();
+const initializationStore = useInitializationStore();
+const toast = useToast();
 
-const isReady = ref(false);
-const isLoading = ref(false);
+onMounted(async () => {
+	if (initializationStore.isReady) {
+		return;
+	}
 
-callOnce(async () => {
 	try {
-		isLoading.value = true;
-		await authStore.fetchMe();
-		isReady.value = true;
+		initializationStore.isLoading = true;
+		// initial data loading
+		initializationStore.isReady = true;
 	} catch (err: any) {
-		if (isTRPCClientError(err) && err.data?.code === "UNAUTHORIZED") {
-			await navigateTo("/auth/login");
-		}
 	} finally {
-		isLoading.value = false;
+		initializationStore.isLoading = false;
 	}
 });
 
