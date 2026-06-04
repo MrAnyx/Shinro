@@ -4,7 +4,8 @@
 		:links="links"
 	>
 		<template #title>
-			Finally a place for you <span class="font-brand underline decoration-dashed decoration-3 decoration-primary underline-offset-8">Chaos</span>
+			Finally a place for your
+			<span class="font-brand underline decoration-dashed decoration-3 decoration-primary underline-offset-8">Chaos</span>
 		</template>
 	</UPageHero>
 
@@ -26,14 +27,23 @@
 	>
 		<ImagePlaceholder />
 	</UPageSection>
+
+	<UPageSection>
+		<UPageCTA
+			title="Trusted and supported by our amazing community"
+			description="We've built a strong, lasting partnership. Their trust is our driving force, propelling us towards shared success."
+			variant="subtle"
+			:links="links"
+		/>
+	</UPageSection>
 </template>
 
 <script setup lang="ts">
+import type { ButtonProps, PageFeatureProps } from "@nuxt/ui";
+
 definePageMeta({
 	layout: "landing",
 });
-
-import type { ButtonProps, PageFeatureProps } from "@nuxt/ui";
 
 const links = ref<ButtonProps[]>([
 	{
