@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
 import { addSeconds } from "date-fns";
 import z from "zod";
+import { env } from "~~/env";
 
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
 import { DEFAULT_SESSION_EXPIRATION, generateSessionId } from "#server/utils/auth";
@@ -66,7 +67,7 @@ export const usersRouter = router({
 
 			setCookie(ctx.event, "session_id", sessionId, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
+				secure: env.NODE_ENV === "production",
 				sameSite: "strict",
 				maxAge: DEFAULT_SESSION_EXPIRATION,
 				path: "/",
@@ -109,7 +110,7 @@ export const usersRouter = router({
 
 			setCookie(ctx.event, "session_id", sessionId, {
 				httpOnly: true,
-				secure: process.env.NODE_ENV === "production",
+				secure: env.NODE_ENV === "production",
 				sameSite: "strict",
 				maxAge: DEFAULT_SESSION_EXPIRATION,
 				path: "/",

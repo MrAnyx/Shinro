@@ -1,9 +1,7 @@
-export default defineNuxtRouteMiddleware((to) => {
-	const {
-		public: { allowRegistration },
-	} = useRuntimeConfig();
+import { env } from "~~/env";
 
-	if (!allowRegistration && to.path === "/auth/register") {
+export default defineNuxtRouteMiddleware((to) => {
+	if (!env.NUXT_PUBLIC_ALLOW_REGISTRATION && to.path === "/auth/register") {
 		throw createError({
 			statusCode: 403,
 			statusMessage: "Regitration is not allowed",
