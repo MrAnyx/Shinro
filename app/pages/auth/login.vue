@@ -32,7 +32,6 @@ definePageMeta({
 
 const authStore = useAuthStore();
 const toast = useToast();
-const { usernameRule, passwordRule } = useValidationRule();
 
 const fields: AuthFormField[] = [
 	{

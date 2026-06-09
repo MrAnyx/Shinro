@@ -1,12 +1,16 @@
 import { PrismaPg } from "@prisma/adapter-pg";
-import { env } from "~~/env";
-import { PrismaClient } from "~~/prisma/generated/client";
+
+import { PrismaClient } from "#server/prisma/generated/client";
+import { omitConfig } from "#server/prisma/omitConfig";
 
 const prismaClientSingleton = () => {
 	const pool = new PrismaPg({
 		connectionString: env.DATABASE_URL,
 	});
-	return new PrismaClient({ adapter: pool });
+	return new PrismaClient({
+		adapter: pool,
+		omit: omitConfig,
+	});
 };
 
 type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;

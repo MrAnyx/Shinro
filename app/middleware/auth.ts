@@ -3,7 +3,6 @@ import { isTRPCClientError } from "@trpc/client";
 export default defineNuxtRouteMiddleware(async () => {
 	const authStore = useAuthStore();
 
-	// already fetched, let through
 	if (authStore.isAuthenticated) {
 		return;
 	}

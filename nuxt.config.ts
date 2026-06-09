@@ -1,4 +1,6 @@
-import "./env";
+import { fileURLToPath } from "node:url";
+
+import "./server/utils/env";
 
 export default defineNuxtConfig({
 	build: {
@@ -7,6 +9,11 @@ export default defineNuxtConfig({
 	vite: {
 		optimizeDeps: {
 			include: ["@unovis/ts", "@unovis/vue", "@vueuse/core", "zod", "superjson"],
+		},
+	},
+	runtimeConfig: {
+		public: {
+			allowRegistration: true,
 		},
 	},
 	telemetry: false,
@@ -22,5 +29,8 @@ export default defineNuxtConfig({
 	typescript: {
 		strict: true,
 		typeCheck: true,
+	},
+	alias: {
+		"#lib": fileURLToPath(new URL("./lib", import.meta.url)),
 	},
 });

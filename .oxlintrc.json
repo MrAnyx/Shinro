@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"plugins": ["eslint", "typescript", "unicorn", "oxc", "vue"],
+	"plugins": ["eslint", "typescript", "unicorn", "oxc", "vue", "node"],
 	"categories": {
 		"correctness": "error",
 		"perf": "error"
@@ -19,7 +19,8 @@
 		"no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
 		"id-length": "off",
 		"no-magic-numbers": "off",
-		"curly": ["error", "all"]
+		"curly": ["error", "all"],
+		"node/no-process-env": "error"
 		// "unicorn/no-null": "off",
 		// "capitalized-comments": "off"
 	},

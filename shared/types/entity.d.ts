@@ -1,3 +1,3 @@
-import type { User } from "~~/prisma/generated/client";
+import type z from "zod";
 
-export type UserInfo = Pick<User, "id" | "username" | "role" | "createdAt" | "updatedAt">;
+export type User = z.infer<typeof userRule>;

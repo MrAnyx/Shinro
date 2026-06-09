@@ -30,10 +30,8 @@ definePageMeta({
 	middleware: ["registration", "guest-only"],
 });
 
-const trpc = useTrpc();
 const toast = useToast();
 const authStore = useAuthStore();
-const { usernameRule, passwordRule } = useValidationRule();
 
 const fields: AuthFormField[] = [
 	{

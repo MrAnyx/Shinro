@@ -2,12 +2,8 @@ import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
 import { addSeconds } from "date-fns";
 import z from "zod";
-import { env } from "~~/env";
 
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
-import { DEFAULT_SESSION_EXPIRATION, generateSessionId } from "#server/utils/auth";
-
-const { usernameRule, passwordRule } = useValidationRule();
 
 export const usersRouter = router({
 	register: publicProcedure
@@ -17,6 +13,7 @@ export const usersRouter = router({
 				password: passwordRule,
 			}),
 		)
+		.output(userRule)
 		.mutation(async ({ input, ctx }) => {
 			const totaluser = await prisma.user.count({ take: 1 });
 			const isFirstUser = totaluser === 0;
@@ -45,13 +42,6 @@ export const usersRouter = router({
 					passwordHash: password,
 					username: input.username,
 					role: isFirstUser ? "ADMIN" : "USER",
-				},
-				select: {
-					id: true,
-					username: true,
-					createdAt: true,
-					updatedAt: true,
-					role: true,
 				},
 			});
 
@@ -83,6 +73,7 @@ export const usersRouter = router({
 				password: passwordRule,
 			}),
 		)
+		.output(userRule)
 		.mutation(async ({ input, ctx }) => {
 			const user = await prisma.user.findUnique({
 				where: {
@@ -124,37 +115,36 @@ export const usersRouter = router({
 				role: user.role,
 			};
 		}),
-	logout: protectedProcedure.mutation(async ({ ctx }) => {
-		await prisma.session.deleteMany({
-			where: {
-				sessionId: ctx.sessionId,
-			},
-		});
-
-		deleteCookie(ctx.event, "session_id");
-	}),
-	me: protectedProcedure.query(async ({ ctx }) => {
-		const user = await prisma.user.findUnique({
-			where: {
-				id: ctx.user.id,
-			},
-			select: {
-				id: true,
-				username: true,
-				createdAt: true,
-				updatedAt: true,
-				role: true,
-			},
-		});
-
-		if (!user) {
-			throw new TRPCError({
-				code: "NOT_FOUND",
-				cause: "User not found",
-				message: "The user doesn't exist",
+	logout: protectedProcedure
+		.input(z.void())
+		.output(z.void())
+		.mutation(async ({ ctx }) => {
+			await prisma.session.deleteMany({
+				where: {
+					sessionId: ctx.sessionId,
+				},
 			});
-		}
 
-		return user;
-	}),
+			deleteCookie(ctx.event, "session_id");
+		}),
+	me: protectedProcedure
+		.input(z.void())
+		.output(userRule)
+		.query(async ({ ctx }) => {
+			const user = await prisma.user.findUnique({
+				where: {
+					id: ctx.user.id,
+				},
+			});
+
+			if (!user) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					cause: "User not found",
+					message: "The user doesn't exist",
+				});
+			}
+
+			return user;
+		}),
 });

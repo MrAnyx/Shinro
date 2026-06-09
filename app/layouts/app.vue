@@ -53,10 +53,8 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem, CommandPaletteItem } from "@nuxt/ui";
-import { isTRPCClientError } from "@trpc/client";
 
 const initializationStore = useInitializationStore();
-const toast = useToast();
 
 onMounted(async () => {
 	if (initializationStore.isReady) {

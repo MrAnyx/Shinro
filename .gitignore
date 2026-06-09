@@ -24,4 +24,4 @@ logs
 !.env.example
 
 # Prisma database
-prisma/generated
+server/prisma/generated
