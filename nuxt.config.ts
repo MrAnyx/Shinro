@@ -13,7 +13,7 @@ export default defineNuxtConfig({
 	},
 	runtimeConfig: {
 		public: {
-			allowRegistration: undefined,
+			allowRegistration: true,
 		},
 	},
 	telemetry: false,

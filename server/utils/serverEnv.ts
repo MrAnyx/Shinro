@@ -6,7 +6,7 @@ const EnvSchema = z.object({
 	DATABASE_URL: z.url(),
 
 	// Public variables
-	NUXT_PUBLIC_ALLOW_REGISTRATION: z.coerce.boolean(),
+	NUXT_PUBLIC_ALLOW_REGISTRATION: z.stringbool(),
 });
 
 export type EnvSchema = z.infer<typeof EnvSchema>;

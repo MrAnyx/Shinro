@@ -1,12 +1,14 @@
 <template>
 	<UPageHero
 		description="The all-in-one digital sanctuary for hoarders, procrastinators, and media enthusiasts who need to organize their books, movies, series, and existential dread—because life’s too short to remember what you’ve read, watched, or pretended to care about."
-		:links="links"
+		:links="heroButtons"
 	>
 		<template #title>
 			Finally a place for your
 			<span class="font-brand underline decoration-dashed decoration-3 decoration-primary underline-offset-8">Chaos</span>
 		</template>
+
+		<ImagePlaceholder />
 	</UPageHero>
 
 	<UPageSection
@@ -30,10 +32,10 @@
 
 	<UPageSection>
 		<UPageCTA
-			title="Trusted and supported by our amazing community"
-			description="We've built a strong, lasting partnership. Their trust is our driving force, propelling us towards shared success."
+			title="Join the Club of Chronic Collectors"
+			description="Connect with fellow hoarders, procrastinators, and media enthusiasts who finally get it. No judgment, just organization—and maybe a little existential dread."
 			variant="subtle"
-			:links="links"
+			:links="heroButtons"
 		/>
 	</UPageSection>
 </template>
@@ -45,7 +47,7 @@ definePageMeta({
 	layout: "landing",
 });
 
-const links = ref<ButtonProps[]>([
+const heroButtons = ref<ButtonProps[]>([
 	{
 		label: "Get started",
 		to: "/docs/getting-started",
