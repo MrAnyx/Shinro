@@ -5,7 +5,7 @@ import { omitConfig } from "#server/prisma/omitConfig";
 
 const prismaClientSingleton = () => {
 	const pool = new PrismaPg({
-		connectionString: env.DATABASE_URL,
+		connectionString: serverEnv.DATABASE_URL,
 	});
 	return new PrismaClient({
 		adapter: pool,
@@ -21,6 +21,6 @@ const globalForPrisma = globalThis as unknown as {
 
 export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
 
-if (env.NODE_ENV !== "production") {
+if (serverEnv.NODE_ENV !== "production") {
 	globalForPrisma.prisma = prisma;
 }

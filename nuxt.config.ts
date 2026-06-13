@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 
-import "./server/utils/env";
+import "./server/utils/serverEnv";
 
 export default defineNuxtConfig({
 	build: {
@@ -13,7 +13,7 @@ export default defineNuxtConfig({
 	},
 	runtimeConfig: {
 		public: {
-			allowRegistration: true,
+			allowRegistration: undefined,
 		},
 	},
 	telemetry: false,

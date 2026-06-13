@@ -45,7 +45,7 @@ export const usersRouter = router({
 				},
 			});
 
-			const sessionId = generateSessionId(255);
+			const sessionId = generateRandomString(255);
 
 			await prisma.session.create({
 				data: {
@@ -57,7 +57,7 @@ export const usersRouter = router({
 
 			setCookie(ctx.event, "session_id", sessionId, {
 				httpOnly: true,
-				secure: env.NODE_ENV === "production",
+				secure: serverEnv.NODE_ENV === "production",
 				sameSite: "strict",
 				maxAge: DEFAULT_SESSION_EXPIRATION,
 				path: "/",
@@ -89,7 +89,7 @@ export const usersRouter = router({
 				});
 			}
 
-			const sessionId = generateSessionId(255);
+			const sessionId = generateRandomString(255);
 
 			await prisma.session.create({
 				data: {
@@ -101,7 +101,7 @@ export const usersRouter = router({
 
 			setCookie(ctx.event, "session_id", sessionId, {
 				httpOnly: true,
-				secure: env.NODE_ENV === "production",
+				secure: serverEnv.NODE_ENV === "production",
 				sameSite: "strict",
 				maxAge: DEFAULT_SESSION_EXPIRATION,
 				path: "/",
