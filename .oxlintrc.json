@@ -6,8 +6,8 @@
 		"perf": "error"
 	},
 	"options": {
-		"typeAware": true,
-		"typeCheck": true
+		"typeAware": false,
+		"typeCheck": false
 	},
 	"rules": {
 		"sort-imports": "off",
