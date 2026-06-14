@@ -7,7 +7,9 @@
 	},
 	"options": {
 		"typeAware": false,
-		"typeCheck": false
+		"typeCheck": false,
+		"denyWarnings": false,
+		"maxWarnings": 10
 	},
 	"rules": {
 		"sort-imports": "off",

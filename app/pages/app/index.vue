@@ -18,4 +18,12 @@ definePageMeta({
 	layout: "app",
 	middleware: ["auth"],
 });
+
+onMounted(async () => {
+	const trpc = useTrpc();
+
+	const result = await trpc.tmdb.movies.query();
+
+	console.log(result);
+});
 </script>

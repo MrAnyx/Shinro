@@ -4,6 +4,9 @@ const EnvSchema = z.object({
 	// Private variables
 	NODE_ENV: z.string(),
 	DATABASE_URL: z.url(),
+	TMDB_TOKEN: z.string(),
+	TMDB_LANGUAGE: z.string(),
+	TMDB_INCLUDE_NSFW: z.stringbool(),
 
 	// Public variables
 	NUXT_PUBLIC_ALLOW_REGISTRATION: z.stringbool(),
