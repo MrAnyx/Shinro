@@ -5,6 +5,7 @@
 	"singleQuote": false,
 	"sortImports": true,
 	"sortPackageJson": true,
+	"endOfLine": "crlf",
 	"overrides": [
 		{
 			"files": ["**/*.vue"],

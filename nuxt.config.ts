@@ -1,5 +1,3 @@
-import { fileURLToPath } from "node:url";
-
 import "./server/utils/serverEnv";
 
 export default defineNuxtConfig({
@@ -30,7 +28,12 @@ export default defineNuxtConfig({
 		strict: true,
 		typeCheck: true,
 	},
-	alias: {
-		"#lib": fileURLToPath(new URL("./lib", import.meta.url)),
+	imports: {
+		dirs: ["shared/utils/**", "shared/types/**"],
+	},
+	nitro: {
+		imports: {
+			dirs: ["shared/utils/**", "shared/types/**"],
+		},
 	},
 });

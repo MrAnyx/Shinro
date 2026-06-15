@@ -84,7 +84,7 @@ const dashboardItems: NavigationMenuItem[] = [
 		type: "label",
 	},
 	{
-		label: "Home",
+		label: "Overview",
 		icon: "i-lucide-home",
 		to: "/app",
 	},

@@ -1,3 +1,3 @@
-import type z from "zod";
+import * as z from "zod";
 
-export type User = z.infer<typeof userRule>;
+export type User = z.infer<typeof UserSchema>;
