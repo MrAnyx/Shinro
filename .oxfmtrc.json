@@ -6,12 +6,5 @@
 	"sortImports": true,
 	"sortPackageJson": true,
 	"endOfLine": "crlf",
-	"overrides": [
-		{
-			"files": ["**/*.vue"],
-			"options": {
-				"printWidth": 160
-			}
-		}
-	]
+	"ignorePatterns": ["**/*.toml"]
 }
