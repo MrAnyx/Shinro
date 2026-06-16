@@ -1,10 +1,12 @@
 import { router } from "#server/trpc/init";
+import { collectionRouter } from "#server/trpc/routers/collections";
 import { tmdbRouter } from "#server/trpc/routers/tmdb";
-import { usersRouter } from "#server/trpc/routers/users";
+import { userRouter } from "#server/trpc/routers/users";
 
 export const appRouter = router({
-	users: usersRouter,
+	users: userRouter,
 	tmdb: tmdbRouter,
+	collections: collectionRouter,
 });
 
 export type AppRouter = typeof appRouter;

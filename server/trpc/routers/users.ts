@@ -5,7 +5,7 @@ import z from "zod";
 
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
 
-export const usersRouter = router({
+export const userRouter = router({
 	register: publicProcedure
 		.input(
 			z.object({
@@ -107,13 +107,7 @@ export const usersRouter = router({
 				path: "/",
 			});
 
-			return {
-				id: user.id,
-				username: user.username,
-				createdAt: user.createdAt,
-				updatedAt: user.updatedAt,
-				role: user.role,
-			};
+			return user;
 		}),
 	logout: protectedProcedure
 		.input(z.void())

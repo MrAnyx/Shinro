@@ -7,3 +7,11 @@ export const UserSchema = z.object({
 	createdAt: z.date(),
 	updatedAt: z.date(),
 });
+
+export const CollectionSchema = z.object({
+	id: z.uuid(),
+	name: z.string(),
+	owner: UserSchema,
+	createdAt: z.date(),
+	updatedAt: z.date(),
+});
