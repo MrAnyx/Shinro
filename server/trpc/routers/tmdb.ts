@@ -1,4 +1,3 @@
-import { TRPCError } from "@trpc/server";
 import z from "zod";
 
 import { router, protectedProcedure } from "#server/trpc/init";
@@ -15,19 +14,10 @@ export const tmdbRouter = router({
 		)
 		.output(TMDbMovieSearchSchema)
 		.query(async ({ input }) => {
-			try {
-				return await tmdb<TMDbMovieSearch>("/search/movie", {
-					query: {
-						query: input.title,
-					},
-				});
-			} catch (err) {
-				logger.error(err);
-				throw new TRPCError({
-					code: "INTERNAL_SERVER_ERROR",
-					message: "Failed to fetch movies from TMDb",
-					cause: err instanceof Error ? err.message : "Unknown error",
-				});
-			}
+			return await tmdb<TMDbMovieSearch>("/search/movie", {
+				query: {
+					query: input.title,
+				},
+			});
 		}),
 });

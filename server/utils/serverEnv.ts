@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const EnvSchema = z.object({
 	// Private variables
-	NODE_ENV: z.string(),
+	NODE_ENV: z.enum(["production", "development"]),
 	DATABASE_URL: z.url(),
 	TMDB_TOKEN: z.string(),
 	TMDB_LANGUAGE: z.string(),

@@ -30,7 +30,6 @@ export const userRouter = router({
 			if (userExist) {
 				throw new TRPCError({
 					code: "CONFLICT",
-					cause: "Username already used",
 					message: "Choose a different username to create a new user",
 				});
 			}
@@ -84,7 +83,6 @@ export const userRouter = router({
 			if (!user || !(await bcrypt.compare(input.password, user.passwordHash))) {
 				throw new TRPCError({
 					code: "UNAUTHORIZED",
-					cause: "Invalid username or password",
 					message: "Your username or password are not valid",
 				});
 			}
@@ -134,7 +132,6 @@ export const userRouter = router({
 			if (!user) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
-					cause: "User not found",
 					message: "The user doesn't exist",
 				});
 			}

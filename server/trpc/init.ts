@@ -7,15 +7,36 @@ import { createContext } from "#server/trpc/context";
 type Context = Awaited<ReturnType<typeof createContext>>;
 
 const trpc = initTRPC.context<Context>().create({
-	isDev: false, // Remove the stacktrace from the http responses
+	isDev: serverEnv.NODE_ENV !== "production",
 	transformer: superjson,
+	errorFormatter({ shape, error }) {
+		const originalError = error.cause;
+		const timestamp = new Date().toISOString();
+
+		// Override message for INTERNAL_SERVER_ERROR on production
+		const message = error.code === "INTERNAL_SERVER_ERROR" && serverEnv.NODE_ENV === "production" ? "Unexpected error" : error.message;
+
+		return {
+			...shape,
+			message,
+			data: {
+				...shape.data,
+				timestamp,
+				// Conditionally include errorContext in development
+				...(serverEnv.NODE_ENV !== "production" &&
+					originalError instanceof Error && {
+						message: originalError.message,
+					}),
+			},
+		};
+	},
 });
 
 export const router = trpc.router;
+
 export const publicProcedure = trpc.procedure;
 
 export const protectedProcedure = publicProcedure
-	// Get user from session
 	.use(async ({ ctx, next }) => {
 		const sessionId = getCookie(ctx.event, "session_id");
 

@@ -28,12 +28,4 @@ export default defineNuxtConfig({
 		strict: true,
 		typeCheck: true,
 	},
-	imports: {
-		dirs: ["shared/utils/**", "shared/types/**"],
-	},
-	nitro: {
-		imports: {
-			dirs: ["shared/utils/**", "shared/types/**"],
-		},
-	},
 });
