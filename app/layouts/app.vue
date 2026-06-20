@@ -89,10 +89,10 @@ const dashboardItems: NavigationMenuItem[] = [
 		to: "/app",
 	},
 	{
-		label: "Tags",
-		icon: "i-lucide-tags",
+		label: "Collections",
+		icon: "i-lucide-group",
 		badge: 4,
-		to: "/app/tags",
+		to: "/app/collections",
 	},
 	{
 		label: "Stats",
@@ -118,11 +118,6 @@ const mediaItems: NavigationMenuItem[] = [
 	},
 	{
 		label: "Series",
-		badge: {
-			label: "Soon",
-			color: "info",
-		},
-		disabled: true,
 		icon: "i-lucide-tv-minimal-play",
 	},
 	{

@@ -1,9 +1,14 @@
 export default defineNuxtRouteMiddleware((to) => {
+	const toast = useToast();
+
 	if (!clientEnv.allowRegistration && to.path === "/auth/register") {
-		throw createError({
-			statusCode: 403,
-			statusMessage: "Regitration is not allowed",
-			cause: "Registration as been disabled",
+		toast.add({
+			title: "Registration not allowed",
+			description: "Registration as been disabled by the administrator",
+			color: "warning",
+			type: "foreground",
 		});
+
+		return navigateTo("/");
 	}
 });

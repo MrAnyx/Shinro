@@ -1,6 +1,3 @@
-import { isTRPCClientError } from "@trpc/client";
-import { getHTTPStatusCode, getHTTPStatusCodeFromError } from "@trpc/server/unstable-core-do-not-import";
-
 export default defineNuxtRouteMiddleware(async () => {
 	const authStore = useAuthStore();
 	const toast = useToast();
@@ -19,6 +16,7 @@ export default defineNuxtRouteMiddleware(async () => {
 				title: "Almost there!",
 				description: "Log in to unlock the full application",
 				color: "warning",
+				type: "foreground",
 			});
 			return navigateTo("/auth/login");
 		} else {
@@ -26,6 +24,7 @@ export default defineNuxtRouteMiddleware(async () => {
 				title: "Oops!",
 				description: "Something went wrong during login. Please retry.",
 				color: "error",
+				type: "foreground",
 			});
 
 			return navigateTo("/");

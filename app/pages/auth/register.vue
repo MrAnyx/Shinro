@@ -76,12 +76,13 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		await authStore.register(payload.data);
 		await navigateTo({ path: "/app" });
 	} catch (err) {
-		const message = isTRPCClientError(err) ? err.message : "Unknown error";
+		const message = isTRPCError(err) ? err.message : "Unknown error";
 
 		toast.add({
 			title: "Registration failed",
 			description: message,
 			color: "error",
+			type: "foreground",
 		});
 	}
 };

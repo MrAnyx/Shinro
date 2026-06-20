@@ -23,34 +23,34 @@
 		"db:studio": "prisma studio"
 	},
 	"dependencies": {
-		"@nuxt/ui": "^4.8.2",
+		"@nuxt/ui": "^4.9.0",
 		"@pinia/nuxt": "0.11.3",
 		"@prisma/adapter-pg": "^7.8.0",
 		"@prisma/client": "^7.8.0",
-		"@trpc/client": "^11.17.0",
-		"@trpc/server": "^11.17.0",
-		"@unovis/ts": "^1.6.5",
-		"@unovis/vue": "^1.6.5",
+		"@trpc/client": "^11.18.0",
+		"@trpc/server": "^11.18.0",
+		"@unovis/ts": "^1.6.6",
+		"@unovis/vue": "^1.6.6",
 		"@vueuse/core": "^14.3.0",
 		"bcryptjs": "^3.0.3",
 		"date-fns": "^4.4.0",
 		"nuxt": "^4.4.8",
-		"pg": "^8.21.0",
+		"pg": "^8.22.0",
 		"pinia": "^3.0.4",
 		"superjson": "^2.2.6",
-		"tailwindcss": "^4.3.0",
+		"tailwindcss": "^4.3.1",
 		"vue": "^3.5.38",
 		"zod": "^4.4.3"
 	},
 	"devDependencies": {
-		"@types/node": "^25.9.3",
+		"@types/node": "^26.0.0",
 		"@types/pg": "^8.20.0",
 		"husky": "^9.1.7",
-		"oxfmt": "^0.54.0",
-		"oxlint": "^1.69.0",
+		"oxfmt": "^0.55.0",
+		"oxlint": "^1.70.0",
 		"prisma": "^7.8.0",
-		"sass": "^1.100.0",
+		"sass": "^1.101.0",
 		"typescript": "^6.0.3",
-		"vue-tsc": "^3.3.4"
+		"vue-tsc": "^3.3.5"
 	}
 }

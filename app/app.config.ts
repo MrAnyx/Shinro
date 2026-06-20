@@ -4,5 +4,10 @@ export default defineAppConfig({
 			neutral: "gray",
 			primary: "teal",
 		},
+		modal: {
+			slots: {
+				footer: "justify-end",
+			},
+		},
 	},
 });
