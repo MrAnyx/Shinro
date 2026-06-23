@@ -11,9 +11,30 @@
 				</template>
 			</UDashboardNavbar>
 		</template>
+
+		<template #body>
+			<div class="flex justify-between">
+				<UInput placeholder="Search..." leading-icon="i-lucide-search"></UInput>
+			</div>
+			<UCard :ui="{ body: 'p-0!' }" class="h-full">
+				<UTable :data="data?.results" :columns="columns" :loading="pending">
+					<template #empty>
+						<UEmpty
+							title="No collections"
+							description="Create your first collection"
+							variant="naked"
+							icon="i-lucide-ban"
+							:actions="emptyActions"
+						></UEmpty>
+					</template>
+				</UTable>
+			</UCard>
+		</template>
 	</UDashboardPanel>
 </template>
 <script setup lang="ts">
+import type { TableColumn, ButtonProps } from "@nuxt/ui";
+
 import { LazyAddCollectionModal } from "#components";
 
 definePageMeta({
@@ -22,6 +43,7 @@ definePageMeta({
 });
 
 const overlay = useOverlay();
+const trpc = useTrpc();
 const newCollectionModal = overlay.create(LazyAddCollectionModal, {
 	props: {},
 });
@@ -29,4 +51,33 @@ const newCollectionModal = overlay.create(LazyAddCollectionModal, {
 const onNewCollection = () => {
 	newCollectionModal.open();
 };
+
+const { data, pending, refresh } = useAsyncData("collections", () => trpc.collections.getAll.query({ page: 1 }));
+
+const columns: TableColumn<User>[] = [
+	{
+		accessorKey: "id",
+		header: "ID",
+	},
+	{
+		accessorKey: "name",
+		header: "Name",
+	},
+	{
+		accessorKey: "createdAt",
+		header: "Created At",
+	},
+	{
+		accessorKey: "updatedAt",
+		header: "Updated At",
+	},
+];
+
+const emptyActions: ButtonProps[] = [
+	{
+		icon: "i-lucide-plus",
+		label: "New collection",
+		onClick: onNewCollection,
+	},
+];
 </script>
