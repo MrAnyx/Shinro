@@ -1,10 +1,9 @@
 blockExoticSubdeps: true
-minimumReleaseAge: 1440 # 1 days
+minimumReleaseAge: 4320 # 3 days
 minimumReleaseAgeExclude: []
 trustPolicy: no-downgrade
 audit-level: low
 trustPolicyExclude:
-    - "chokidar@4.0.3"
     - "semver@6.3.1"
 enablePrePostScripts: false
 allowBuilds:

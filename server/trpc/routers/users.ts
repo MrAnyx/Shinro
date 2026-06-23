@@ -9,11 +9,11 @@ export const userRouter = router({
 	register: publicProcedure
 		.input(
 			z.object({
-				username: UsernameSchema,
-				password: PasswordSchema,
+				username: UserSchema.validation.username,
+				password: UserSchema.validation.password,
 			}),
 		)
-		.output(UserSchema)
+		.output(UserSchema.model)
 		.mutation(async ({ input, ctx }) => {
 			const totaluser = await prisma.user.count({ take: 1 });
 			const isFirstUser = totaluser === 0;
@@ -68,11 +68,11 @@ export const userRouter = router({
 	login: publicProcedure
 		.input(
 			z.object({
-				username: UsernameSchema,
-				password: PasswordSchema,
+				username: UserSchema.validation.username,
+				password: UserSchema.validation.password,
 			}),
 		)
-		.output(UserSchema)
+		.output(UserSchema.model)
 		.mutation(async ({ input, ctx }) => {
 			const user = await prisma.user.findUnique({
 				where: {
@@ -121,7 +121,7 @@ export const userRouter = router({
 		}),
 	me: protectedProcedure
 		.input(z.void())
-		.output(UserSchema)
+		.output(UserSchema.model)
 		.query(async ({ ctx }) => {
 			const user = await prisma.user.findUnique({
 				where: {

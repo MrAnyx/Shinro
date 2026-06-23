@@ -55,20 +55,10 @@
 import type { NavigationMenuItem, CommandPaletteItem } from "@nuxt/ui";
 
 const initializationStore = useInitializationStore();
+const collectionStore = useCollectionStore();
 
 onMounted(async () => {
-	if (initializationStore.isReady) {
-		return;
-	}
-
-	try {
-		initializationStore.isLoading = true;
-		// initial data loading
-		initializationStore.isReady = true;
-	} catch (err: any) {
-	} finally {
-		initializationStore.isLoading = false;
-	}
+	await initializationStore.initialize();
 });
 
 const commandItems: CommandPaletteItem[] = [
@@ -78,7 +68,7 @@ const commandItems: CommandPaletteItem[] = [
 	},
 ];
 
-const dashboardItems: NavigationMenuItem[] = [
+const dashboardItems = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Dashboard",
 		type: "label",
@@ -90,8 +80,8 @@ const dashboardItems: NavigationMenuItem[] = [
 	},
 	{
 		label: "Collections",
-		icon: "i-lucide-group",
-		badge: 4,
+		icon: "i-lucide-folder",
+		badge: collectionStore.total,
 		to: "/app/collections",
 	},
 	{
@@ -103,7 +93,7 @@ const dashboardItems: NavigationMenuItem[] = [
 		disabled: true,
 		icon: "i-lucide-chart-pie",
 	},
-];
+]);
 
 const mediaItems: NavigationMenuItem[] = [
 	{

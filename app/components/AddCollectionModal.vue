@@ -1,9 +1,12 @@
 <template>
 	<UModal :title="`${collection ? 'Update' : 'Create'} a collection`" :dismissible="!isLoading" :close="!isLoading">
 		<template #body>
-			<UForm ref="form" :schema="schema" :state="state" @submit="onSubmit">
+			<UForm ref="form" :schema="schema" :state="state" @submit="onSubmit" :validate-on="['change']" class="gap-4 flex flex-col">
 				<UFormField label="Name" name="name">
 					<UInput v-model="state.name" class="w-full" />
+				</UFormField>
+				<UFormField name="multiple">
+					<UCheckbox label="Create multiple?" v-model="state.multiple" />
 				</UFormField>
 			</UForm>
 		</template>
@@ -27,13 +30,18 @@ const emit = defineEmits<{
 
 const isLoading = ref(false);
 const form = useTemplateRef("form");
+const toast = useToast();
+const trpc = useTrpc();
+const collectionStore = useCollectionStore();
 
 const schema = z.object({
-	name: z.string().min(3), // Add a validation schema rule
+	name: CollectionSchema.validation.name,
+	multiple: z.boolean(),
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
-	name: "",
+	name: collection?.name ?? "",
+	multiple: false,
 });
 
 const onCancel = () => {
@@ -44,9 +52,33 @@ const onSave = async () => {
 	form.value?.submit();
 };
 
-const onSubmit = async (event: FormSubmitEvent<Schema>) => {
-	isLoading.value = true;
-	await delay(3000);
-	isLoading.value = false;
+const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
+	try {
+		isLoading.value = true;
+		const newCollection = await collectionStore.addCollection(payload.data);
+		toast.add({
+			title: "New collection created",
+			description: `Collection ${newCollection.name} has been created`,
+			color: "success",
+			type: "foreground",
+		});
+
+		if (payload.data.multiple) {
+			state.name = "";
+		} else {
+			emit("close", newCollection);
+		}
+	} catch (err) {
+		const message = isTRPCError(err) ? err.message : "Unknown error";
+
+		toast.add({
+			title: "Creation failed",
+			description: message,
+			color: "error",
+			type: "foreground",
+		});
+	} finally {
+		isLoading.value = false;
+	}
 };
 </script>

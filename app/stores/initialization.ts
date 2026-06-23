@@ -6,5 +6,20 @@ export const useInitializationStore = defineStore("initialization", {
 	getters: {
 		isFullyInitialized: (state) => !state.isLoading && state.isReady,
 	},
-	actions: {},
+	actions: {
+		async initialize() {
+			if (this.isReady) {
+				return;
+			}
+
+			try {
+				const collectionStore = useCollectionStore();
+				this.isLoading = true;
+				await Promise.all([collectionStore.initialize()]);
+				this.isReady = true;
+			} finally {
+				this.isLoading = false;
+			}
+		},
+	},
 });
