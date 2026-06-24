@@ -15,6 +15,7 @@
 		<template #body>
 			<div class="flex justify-between">
 				<UInput placeholder="Search..." leading-icon="i-lucide-search"></UInput>
+				<UButton label="Refresh" leading-icon="i-lucide-rotate-cw" variant="subtle" color="neutral"></UButton>
 			</div>
 			<UCard :ui="{ body: 'p-0!' }" class="h-full">
 				<UTable :data="data?.results" :columns="columns" :loading="pending">
@@ -26,6 +27,12 @@
 							icon="i-lucide-ban"
 							:actions="emptyActions"
 						></UEmpty>
+					</template>
+					<template #createdAt-cell="{ row }">
+						<span>{{ row.original.createdAt.toLocaleString() }}</span>
+					</template>
+					<template #updatedAt-cell="{ row }">
+						<span>{{ row.original.updatedAt.toLocaleString() }}</span>
 					</template>
 				</UTable>
 			</UCard>
@@ -44,21 +51,16 @@ definePageMeta({
 
 const overlay = useOverlay();
 const trpc = useTrpc();
+
 const newCollectionModal = overlay.create(LazyAddCollectionModal, {
 	props: {},
 });
 
-const onNewCollection = () => {
-	newCollectionModal.open();
-};
+const onNewCollection = () => newCollectionModal.open();
 
 const { data, pending, refresh } = useAsyncData("collections", () => trpc.collections.getAll.query({ page: 1 }));
 
 const columns: TableColumn<User>[] = [
-	{
-		accessorKey: "id",
-		header: "ID",
-	},
 	{
 		accessorKey: "name",
 		header: "Name",
