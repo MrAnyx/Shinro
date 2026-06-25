@@ -5,6 +5,9 @@
 				<UFormField label="Name" name="name">
 					<UInput v-model="state.name" class="w-full" />
 				</UFormField>
+				<UFormField label="Description" name="description">
+					<UInput v-model="state.description" class="w-full" />
+				</UFormField>
 				<UFormField name="multiple">
 					<UCheckbox label="Create multiple?" v-model="state.multiple" />
 				</UFormField>
@@ -36,11 +39,13 @@ const collectionStore = useCollectionStore();
 
 const schema = z.object({
 	name: CollectionSchema.validation.name,
+	description: CollectionSchema.validation.description,
 	multiple: z.boolean(),
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
 	name: collection?.name ?? "",
+	description: collection?.description,
 	multiple: false,
 });
 
@@ -55,6 +60,7 @@ const onSave = async () => {
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
 		isLoading.value = true;
+		console.log(payload.data);
 		const newCollection = await collectionStore.addCollection(payload.data);
 		toast.add({
 			title: "New collection created",

@@ -9,6 +9,7 @@ export const collectionRouter = router({
 		.input(
 			z.object({
 				name: CollectionSchema.validation.name,
+				description: CollectionSchema.validation.description,
 			}),
 		)
 		.output(CollectionSchema.model)
@@ -16,6 +17,7 @@ export const collectionRouter = router({
 			const collection = await prisma.collection.create({
 				data: {
 					name: input.name,
+					description: input.description,
 					ownerId: ctx.user.id,
 				},
 				include: {

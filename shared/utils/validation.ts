@@ -39,6 +39,12 @@ export const CollectionSchema = createSchemaGroup({
 			.nonempty("Can not be empty")
 			.max(255, "Can not exceed 255 characters")
 			.refine((x) => /^[a-zA-Z0-9 _.-]+$/.test(x), "Some characters are not allowed"),
+
+		description: z
+			.string()
+			.max(500, "Can not exceed 500 characters")
+			.optional()
+			.transform((v) => v?.trim() || undefined),
 	},
 });
 
