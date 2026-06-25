@@ -34,7 +34,6 @@ const emit = defineEmits<{
 const isLoading = ref(false);
 const form = useTemplateRef("form");
 const toast = useToast();
-const trpc = useTrpc();
 const collectionStore = useCollectionStore();
 
 const schema = z.object({
@@ -45,7 +44,7 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
 	name: collection?.name ?? "",
-	description: collection?.description,
+	description: collection?.description ?? undefined,
 	multiple: false,
 });
 

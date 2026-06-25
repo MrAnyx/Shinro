@@ -29,6 +29,7 @@ export const CollectionSchema = createSchemaGroup({
 	model: z.object({
 		id: z.uuid(),
 		name: z.string(),
+		description: z.string().nullable(),
 		owner: UserSchema.model,
 		createdAt: z.date(),
 		updatedAt: z.date(),

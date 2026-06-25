@@ -1,5 +1,6 @@
 import * as z from "zod";
 
+import { Prisma } from "#server/prisma/generated/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 const logger = useLogger("trpc:collection");
@@ -17,7 +18,7 @@ export const collectionRouter = router({
 			const collection = await prisma.collection.create({
 				data: {
 					name: input.name,
-					description: input.description,
+					description: input.description ?? Prisma.skip,
 					ownerId: ctx.user.id,
 				},
 				include: {

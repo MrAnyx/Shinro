@@ -6,6 +6,7 @@ generator client {
   runtime                = "nodejs"
   generatedFileExtension = "ts"
   importFileExtension    = "ts"
+  previewFeatures        = ["strictUndefinedChecks"]
 }
 
 datasource db {

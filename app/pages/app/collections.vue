@@ -7,7 +7,7 @@
 				</template>
 
 				<template #right>
-					<UButton label="New collection" leading-icon="i-lucide-plus" @click="onNewCollection" />
+					<UButton label="New collection" leading-icon="i-lucide-plus" @click="newCollectionModal.open()" />
 				</template>
 			</UDashboardNavbar>
 		</template>
@@ -15,10 +15,10 @@
 		<template #body>
 			<div class="flex justify-between">
 				<UInput placeholder="Search..." leading-icon="i-lucide-search"></UInput>
-				<UButton label="Refresh" leading-icon="i-lucide-rotate-cw" variant="subtle" color="neutral"></UButton>
+				<UButton label="Refresh" leading-icon="i-lucide-rotate-cw" variant="subtle" color="neutral" @click="refresh()" />
 			</div>
 			<UCard :ui="{ body: 'p-0!' }" class="h-full">
-				<UTable :data="data?.results" :columns="columns" :loading="pending">
+				<UTable :data="data?.results" :columns="columns" :loading="pending" :ui="{ tr: 'hover:bg-elevated/50' }">
 					<template #empty>
 						<UEmpty
 							title="No collections"
@@ -56,14 +56,22 @@ const newCollectionModal = overlay.create(LazyAddCollectionModal, {
 	props: {},
 });
 
-const onNewCollection = () => newCollectionModal.open();
-
 const { data, pending, refresh } = useAsyncData("collections", () => trpc.collections.getAll.query({ page: 1 }));
 
-const columns: TableColumn<User>[] = [
+const columns: TableColumn<Collection>[] = [
 	{
 		accessorKey: "name",
 		header: "Name",
+	},
+	{
+		accessorKey: "description",
+		header: "Description",
+		meta: {
+			class: {
+				td: "max-w-[200px] truncate",
+				th: "max-w-[200px]",
+			},
+		},
 	},
 	{
 		accessorKey: "createdAt",
@@ -79,7 +87,9 @@ const emptyActions: ButtonProps[] = [
 	{
 		icon: "i-lucide-plus",
 		label: "New collection",
-		onClick: onNewCollection,
+		onClick() {
+			newCollectionModal.open();
+		},
 	},
 ];
 </script>
