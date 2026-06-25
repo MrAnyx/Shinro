@@ -23,7 +23,8 @@
 		"no-magic-numbers": "off",
 		"curly": ["error", "all"],
 		"node/no-process-env": "error",
-		"unicorn/no-single-promise-in-promise-methods": "warn"
+		"unicorn/no-single-promise-in-promise-methods": "warn",
+		"unicorn/no-empty-file": "warn"
 		// "unicorn/no-null": "off",
 		// "capitalized-comments": "off"
 	},
