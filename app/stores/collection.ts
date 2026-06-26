@@ -18,5 +18,14 @@ export const useCollectionStore = defineStore("collection", {
 			this.total += 1;
 			return collection;
 		},
+
+		async updateCollection(id: string, payload: { name: string; description?: string }) {
+			const trpc = useTrpc();
+			const collection = await trpc.collections.update.mutate({
+				id,
+				...payload,
+			});
+			return collection;
+		},
 	},
 });

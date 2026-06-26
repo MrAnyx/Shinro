@@ -18,8 +18,34 @@ export const collectionRouter = router({
 			const collection = await prisma.collection.create({
 				data: {
 					name: input.name,
-					description: input.description ?? Prisma.skip,
+					description: input.description ?? null,
 					ownerId: ctx.user.id,
+				},
+				include: {
+					owner: true,
+				},
+			});
+
+			return collection;
+		}),
+	update: protectedProcedure
+		.input(
+			z.object({
+				id: z.uuid(),
+				name: CollectionSchema.validation.name,
+				description: CollectionSchema.validation.description,
+			}),
+		)
+		.output(CollectionSchema.model)
+		.mutation(async ({ input, ctx }) => {
+			const collection = await prisma.collection.update({
+				where: {
+					id: input.id,
+					ownerId: ctx.user.id,
+				},
+				data: {
+					name: input.name,
+					description: input.description ?? null,
 				},
 				include: {
 					owner: true,
@@ -45,10 +71,16 @@ export const collectionRouter = router({
 		.input(PaginationSchema.model)
 		.output(PaginatedSchema(CollectionSchema.model))
 		.query(async ({ input, ctx }) => {
-			const count = 50;
+			const count = ITEMS_PER_PAGE;
 			const skip = (input.page - 1) * count;
 
-			const collections = await prisma.collection.findMany({
+			const total = await prisma.collection.count({
+				where: {
+					ownerId: ctx.user.id,
+				},
+			});
+
+			const results = await prisma.collection.findMany({
 				orderBy: {
 					name: "asc",
 				},
@@ -63,9 +95,8 @@ export const collectionRouter = router({
 			});
 
 			return {
-				currentPage: input.page,
-				totalPages: 0,
-				results: collections,
+				total,
+				results,
 			};
 		}),
 });

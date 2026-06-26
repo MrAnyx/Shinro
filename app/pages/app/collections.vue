@@ -7,7 +7,7 @@
 				</template>
 
 				<template #right>
-					<UButton label="New collection" leading-icon="i-lucide-plus" @click="newCollectionModal.open()" />
+					<UButton label="New collection" leading-icon="i-lucide-plus" @click="createOrUpdateCollection()" />
 				</template>
 			</UDashboardNavbar>
 		</template>
@@ -36,13 +36,14 @@
 					</template>
 				</UTable>
 			</UCard>
+			<UPagination v-model:page="page" :total="data?.total" :items-per-page="ITEMS_PER_PAGE" v-show="(data?.total ?? 0) > ITEMS_PER_PAGE" />
 		</template>
 	</UDashboardPanel>
 </template>
 <script setup lang="ts">
 import type { TableColumn, ButtonProps } from "@nuxt/ui";
 
-import { LazyAddCollectionModal } from "#components";
+import { LazyCreateOrUpdateCollectionModal } from "#components";
 
 definePageMeta({
 	layout: "app",
@@ -52,11 +53,23 @@ definePageMeta({
 const overlay = useOverlay();
 const trpc = useTrpc();
 
-const newCollectionModal = overlay.create(LazyAddCollectionModal, {
-	props: {},
-});
+const createOrUpdateCollectionModal = overlay.create(LazyCreateOrUpdateCollectionModal);
+const createOrUpdateCollection = async (collection?: Collection) => {
+	const instance = createOrUpdateCollectionModal.open({
+		collection,
+	});
 
-const { data, pending, refresh } = useAsyncData("collections", () => trpc.collections.getAll.query({ page: 1 }));
+	const result = await instance.result;
+
+	if (result) {
+		refresh();
+	}
+};
+
+const page = ref(1);
+const { data, pending, refresh } = useAsyncData("collections", () => trpc.collections.getAll.query({ page: page.value }), {
+	watch: [page],
+});
 
 const columns: TableColumn<Collection>[] = [
 	{
@@ -88,7 +101,7 @@ const emptyActions: ButtonProps[] = [
 		icon: "i-lucide-plus",
 		label: "New collection",
 		onClick() {
-			newCollectionModal.open();
+			createOrUpdateCollection();
 		},
 	},
 ];

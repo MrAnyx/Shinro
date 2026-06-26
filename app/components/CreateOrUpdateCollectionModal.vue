@@ -8,9 +8,6 @@
 				<UFormField label="Description" name="description">
 					<UInput v-model="state.description" class="w-full" />
 				</UFormField>
-				<UFormField name="multiple">
-					<UCheckbox label="Create multiple?" v-model="state.multiple" />
-				</UFormField>
 			</UForm>
 		</template>
 
@@ -28,7 +25,7 @@ import * as z from "zod";
 const { collection } = defineProps<{ collection?: Collection }>();
 
 const emit = defineEmits<{
-	close: [value?: Collection];
+	close: [value?: boolean];
 }>();
 
 const isLoading = ref(false);
@@ -39,13 +36,11 @@ const collectionStore = useCollectionStore();
 const schema = z.object({
 	name: CollectionSchema.validation.name,
 	description: CollectionSchema.validation.description,
-	multiple: z.boolean(),
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
 	name: collection?.name ?? "",
 	description: collection?.description ?? undefined,
-	multiple: false,
 });
 
 const onCancel = () => {
@@ -59,25 +54,31 @@ const onSave = async () => {
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
 		isLoading.value = true;
-		console.log(payload.data);
-		const newCollection = await collectionStore.addCollection(payload.data);
-		toast.add({
-			title: "New collection created",
-			description: `Collection ${newCollection.name} has been created`,
-			color: "success",
-			type: "foreground",
-		});
 
-		if (payload.data.multiple) {
-			state.name = "";
+		if (collection) {
+			const updatedCollection = await collectionStore.updateCollection(collection.id, payload.data);
+			toast.add({
+				title: "Collection updated",
+				description: `Collection ${updatedCollection.name} has been updated`,
+				color: "success",
+				type: "foreground",
+			});
 		} else {
-			emit("close", newCollection);
+			const newCollection = await collectionStore.addCollection(payload.data);
+			toast.add({
+				title: "New collection created",
+				description: `Collection ${newCollection.name} has been created`,
+				color: "success",
+				type: "foreground",
+			});
 		}
+
+		emit("close", true);
 	} catch (err) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
 
 		toast.add({
-			title: "Creation failed",
+			title: "Request failed",
 			description: message,
 			color: "error",
 			type: "foreground",
