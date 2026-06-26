@@ -7,18 +7,22 @@
 				</template>
 
 				<template #right>
-					<UButton label="New collection" leading-icon="i-lucide-plus" @click="createOrUpdateCollection()" />
+					<UButton label="New collection" leading-icon="i-lucide-plus" @click="openCollectionFormModal()" />
 				</template>
 			</UDashboardNavbar>
 		</template>
 
 		<template #body>
 			<div class="flex justify-between">
-				<UInput placeholder="Search..." leading-icon="i-lucide-search"></UInput>
+				<UInput v-model="search" placeholder="Search..." leading-icon="i-lucide-search">
+					<template v-if="search?.length > 0" #trailing>
+						<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" aria-label="Clear input" @click="search = ''" />
+					</template>
+				</UInput>
 				<UButton label="Refresh" leading-icon="i-lucide-rotate-cw" variant="subtle" color="neutral" @click="refresh()" />
 			</div>
-			<UCard :ui="{ body: 'p-0!' }" class="h-full">
-				<UTable :data="data?.results" :columns="columns" :loading="pending" :ui="{ tr: 'hover:bg-elevated/50' }">
+			<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
+				<UTable :data="data?.results" :columns="columns" :loading="pending" sticky class="h-full">
 					<template #empty>
 						<UEmpty
 							title="No collections"
@@ -34,6 +38,11 @@
 					<template #updatedAt-cell="{ row }">
 						<span>{{ row.original.updatedAt.toLocaleString() }}</span>
 					</template>
+					<template #actions-cell="{ row }">
+						<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row)">
+							<UButton variant="ghost" icon="i-lucide-ellipsis-vertical" color="neutral"> </UButton>
+						</UDropdownMenu>
+					</template>
 				</UTable>
 			</UCard>
 			<UPagination v-model:page="page" :total="data?.total" :items-per-page="ITEMS_PER_PAGE" v-show="(data?.total ?? 0) > ITEMS_PER_PAGE" />
@@ -41,9 +50,10 @@
 	</UDashboardPanel>
 </template>
 <script setup lang="ts">
-import type { TableColumn, ButtonProps } from "@nuxt/ui";
+import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt/ui";
+import { watchDebounced } from "@vueuse/core";
 
-import { LazyCreateOrUpdateCollectionModal } from "#components";
+import { LazyCollectionFormModal, LazyConfirmationModal } from "#components";
 
 definePageMeta({
 	layout: "app",
@@ -52,10 +62,11 @@ definePageMeta({
 
 const overlay = useOverlay();
 const trpc = useTrpc();
+const collectionStore = useCollectionStore();
 
-const createOrUpdateCollectionModal = overlay.create(LazyCreateOrUpdateCollectionModal);
-const createOrUpdateCollection = async (collection?: Collection) => {
-	const instance = createOrUpdateCollectionModal.open({
+const collectionFormModal = overlay.create(LazyCollectionFormModal);
+const openCollectionFormModal = async (collection?: Collection) => {
+	const instance = collectionFormModal.open({
 		collection,
 	});
 
@@ -66,10 +77,39 @@ const createOrUpdateCollection = async (collection?: Collection) => {
 	}
 };
 
+const confirmationModal = overlay.create(LazyConfirmationModal);
+const openConfirmationModal = async (callback: () => Promise<void> | void) => {
+	const instance = confirmationModal.open({
+		callback,
+	});
+
+	const result = await instance.result;
+
+	if (result) {
+		refresh();
+	}
+};
+
 const page = ref(1);
-const { data, pending, refresh } = useAsyncData("collections", () => trpc.collections.getAll.query({ page: page.value }), {
-	watch: [page],
+const search = ref("");
+const { data, pending, refresh } = useAsyncData("collections", () => trpc.collections.getAll.query({ page: page.value, search: search.value }), {
+	dedupe: "cancel",
 });
+
+watchDebounced(page, () => refresh(), {
+	debounce: DEBOUNCE_TIMER,
+});
+
+watchDebounced(
+	search,
+	() => {
+		page.value = 1;
+		refresh();
+	},
+	{
+		debounce: DEBOUNCE_TIMER,
+	},
+);
 
 const columns: TableColumn<Collection>[] = [
 	{
@@ -81,8 +121,8 @@ const columns: TableColumn<Collection>[] = [
 		header: "Description",
 		meta: {
 			class: {
-				td: "max-w-[200px] truncate",
-				th: "max-w-[200px]",
+				td: "max-w-[300px] truncate",
+				th: "max-w-[300px]",
 			},
 		},
 	},
@@ -94,6 +134,34 @@ const columns: TableColumn<Collection>[] = [
 		accessorKey: "updatedAt",
 		header: "Updated At",
 	},
+	{
+		id: "actions",
+		meta: {
+			class: {
+				td: "text-right",
+			},
+		},
+	},
+];
+
+const getRowActions = (row: TableRow<Collection>): DropdownMenuItem[][] => [
+	[
+		{
+			label: "Edit",
+			onSelect() {
+				openCollectionFormModal(row.original);
+			},
+		},
+		{
+			label: "Delete",
+			color: "error",
+			onSelect() {
+				openConfirmationModal(async () => {
+					await collectionStore.deleteCollection(row.original.id);
+				});
+			},
+		},
+	],
 ];
 
 const emptyActions: ButtonProps[] = [
@@ -101,7 +169,7 @@ const emptyActions: ButtonProps[] = [
 		icon: "i-lucide-plus",
 		label: "New collection",
 		onClick() {
-			createOrUpdateCollection();
+			openCollectionFormModal();
 		},
 	},
 ];

@@ -12,6 +12,7 @@ export const UserSchema = createSchemaGroup({
 		username: z
 			.string("Username is required")
 			.max(255, "Can not exceed 255 characters")
+			.trim()
 			.nonempty("Can not be empty")
 			.refine((x) => /^[a-zA-Z0-9_.-]+$/.test(x), "Some characters are not allowed"),
 
@@ -38,22 +39,25 @@ export const CollectionSchema = createSchemaGroup({
 		name: z
 			.string("Name is required")
 			.nonempty("Can not be empty")
+			.trim()
 			.max(255, "Can not exceed 255 characters")
 			.refine((x) => /^[a-zA-Z0-9 _.-]+$/.test(x), "Some characters are not allowed"),
 
 		description: z
 			.string()
 			.max(500, "Can not exceed 500 characters")
+			.trim()
 			.optional()
 			.transform((v) => v?.trim() || undefined),
 	},
 });
 
 export const PaginationSchema = createSchemaGroup({
-	model: z.object({
-		page: z.number(),
-	}),
-	validation: {},
+	model: z.object(),
+	validation: {
+		page: z.number().int().min(1),
+		search: z.string().trim().optional(),
+	},
 });
 
 export const TMDbMovieSearchSchema = createSchemaGroup({

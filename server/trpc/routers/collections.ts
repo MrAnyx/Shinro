@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import * as z from "zod";
 
 import { Prisma } from "#server/prisma/generated/client";
@@ -38,6 +39,19 @@ export const collectionRouter = router({
 		)
 		.output(CollectionSchema.model)
 		.mutation(async ({ input, ctx }) => {
+			const existingCollection = await prisma.collection.findUnique({
+				where: {
+					id: input.id,
+				},
+			});
+
+			if (existingCollection?.ownerId !== ctx.user.id) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You are not the owner of this collection",
+				});
+			}
+
 			const collection = await prisma.collection.update({
 				where: {
 					id: input.id,
@@ -54,6 +68,34 @@ export const collectionRouter = router({
 
 			return collection;
 		}),
+	delete: protectedProcedure
+		.input(
+			z.object({
+				id: z.uuid(),
+			}),
+		)
+		.output(z.void())
+		.mutation(async ({ input, ctx }) => {
+			const existingCollection = await prisma.collection.findUnique({
+				where: {
+					id: input.id,
+				},
+			});
+
+			if (existingCollection?.ownerId !== ctx.user.id) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You are not the owner of this collection",
+				});
+			}
+
+			await prisma.collection.delete({
+				where: {
+					id: input.id,
+					ownerId: ctx.user.id,
+				},
+			});
+		}),
 
 	count: protectedProcedure
 		.input(z.void())
@@ -67,36 +109,39 @@ export const collectionRouter = router({
 
 			return count;
 		}),
+
 	getAll: protectedProcedure
-		.input(PaginationSchema.model)
+		.input(
+			z.object({
+				page: PaginationSchema.validation.page,
+				search: PaginationSchema.validation.search,
+			}),
+		)
 		.output(PaginatedSchema(CollectionSchema.model))
 		.query(async ({ input, ctx }) => {
-			const count = ITEMS_PER_PAGE;
-			const skip = (input.page - 1) * count;
+			const ITEMS_PER_PAGE = 20;
+			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 
-			const total = await prisma.collection.count({
-				where: {
-					ownerId: ctx.user.id,
-				},
-			});
-
-			const results = await prisma.collection.findMany({
-				orderBy: {
-					name: "asc",
-				},
-				where: {
-					ownerId: ctx.user.id,
-				},
-				skip,
-				take: count,
-				include: {
-					owner: true,
-				},
-			});
-
-			return {
-				total,
-				results,
+			const where: Prisma.CollectionWhereInput = {
+				ownerId: ctx.user.id,
+				...(input.search
+					? {
+							OR: [{ name: { contains: input.search, mode: "insensitive" } }, { description: { contains: input.search, mode: "insensitive" } }],
+						}
+					: {}),
 			};
+
+			const [total, results] = await Promise.all([
+				prisma.collection.count({ where }),
+				prisma.collection.findMany({
+					where,
+					orderBy: [{ name: "asc" }, { createdAt: "asc" }],
+					skip,
+					take: ITEMS_PER_PAGE,
+					include: { owner: true },
+				}),
+			]);
+
+			return { total, results };
 		}),
 });

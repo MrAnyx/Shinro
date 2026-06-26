@@ -27,5 +27,11 @@ export const useCollectionStore = defineStore("collection", {
 			});
 			return collection;
 		},
+
+		async deleteCollection(id: string) {
+			const trpc = useTrpc();
+			await trpc.collections.delete.mutate({ id });
+			this.total -= 1;
+		},
 	},
 });
