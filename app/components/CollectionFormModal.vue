@@ -3,17 +3,17 @@
 		<template #body>
 			<UForm ref="form" :schema="schema" :state="state" @submit="onSubmit" :validate-on="['change']" class="gap-4 flex flex-col">
 				<UFormField label="Name" name="name">
-					<UInput v-model="state.name" class="w-full" />
+					<UInput v-model="state.name" class="w-full" :maxlength="255" />
 				</UFormField>
 				<UFormField label="Description" name="description">
-					<UInput v-model="state.description" class="w-full" />
+					<UInput v-model="state.description" class="w-full" :maxlength="500" />
 				</UFormField>
 			</UForm>
 		</template>
 
 		<template #footer>
 			<UButton label="Cancel" variant="ghost" color="neutral" @click="onCancel" :disabled="isLoading" />
-			<UButton label="Create" @click="onSave" :loading="isLoading" />
+			<UButton :label="collection ? 'Update' : 'Create'" @click="onSave" :loading="isLoading" />
 		</template>
 	</UModal>
 </template>

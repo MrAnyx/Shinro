@@ -122,7 +122,6 @@ const columns: TableColumn<Collection>[] = [
 		meta: {
 			class: {
 				td: "max-w-[300px] truncate",
-				th: "max-w-[300px]",
 			},
 		},
 	},
@@ -138,7 +137,8 @@ const columns: TableColumn<Collection>[] = [
 		id: "actions",
 		meta: {
 			class: {
-				td: "text-right",
+				th: "w-0",
+				td: "w-0 text-right",
 			},
 		},
 	},
@@ -156,9 +156,7 @@ const getRowActions = (row: TableRow<Collection>): DropdownMenuItem[][] => [
 			label: "Delete",
 			color: "error",
 			onSelect() {
-				openConfirmationModal(async () => {
-					await collectionStore.deleteCollection(row.original.id);
-				});
+				openConfirmationModal(async () => await collectionStore.deleteCollection(row.original.id));
 			},
 		},
 	],

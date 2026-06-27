@@ -92,6 +92,7 @@ const dashboardItems = computed<NavigationMenuItem[]>(() => [
 		},
 		disabled: true,
 		icon: "i-lucide-chart-pie",
+		to: "/app/stats",
 	},
 ]);
 
@@ -105,6 +106,7 @@ const mediaItems: NavigationMenuItem[] = [
 		label: "Movies",
 		badge: 4,
 		icon: "i-lucide-clapperboard",
+		to: "/app/movies",
 	},
 	{
 		label: "Series",
