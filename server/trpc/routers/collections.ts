@@ -119,29 +119,32 @@ export const collectionRouter = router({
 		)
 		.output(PaginatedSchema(CollectionSchema.model))
 		.query(async ({ input, ctx }) => {
-			const ITEMS_PER_PAGE = 20;
-			const skip = (input.page - 1) * ITEMS_PER_PAGE;
+			throw new TRPCError({
+				code: "BAD_REQUEST",
+			});
 
-			const where: Prisma.CollectionWhereInput = {
-				ownerId: ctx.user.id,
-				...(input.search
-					? {
-							OR: [{ name: { contains: input.search, mode: "insensitive" } }, { description: { contains: input.search, mode: "insensitive" } }],
-						}
-					: {}),
-			};
+			// const skip = (input.page - 1) * ITEMS_PER_PAGE;
 
-			const [total, results] = await Promise.all([
-				prisma.collection.count({ where }),
-				prisma.collection.findMany({
-					where,
-					orderBy: [{ name: "asc" }, { createdAt: "asc" }],
-					skip,
-					take: ITEMS_PER_PAGE,
-					include: { owner: true },
-				}),
-			]);
+			// const where: Prisma.CollectionWhereInput = {
+			// 	ownerId: ctx.user.id,
+			// 	...(input.search
+			// 		? {
+			// 				OR: [{ name: { contains: input.search, mode: "insensitive" } }, { description: { contains: input.search, mode: "insensitive" } }],
+			// 			}
+			// 		: {}),
+			// };
 
-			return { total, results };
+			// const [total, results] = await Promise.all([
+			// 	prisma.collection.count({ where }),
+			// 	prisma.collection.findMany({
+			// 		where,
+			// 		orderBy: [{ name: "asc" }, { createdAt: "asc" }],
+			// 		skip,
+			// 		take: ITEMS_PER_PAGE,
+			// 		include: { owner: true },
+			// 	}),
+			// ]);
+
+			// return { total, results };
 		}),
 });

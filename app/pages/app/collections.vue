@@ -63,6 +63,7 @@ definePageMeta({
 const overlay = useOverlay();
 const trpc = useTrpc();
 const collectionStore = useCollectionStore();
+const toast = useToast();
 
 const collectionFormModal = overlay.create(LazyCollectionFormModal);
 const openCollectionFormModal = async (collection?: Collection) => {
@@ -92,9 +93,24 @@ const openConfirmationModal = async (callback: () => Promise<void> | void) => {
 
 const page = ref(1);
 const search = ref("");
-const { data, pending, refresh } = useAsyncData("collections", () => trpc.collections.getAll.query({ page: page.value, search: search.value }), {
-	dedupe: "cancel",
-});
+const { data, pending, refresh } = useAsyncData(
+	"collections",
+	async () => {
+		try {
+			return await trpc.collections.getAll.query({ page: page.value, search: search.value });
+		} catch {
+			toast.add({
+				title: "Oops!",
+				description: "Something went wrong while fetching the collections",
+				color: "error",
+				type: "foreground",
+			});
+		}
+	},
+	{
+		dedupe: "cancel",
+	},
+);
 
 watchDebounced(page, () => refresh(), {
 	debounce: DEBOUNCE_TIMER,

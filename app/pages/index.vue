@@ -50,13 +50,12 @@ definePageMeta({
 const heroButtons = ref<ButtonProps[]>([
 	{
 		label: "Get started",
-		to: "/docs/getting-started",
+		to: "/app",
 		color: "neutral",
 		trailingIcon: "i-lucide-arrow-right",
 	},
 	{
 		label: "Learn more",
-		to: "/docs/getting-started/theme/design-system",
 		color: "neutral",
 		variant: "subtle",
 	},
