@@ -25,7 +25,7 @@
 				<UTable :data="data?.results" :columns="columns" :loading="pending" sticky class="h-full">
 					<template #empty>
 						<UEmpty
-							title="No collections"
+							title="No collection found"
 							description="Create your first collection"
 							variant="naked"
 							icon="i-lucide-ban"
@@ -131,6 +131,11 @@ const columns: TableColumn<Collection>[] = [
 	{
 		accessorKey: "name",
 		header: "Name",
+		meta: {
+			class: {
+				td: "max-w-[120px] truncate font-bold",
+			},
+		},
 	},
 	{
 		accessorKey: "description",

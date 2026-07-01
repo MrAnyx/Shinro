@@ -3,7 +3,7 @@
 		<template #body>
 			<UForm ref="form" :schema="schema" :state="state" @submit="onSubmit" :validate-on="['change']" class="gap-4 flex flex-col">
 				<UFormField label="Name" name="name">
-					<UInput v-model="state.name" class="w-full" :maxlength="255" />
+					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus />
 				</UFormField>
 				<UFormField label="Description" name="description">
 					<UInput v-model="state.description" class="w-full" :maxlength="500" />

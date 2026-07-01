@@ -92,7 +92,6 @@ const dashboardItems = computed<NavigationMenuItem[]>(() => [
 		},
 		disabled: true,
 		icon: "i-lucide-chart-pie",
-		to: "/app/stats",
 	},
 ]);
 

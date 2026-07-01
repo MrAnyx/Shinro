@@ -9,28 +9,37 @@
 				<template #right> </template>
 			</UDashboardNavbar>
 
-			<UDashboardToolbar :ui="{ root: 'p-0! border-0' }">
-				<UTabs color="neutral" variant="link" :content="false" :items="items" class="w-full" />
+			<UDashboardToolbar>
+				<!-- NOTE: The `-mx-1` class is used to align with the `DashboardSidebarCollapse` button here. -->
+				<UNavigationMenu :items="links" highlight class="-mx-1" />
 			</UDashboardToolbar>
 		</template>
 
-		<template #body> </template>
+		<template #body>
+			<NuxtPage />
+		</template>
 	</UDashboardPanel>
 </template>
 <script setup lang="ts">
+import type { NavigationMenuItem } from "@nuxt/ui";
+
 definePageMeta({
 	layout: "app",
 	middleware: ["auth"],
 });
 
-import type { TabsItem } from "@nuxt/ui";
-
-const items = ref<TabsItem[]>([
+const links: NavigationMenuItem[] = [
 	{
-		label: "Account",
+		label: "My list",
+		icon: "i-lucide-user-star",
+		to: "/app/movies",
+		exact: true,
 	},
 	{
-		label: "Password",
+		label: "Search",
+		icon: "i-lucide-search",
+		to: "/app/movies/search",
+		exact: true,
 	},
-]);
+];
 </script>
