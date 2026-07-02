@@ -2,7 +2,7 @@
 	<div class="flex justify-between">
 		<UInput ref="searchInput" v-model="search" placeholder="Search..." leading-icon="i-lucide-search">
 			<template v-if="search?.length > 0" #trailing>
-				<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" aria-label="Clear input" @click="search = ''" />
+				<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" aria-label="Clear input" @click="resetSearchField" />
 			</template>
 		</UInput>
 		<UButton label="Refresh" leading-icon="i-lucide-rotate-cw" variant="subtle" color="neutral" @click="refresh()" />
@@ -20,8 +20,8 @@
 			</template>
 			<template #poster_path-cell="{ row }">
 				<div class="w-14">
-					<img :src="`https://image.tmdb.org/t/p/w500${row.original.poster_path}`" class="object-contain" v-if="row.original.poster_path" />
-					<img src="https://placehold.co/500x750" class="object-contain" v-else />
+					<NuxtImg provider="tmdb" :src="row.original.poster_path" width="92" class="object-contain" v-if="row.original.poster_path" />
+					<NuxtImg src="https://placehold.co/500x750" class="object-contain" v-else />
 				</div>
 			</template>
 			<template #adult-cell="{ row }">
@@ -51,7 +51,7 @@
 			</template>
 		</UTable>
 	</UCard>
-	<!-- <UPagination v-model:page="page" :total="data?.total" :items-per-page="ITEMS_PER_PAGE" v-show="(data?.total ?? 0) > ITEMS_PER_PAGE" /> -->
+	<UPagination v-model:page="page" :total="data?.total" :items-per-page="TMDB_ITEMS_PER_PAGE" v-show="(data?.total ?? 0) > TMDB_ITEMS_PER_PAGE" />
 </template>
 
 <script setup lang="ts">
@@ -74,8 +74,8 @@ const search = ref("");
 const { data, pending, refresh } = useAsyncData(
 	"movies-search",
 	async () => {
-		if (!search.value.trim()) {
-			return [];
+		if (!search.value) {
+			return undefined;
 		}
 
 		try {
@@ -90,6 +90,7 @@ const { data, pending, refresh } = useAsyncData(
 		}
 	},
 	{
+		immediate: false,
 		dedupe: "cancel",
 	},
 );
@@ -183,6 +184,10 @@ const emptyActions: ButtonProps[] = [
 		},
 	},
 ];
+
+const resetSearchField = () => {
+	search.value = "";
+};
 
 const getVoteColor = (vote: number): BadgeProps["color"] => {
 	if (vote >= 7) {

@@ -22,7 +22,18 @@ export default defineNuxtConfig({
 	compatibilityDate: "2025-07-15",
 	css: ["~/assets/css/main.css"],
 	devtools: { enabled: true },
-	modules: ["@nuxt/ui", "@pinia/nuxt"],
+	image: {
+		providers: {
+			tmdb: {
+				provider: "~/lib/providers/tmdb.ts",
+				options: {
+					baseURL: "https://image.tmdb.org/t/p",
+					imageSize: "w500",
+				},
+			},
+		},
+	},
+	modules: ["@nuxt/ui", "@pinia/nuxt", "@nuxt/image"],
 	ssr: false,
 	typescript: {
 		strict: true,

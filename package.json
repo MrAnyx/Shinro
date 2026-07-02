@@ -1,5 +1,5 @@
 {
-	"name": "tmp",
+	"name": "MrAnyx/Shinro",
 	"version": "0.0.1",
 	"private": true,
 	"type": "module",
@@ -23,6 +23,7 @@
 		"db:studio": "prisma studio"
 	},
 	"dependencies": {
+		"@nuxt/image": "^2.0.0",
 		"@nuxt/ui": "^4.9.0",
 		"@pinia/nuxt": "0.11.3",
 		"@prisma/adapter-pg": "^7.8.0",
@@ -39,6 +40,7 @@
 		"pinia": "^3.0.4",
 		"superjson": "^2.2.6",
 		"tailwindcss": "^4.3.1",
+		"ufo": "^1.6.4",
 		"vue": "^3.5.38",
 		"zod": "^4.4.3"
 	},

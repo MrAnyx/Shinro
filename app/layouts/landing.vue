@@ -2,7 +2,7 @@
 	<UHeader mode="modal">
 		<template #title>
 			<div class="flex flex-row items-center gap-x-1 text-highlighted">
-				<img src="~/assets/images/icone.svg" class="size-12" />
+				<NuxtImg src="/images/icone.svg" class="size-12" />
 				<span class="font-brand text-3xl font-medium hidden md:inline">Shinro</span>
 			</div>
 		</template>
@@ -26,7 +26,7 @@
 			<p class="text-muted text-sm">Copyright © {{ new Date().getFullYear() }}</p>
 		</template>
 
-		<img src="~/assets/images/icone.svg" class="size-8" />
+		<NuxtImg src="/images/icone.svg" class="size-8" />
 
 		<template #right>
 			<UButton icon="i-simple-icons-github" color="neutral" variant="ghost" to="https://github.com/nuxt/nuxt" target="_blank" aria-label="GitHub" />

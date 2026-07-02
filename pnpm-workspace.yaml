@@ -12,4 +12,12 @@ allowBuilds:
     esbuild: false
     maplibre-gl: false
     prisma: false
+    sharp: false
     vue-demi: false
+supportedArchitectures:
+    os:
+        - linux
+        - current
+    cpu:
+        - x64
+        - arm64

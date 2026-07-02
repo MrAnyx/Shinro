@@ -14,7 +14,7 @@
 		>
 			<template #header="{ collapsed }">
 				<ULink class="flex flex-row items-center gap-x-1 text-highlighted" :class="{ 'mx-auto': !collapsed }" to="/">
-					<img src="~/assets/images/icone.svg" class="size-11" />
+					<NuxtImg src="/images/icone.svg" class="size-11" />
 					<span class="font-brand text-4xl" v-show="!collapsed">Shinro</span>
 				</ULink>
 			</template>
