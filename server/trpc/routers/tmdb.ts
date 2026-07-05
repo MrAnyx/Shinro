@@ -3,9 +3,7 @@ import z from "zod";
 
 import { router, protectedProcedure } from "#server/trpc/init";
 
-const logger = useLogger("trpc:tmdb");
-
-export const tmdbRouter = router({
+export default router({
 	movies: protectedProcedure
 		.input(
 			z.object({

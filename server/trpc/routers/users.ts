@@ -5,7 +5,7 @@ import z from "zod";
 
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
 
-export const userRouter = router({
+export default router({
 	register: publicProcedure
 		.input(
 			z.object({

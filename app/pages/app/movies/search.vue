@@ -31,7 +31,7 @@
 			<template #release_date-cell="{ row }">
 				<span>{{
 					row.original.release_date
-						? new Date(Date.parse(row.original.release_date)).toLocaleString(undefined, {
+						? new Date(row.original.release_date).toLocaleString(undefined, {
 								timeZone: "UTC",
 								year: "numeric",
 								month: "numeric",
@@ -47,7 +47,7 @@
 				<span v-else></span>
 			</template>
 			<template #actions-cell="{ row }">
-				<UButton variant="ghost" icon="i-lucide-circle-plus" color="neutral" />
+				<UButton variant="ghost" icon="i-lucide-circle-plus" color="neutral" @click="addMovieToCollection(row)" />
 			</template>
 		</UTable>
 	</UCard>
@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem, BadgeProps } from "@nuxt/ui";
+import type { TableColumn, ButtonProps, TableRow, BadgeProps } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
 definePageMeta({
@@ -156,24 +156,6 @@ const columns: TableColumn<TMDbMovie>[] = [
 	},
 ];
 
-const getRowActions = (row: TableRow<Collection>): DropdownMenuItem[][] => [
-	[
-		{
-			label: "Edit",
-			onSelect() {
-				// openCollectionFormModal(row.original);
-			},
-		},
-		{
-			label: "Delete",
-			color: "error",
-			onSelect() {
-				// openConfirmationModal(async () => await collectionStore.deleteCollection(row.original.id));
-			},
-		},
-	],
-];
-
 const emptyActions: ButtonProps[] = [
 	{
 		icon: "i-lucide-search",
@@ -197,5 +179,9 @@ const getVoteColor = (vote: number): BadgeProps["color"] => {
 	} else {
 		return "error";
 	}
+};
+
+const addMovieToCollection = async (row: TableRow<TMDbMovie>) => {
+	await trpc.movies.createFromExternal.mutate({ externalId: row.original.id });
 };
 </script>

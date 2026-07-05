@@ -52,6 +52,11 @@ export const CollectionSchema = createSchemaGroup({
 	},
 });
 
+export const MovieSchema = createSchemaGroup({
+	model: z.object(),
+	validation: {},
+});
+
 export const PaginationSchema = createSchemaGroup({
 	model: z.object(),
 	validation: {

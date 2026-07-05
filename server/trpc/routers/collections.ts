@@ -6,7 +6,7 @@ import { router, protectedProcedure } from "#server/trpc/init";
 
 const logger = useLogger("trpc:collection");
 
-export const collectionRouter = router({
+export default router({
 	create: protectedProcedure
 		.input(
 			z.object({
@@ -137,7 +137,9 @@ export const collectionRouter = router({
 					orderBy: [{ name: "asc" }, { createdAt: "asc" }],
 					skip,
 					take: ITEMS_PER_PAGE,
-					include: { owner: true },
+					include: {
+						owner: true,
+					},
 				}),
 			]);
 

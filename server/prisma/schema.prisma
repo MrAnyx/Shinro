@@ -27,6 +27,7 @@ model User {
   updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
   sessions     Session[]
   collections  Collection[]
+  movies       Movie[]
 }
 
 model Session {
@@ -40,11 +41,35 @@ model Session {
 }
 
 model Collection {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String   @db.VarChar(255)
-  description String?  @db.VarChar(500)
-  ownerId     String   @db.Uuid
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+  id               String            @id @default(uuid()) @db.Uuid
+  name             String            @db.VarChar(255)
+  description      String?           @db.VarChar(500)
+  ownerId          String            @db.Uuid
+  owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt        DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
+  collectionMovies CollectionMovie[]
+}
+
+model Movie {
+  id               String            @id @default(uuid()) @db.Uuid
+  externalId       Int               @unique
+  title            String            @db.VarChar(255)
+  description      String?           @db.Text
+  posterPath       String?           @db.VarChar(500)
+  ownerId          String            @db.Uuid
+  owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  createdAt        DateTime          @default(now()) @db.Timestamptz(6)
+  updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
+  collectionMovies CollectionMovie[]
+}
+
+model CollectionMovie {
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  collectionId String     @db.Uuid
+  movie        Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movieId      String     @db.Uuid
+  addedAt      DateTime   @default(now()) @db.Timestamptz(6)
+
+  @@id([collectionId, movieId])
 }
