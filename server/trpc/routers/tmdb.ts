@@ -11,7 +11,7 @@ export default router({
 				page: z.number().default(1),
 			}),
 		)
-		.output(PaginatedSchema(TMDbMovieSchema.model))
+		.output(PaginatedSchema(TMDbMovieSchema))
 		.query(async ({ input }) => {
 			try {
 				const movies = await tmdb<TMDbMovieSearch>("/search/movie", {

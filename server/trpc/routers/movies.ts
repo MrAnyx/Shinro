@@ -7,12 +7,18 @@ export default router({
 	createFromExternal: protectedProcedure
 		.input(
 			z.object({
-				externalId: z.number(),
+				externalId: MovieValidation.externalId,
 			}),
 		)
 		.output(
-			z.object({
-				id: z.uuid(),
+			PureMovieSchema.pick({
+				id: true,
+				description: true,
+				externalId: true,
+				posterPath: true,
+				title: true,
+				createdAt: true,
+				updatedAt: true,
 			}),
 		)
 		.mutation(async ({ input, ctx }) => {

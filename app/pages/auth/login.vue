@@ -51,8 +51,8 @@ const fields: AuthFormField[] = [
 ];
 
 const schema = z.object({
-	username: UserSchema.validation.username,
-	password: UserSchema.validation.password,
+	username: UserValidation.username,
+	password: UserValidation.password,
 });
 
 type Schema = z.output<typeof schema>;

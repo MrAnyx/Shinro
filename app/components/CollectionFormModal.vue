@@ -34,8 +34,8 @@ const toast = useToast();
 const collectionStore = useCollectionStore();
 
 const schema = z.object({
-	name: CollectionSchema.validation.name,
-	description: CollectionSchema.validation.description,
+	name: CollectionValidation.name,
+	description: CollectionValidation.description,
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({

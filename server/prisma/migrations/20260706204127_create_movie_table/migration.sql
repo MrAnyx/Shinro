@@ -21,9 +21,6 @@ CREATE TABLE "CollectionMovie" (
     CONSTRAINT "CollectionMovie_pkey" PRIMARY KEY ("collectionId","movieId")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "Movie_externalId_key" ON "Movie"("externalId");
-
 -- AddForeignKey
 ALTER TABLE "Movie" ADD CONSTRAINT "Movie_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 

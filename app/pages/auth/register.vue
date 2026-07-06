@@ -63,9 +63,9 @@ const fields: AuthFormField[] = [
 
 const schema = z
 	.object({
-		username: UserSchema.validation.username,
-		password: UserSchema.validation.password,
-		password_confirmation: UserSchema.validation.password,
+		username: UserValidation.username,
+		password: UserValidation.password,
+		password_confirmation: UserValidation.password,
 	})
 	.refine((data) => data.password === data.password_confirmation, { message: "Passwords must match", path: ["password_confirmation"] });
 
