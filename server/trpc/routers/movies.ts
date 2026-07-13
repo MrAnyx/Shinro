@@ -1,18 +1,24 @@
 import { TRPCError } from "@trpc/server";
 import * as z from "zod";
 
+import { Prisma } from "#server/prisma/generated/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
 	createFromExternal: protectedProcedure
-		.input(MovieCreateFromExternalInputSchema)
-		.output(MovieCreateFromExternalOutputSchema)
+		.input(
+			z.object({
+				externalId: MovieValidation.externalId,
+			}),
+		)
+		.output(MovieDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
-			const tmdbMovie = await tmdb<TMDbMovieDetails>(`/movie/${input.externalId}`);
+			const tmdbMovie = await tmdb(`/movie/${input.externalId}`);
 
 			const movieExist = await prisma.movie.findUnique({
 				where: {
 					externalId: input.externalId,
+					id: Prisma.skip,
 				},
 				select: {
 					id: true,

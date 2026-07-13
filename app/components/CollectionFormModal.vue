@@ -22,7 +22,7 @@
 import type { FormSubmitEvent } from "@nuxt/ui";
 import * as z from "zod";
 
-const { collection } = defineProps<{ collection?: PureCollection }>();
+const { collection } = defineProps<{ collection?: CollectionDefaultView }>();
 
 const emit = defineEmits<{
 	close: [value?: boolean];

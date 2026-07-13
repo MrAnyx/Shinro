@@ -110,7 +110,7 @@ watchDebounced(
 	},
 );
 
-const columns: TableColumn<TMDbMovie>[] = [
+const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 	{
 		accessorKey: "poster_path",
 		header: "",
@@ -181,7 +181,7 @@ const getVoteColor = (vote: number): BadgeProps["color"] => {
 	}
 };
 
-const addMovieToCollection = async (row: TableRow<TMDbMovie>) => {
+const addMovieToCollection = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	await trpc.movies.createFromExternal.mutate({ externalId: row.original.id });
 };
 </script>

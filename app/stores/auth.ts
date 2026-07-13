@@ -1,6 +1,6 @@
 export const useAuthStore = defineStore("auth", {
 	state: () => ({
-		user: null as User | null,
+		user: null as UserDefaultView | null,
 		isLoadingLogin: false,
 		isLoadingRegister: false,
 		isLoadingLogout: false,

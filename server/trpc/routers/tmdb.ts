@@ -1,19 +1,27 @@
 import { TRPCError } from "@trpc/server";
+import * as z from "zod";
 
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
 	movies: protectedProcedure
-		.input(TmdbMoviesInputSchema)
-		.output(PaginatedSchema(TmdbMoviesOutputSchema))
+		.input(
+			z.object({
+				search: z.string().min(1),
+				page: z.number().default(1),
+			}),
+		)
+		.output(PaginatedSchema(TmdbMovieSearchDefaultViewSchema))
 		.query(async ({ input }) => {
 			try {
-				const movies = await tmdb<TMDbMovieSearch>("/search/movie", {
+				const rawMovies = await tmdb("/search/movie", {
 					query: {
 						query: input.search,
 						page: input.page,
 					},
 				});
+
+				const movies = TmdbMovieSearchResponseSchema.parse(rawMovies);
 
 				return {
 					results: movies.results,

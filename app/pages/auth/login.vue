@@ -22,7 +22,6 @@
 
 <script setup lang="ts">
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
-import { isTRPCClientError } from "@trpc/client";
 import * as z from "zod";
 
 definePageMeta({

@@ -1,12 +1,18 @@
 import { TRPCError } from "@trpc/server";
+import * as z from "zod";
 
 import { Prisma } from "#server/prisma/generated/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
 	create: protectedProcedure
-		.input(CollectionCreateInputSchema)
-		.output(CollectionCreateOutputSchema)
+		.input(
+			z.object({
+				name: CollectionValidation.name,
+				description: CollectionValidation.description,
+			}),
+		)
+		.output(CollectionDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
 			const collection = await prisma.collection.create({
 				data: {
@@ -22,8 +28,14 @@ export default router({
 			return collection;
 		}),
 	update: protectedProcedure
-		.input(CollectionUpdateInputSchema)
-		.output(CollectionUpdateOutputSchema)
+		.input(
+			z.object({
+				id: CollectionValidation.id,
+				name: CollectionValidation.name,
+				description: CollectionValidation.description,
+			}),
+		)
+		.output(CollectionDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
 			const existingCollection = await prisma.collection.findUnique({
 				where: {
@@ -55,8 +67,12 @@ export default router({
 			return collection;
 		}),
 	delete: protectedProcedure
-		.input(CollectionDeleteInputSchema)
-		.output(CollectionDeleteOutputSchema)
+		.input(
+			z.object({
+				id: z.uuid(),
+			}),
+		)
+		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
 			const existingCollection = await prisma.collection.findUnique({
 				where: {
@@ -80,8 +96,8 @@ export default router({
 		}),
 
 	count: protectedProcedure
-		.input(CollectionCountInputSchema)
-		.output(CollectionCountOutputSchema)
+		.input(z.void())
+		.output(z.number())
 		.query(async ({ ctx }) => {
 			const count = await prisma.collection.count({
 				where: {
@@ -93,8 +109,13 @@ export default router({
 		}),
 
 	getAll: protectedProcedure
-		.input(CollectionGetAllInputSchema)
-		.output(CollectionGetAllOutputSchema)
+		.input(
+			z.object({
+				page: PaginationValidation.page,
+				search: PaginationValidation.search,
+			}),
+		)
+		.output(PaginatedSchema(CollectionDefaultViewSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 

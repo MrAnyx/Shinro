@@ -66,7 +66,7 @@ const collectionStore = useCollectionStore();
 const toast = useToast();
 
 const collectionFormModal = overlay.create(LazyCollectionFormModal);
-const openCollectionFormModal = async (collection?: PureCollection) => {
+const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 	const instance = collectionFormModal.open({
 		collection,
 	});
@@ -127,7 +127,7 @@ watchDebounced(
 	},
 );
 
-const columns: TableColumn<PureCollection>[] = [
+const columns: TableColumn<CollectionDefaultView>[] = [
 	{
 		accessorKey: "name",
 		header: "Name",
@@ -165,7 +165,7 @@ const columns: TableColumn<PureCollection>[] = [
 	},
 ];
 
-const getRowActions = (row: TableRow<PureCollection>): DropdownMenuItem[][] => [
+const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
