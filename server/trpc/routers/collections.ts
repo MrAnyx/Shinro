@@ -1,26 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import * as z from "zod";
 
 import { Prisma } from "#server/prisma/generated/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
 	create: protectedProcedure
-		.input(
-			z.object({
-				name: CollectionValidation.name,
-				description: CollectionValidation.description,
-			}),
-		)
-		.output(
-			PureCollectionSchema.pick({
-				id: true,
-				name: true,
-				description: true,
-				createdAt: true,
-				updatedAt: true,
-			}),
-		)
+		.input(CollectionCreateInputSchema)
+		.output(CollectionCreateOutputSchema)
 		.mutation(async ({ input, ctx }) => {
 			const collection = await prisma.collection.create({
 				data: {
@@ -36,22 +22,8 @@ export default router({
 			return collection;
 		}),
 	update: protectedProcedure
-		.input(
-			z.object({
-				id: CollectionValidation.id,
-				name: CollectionValidation.name,
-				description: CollectionValidation.description,
-			}),
-		)
-		.output(
-			PureCollectionSchema.pick({
-				id: true,
-				name: true,
-				description: true,
-				createdAt: true,
-				updatedAt: true,
-			}),
-		)
+		.input(CollectionUpdateInputSchema)
+		.output(CollectionUpdateOutputSchema)
 		.mutation(async ({ input, ctx }) => {
 			const existingCollection = await prisma.collection.findUnique({
 				where: {
@@ -83,12 +55,8 @@ export default router({
 			return collection;
 		}),
 	delete: protectedProcedure
-		.input(
-			z.object({
-				id: z.uuid(),
-			}),
-		)
-		.output(z.void())
+		.input(CollectionDeleteInputSchema)
+		.output(CollectionDeleteOutputSchema)
 		.mutation(async ({ input, ctx }) => {
 			const existingCollection = await prisma.collection.findUnique({
 				where: {
@@ -112,8 +80,8 @@ export default router({
 		}),
 
 	count: protectedProcedure
-		.input(z.void())
-		.output(z.number())
+		.input(CollectionCountInputSchema)
+		.output(CollectionCountOutputSchema)
 		.query(async ({ ctx }) => {
 			const count = await prisma.collection.count({
 				where: {
@@ -125,26 +93,8 @@ export default router({
 		}),
 
 	getAll: protectedProcedure
-		.input(
-			z.object({
-				page: PaginationValidation.page,
-				search: PaginationValidation.search,
-			}),
-		)
-		.output(
-			z.object({
-				total: z.number(),
-				results: z.array(
-					PureCollectionSchema.pick({
-						id: true,
-						name: true,
-						description: true,
-						createdAt: true,
-						updatedAt: true,
-					}),
-				),
-			}),
-		)
+		.input(CollectionGetAllInputSchema)
+		.output(CollectionGetAllOutputSchema)
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 

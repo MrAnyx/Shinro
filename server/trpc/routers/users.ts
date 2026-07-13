@@ -1,27 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
 import { addSeconds } from "date-fns";
-import z from "zod";
 
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
 
 export default router({
 	register: publicProcedure
-		.input(
-			z.object({
-				username: UserValidation.username,
-				password: UserValidation.password,
-			}),
-		)
-		.output(
-			PureUserSchema.pick({
-				id: true,
-				username: true,
-				role: true,
-				createdAt: true,
-				updatedAt: true,
-			}),
-		)
+		.input(UserRegisterInputSchema)
+		.output(UserRegisterOutputSchema)
 		.mutation(async ({ input, ctx }) => {
 			const totaluser = await prisma.user.count({ take: 1 });
 			const isFirstUser = totaluser === 0;
@@ -74,21 +60,8 @@ export default router({
 		}),
 
 	login: publicProcedure
-		.input(
-			z.object({
-				username: UserValidation.username,
-				password: UserValidation.password,
-			}),
-		)
-		.output(
-			PureUserSchema.pick({
-				id: true,
-				username: true,
-				role: true,
-				createdAt: true,
-				updatedAt: true,
-			}),
-		)
+		.input(UserLoginInputSchema)
+		.output(UserLoginOutputSchema)
 		.mutation(async ({ input, ctx }) => {
 			const user = await prisma.user.findUnique({
 				where: {
@@ -124,8 +97,8 @@ export default router({
 			return user;
 		}),
 	logout: protectedProcedure
-		.input(z.void())
-		.output(z.void())
+		.input(UserLogoutInputSchema)
+		.output(UserLogoutOutputSchema)
 		.mutation(async ({ ctx }) => {
 			await prisma.session.deleteMany({
 				where: {
@@ -136,16 +109,8 @@ export default router({
 			deleteCookie(ctx.event, "session_id");
 		}),
 	me: protectedProcedure
-		.input(z.void())
-		.output(
-			PureUserSchema.pick({
-				id: true,
-				username: true,
-				role: true,
-				createdAt: true,
-				updatedAt: true,
-			}),
-		)
+		.input(UserMeInputSchema)
+		.output(UserOutputSchema)
 		.query(async ({ ctx }) => {
 			const user = await prisma.user.findUnique({
 				where: {

@@ -5,22 +5,8 @@ import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
 	createFromExternal: protectedProcedure
-		.input(
-			z.object({
-				externalId: MovieValidation.externalId,
-			}),
-		)
-		.output(
-			PureMovieSchema.pick({
-				id: true,
-				description: true,
-				externalId: true,
-				posterPath: true,
-				title: true,
-				createdAt: true,
-				updatedAt: true,
-			}),
-		)
+		.input(MovieCreateFromExternalInputSchema)
+		.output(MovieCreateFromExternalOutputSchema)
 		.mutation(async ({ input, ctx }) => {
 			const tmdbMovie = await tmdb<TMDbMovieDetails>(`/movie/${input.externalId}`);
 

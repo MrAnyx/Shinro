@@ -16,6 +16,7 @@
 		}
 	],
 	"compilerOptions": {
-		"exactOptionalPropertyTypes": true
+		"exactOptionalPropertyTypes": true,
+		"strictNullChecks": true
 	}
 }
