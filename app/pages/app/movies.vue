@@ -28,12 +28,15 @@ definePageMeta({
 	middleware: ["auth"],
 });
 
-const links: NavigationMenuItem[] = [
+const movieStore = useMovieStore();
+
+const links = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "My list",
 		icon: "i-lucide-user-star",
 		to: "/app/movies",
 		exact: true,
+		badge: movieStore.total,
 	},
 	{
 		label: "Search",
@@ -41,5 +44,5 @@ const links: NavigationMenuItem[] = [
 		to: "/app/movies/search",
 		exact: true,
 	},
-];
+]);
 </script>

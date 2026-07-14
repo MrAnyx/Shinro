@@ -64,7 +64,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				type: "foreground",
 			});
 		} else {
-			const newCollection = await collectionStore.addCollection(payload.data);
+			const newCollection = await collectionStore.createCollection(payload.data);
 			toast.add({
 				title: "New collection created",
 				description: `Collection ${newCollection.name} has been created`,

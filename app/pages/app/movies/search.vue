@@ -81,7 +81,7 @@ definePageMeta({
 });
 
 const trpc = useTrpc();
-const collectionStore = useCollectionStore();
+const movieStore = useMovieStore();
 const toast = useToast();
 
 const searchInput = useTemplateRef("searchInput");
@@ -203,7 +203,7 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	try {
 		loadingMovieIds.add(row.original.id);
 
-		const movie = await trpc.movies.createFromExternal.mutate({ externalId: row.original.id });
+		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
 
 		if (!data.value) {
 			return;
@@ -233,7 +233,7 @@ const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) 
 			return;
 		}
 
-		await trpc.movies.remove.mutate({ id: row.original.internalId });
+		await movieStore.deleteMovie(row.original.internalId);
 
 		if (!data.value) {
 			return;

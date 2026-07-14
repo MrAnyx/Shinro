@@ -56,6 +56,7 @@ import type { NavigationMenuItem, CommandPaletteItem } from "@nuxt/ui";
 
 const initializationStore = useInitializationStore();
 const collectionStore = useCollectionStore();
+const movieStore = useMovieStore();
 
 onMounted(async () => {
 	await initializationStore.initialize();
@@ -95,15 +96,15 @@ const dashboardItems = computed<NavigationMenuItem[]>(() => [
 	},
 ]);
 
-const mediaItems: NavigationMenuItem[] = [
+const mediaItems = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Media",
 		type: "label",
-		badge: 4,
+		badge: movieStore.total,
 	},
 	{
 		label: "Movies",
-		badge: 4,
+		badge: movieStore.total,
 		icon: "i-lucide-clapperboard",
 		to: "/app/movies",
 	},
@@ -138,7 +139,7 @@ const mediaItems: NavigationMenuItem[] = [
 		disabled: true,
 		icon: "i-lucide-gamepad-2",
 	},
-];
+]);
 
 const toolsItems: NavigationMenuItem[] = [
 	{

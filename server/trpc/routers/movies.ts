@@ -45,7 +45,7 @@ export default router({
 
 			return movie;
 		}),
-	remove: protectedProcedure
+	delete: protectedProcedure
 		.input(
 			z.object({
 				id: MovieValidation.id,
@@ -76,5 +76,18 @@ export default router({
 					ownerId: ctx.user.id,
 				},
 			});
+		}),
+
+	count: protectedProcedure
+		.input(z.void())
+		.output(z.number())
+		.query(async ({ ctx }) => {
+			const count = await prisma.movie.count({
+				where: {
+					ownerId: ctx.user.id,
+				},
+			});
+
+			return count;
 		}),
 });
