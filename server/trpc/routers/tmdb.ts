@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import * as z from "zod";
+import { Prisma } from "~~/server/prisma/generated/client";
 
 import { router, protectedProcedure } from "#server/trpc/init";
 
@@ -14,18 +15,38 @@ export default router({
 		.output(PaginatedSchema(TmdbMovieSearchDefaultViewSchema))
 		.query(async ({ input }) => {
 			try {
-				const rawMovies = await tmdb("/search/movie", {
+				const tmdbMovies = await tmdb("/search/movie", {
+					schema: TmdbMovieSearchResponseSchema,
 					query: {
 						query: input.search,
 						page: input.page,
 					},
 				});
 
-				const movies = TmdbMovieSearchResponseSchema.parse(rawMovies);
+				const ids = tmdbMovies.results.map((x) => x.id);
+
+				const myMovies = await prisma.movie.findMany({
+					where: {
+						externalId: {
+							in: ids,
+						},
+					},
+					select: {
+						id: true,
+						externalId: true,
+					},
+				});
+
+				const myMoviesMap = new Map(myMovies.map((m) => [m.id, m.externalId]));
+
+				const movies = tmdbMovies.results.map((movie) => ({
+					...movie,
+					internalId: myMoviesMap.get(movie.id) ?? undefined,
+				}));
 
 				return {
-					results: movies.results,
-					total: movies.total_results,
+					total: tmdbMovies.total_results,
+					results: movies,
 				};
 			} catch (err: any) {
 				throw new TRPCError({

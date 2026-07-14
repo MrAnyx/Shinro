@@ -13,12 +13,14 @@ export default router({
 		)
 		.output(MovieDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
-			const tmdbMovie = await tmdb(`/movie/${input.externalId}`);
+			const tmdbMovie = await tmdb(`/movie/${input.externalId}`, {
+				schema: TmdbMovieDetailsResponseSchema,
+			});
 
-			const movieExist = await prisma.movie.findUnique({
+			const movieExist = await prisma.movie.findFirst({
 				where: {
 					externalId: input.externalId,
-					id: Prisma.skip,
+					ownerId: ctx.user.id,
 				},
 				select: {
 					id: true,
