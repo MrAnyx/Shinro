@@ -8,12 +8,12 @@ export default router({
 	movies: protectedProcedure
 		.input(
 			z.object({
-				search: z.string().min(1),
-				page: z.number().default(1),
+				search: PaginationValidation.search,
+				page: PaginationValidation.page,
 			}),
 		)
 		.output(PaginatedSchema(TmdbMovieSearchDefaultViewSchema))
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			try {
 				const tmdbMovies = await tmdb("/search/movie", {
 					schema: TmdbMovieSearchResponseSchema,
@@ -23,12 +23,13 @@ export default router({
 					},
 				});
 
-				const ids = tmdbMovies.results.map((x) => x.id);
+				const externalIds = tmdbMovies.results.map((x) => x.id);
 
 				const myMovies = await prisma.movie.findMany({
 					where: {
+						ownerId: ctx.user.id,
 						externalId: {
-							in: ids,
+							in: externalIds,
 						},
 					},
 					select: {
@@ -37,7 +38,7 @@ export default router({
 					},
 				});
 
-				const myMoviesMap = new Map(myMovies.map((m) => [m.id, m.externalId]));
+				const myMoviesMap = new Map(myMovies.map((m) => [m.externalId, m.id]));
 
 				const movies = tmdbMovies.results.map((movie) => ({
 					...movie,

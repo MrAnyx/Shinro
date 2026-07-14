@@ -1,7 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import * as z from "zod";
 
-import { Prisma } from "#server/prisma/generated/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -45,5 +44,37 @@ export default router({
 			});
 
 			return movie;
+		}),
+	remove: protectedProcedure
+		.input(
+			z.object({
+				id: MovieValidation.id,
+			}),
+		)
+		.output(z.void())
+		.mutation(async ({ input, ctx }) => {
+			const movieExist = await prisma.movie.findFirst({
+				where: {
+					id: input.id,
+					ownerId: ctx.user.id,
+				},
+				select: {
+					id: true,
+				},
+			});
+
+			if (!movieExist) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "This movie doesn't exist",
+				});
+			}
+
+			await prisma.movie.deleteMany({
+				where: {
+					id: input.id,
+					ownerId: ctx.user.id,
+				},
+			});
 		}),
 });

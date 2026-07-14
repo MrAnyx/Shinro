@@ -21,7 +21,7 @@
 			<template #poster_path-cell="{ row }">
 				<div class="w-14">
 					<NuxtImg provider="tmdb" :src="row.original.poster_path" width="92" class="object-contain" v-if="row.original.poster_path" />
-					<NuxtImg src="https://placehold.co/500x750" class="object-contain" v-else />
+					<NuxtImg src="https://placehold.co/500x750" loading="lazy" class="object-contain" v-else />
 				</div>
 			</template>
 			<template #adult-cell="{ row }">
@@ -44,10 +44,27 @@
 				<UBadge :color="getVoteColor(row.original.vote_average)" variant="subtle" v-if="row.original.vote_count > 0">{{
 					row.original.vote_average
 				}}</UBadge>
-				<span v-else></span>
+				<span v-else />
 			</template>
 			<template #actions-cell="{ row }">
-				<UButton variant="ghost" icon="i-lucide-circle-plus" color="neutral" @click="addMovieToCollection(row)" />
+				<UButton
+					v-if="!row.original.internalId"
+					variant="ghost"
+					icon="i-lucide-circle-plus"
+					color="neutral"
+					@click="addMovieToMyList(row)"
+					:loading="loadingMovieIds.has(row.original.id)"
+					:disabled="loadingMovieIds.has(row.original.id)"
+				/>
+				<UButton
+					v-else
+					variant="ghost"
+					icon="i-lucide-circle-minus"
+					color="error"
+					@click="removeMovieFromMyList(row)"
+					:loading="loadingMovieIds.has(row.original.id)"
+					:disabled="loadingMovieIds.has(row.original.id)"
+				/>
 			</template>
 		</UTable>
 	</UCard>
@@ -71,6 +88,7 @@ const searchInput = useTemplateRef("searchInput");
 
 const page = ref(1);
 const search = ref("");
+const loadingMovieIds = reactive(new Set<number>());
 const { data, pending, refresh } = useAsyncData(
 	"movies-search",
 	async () => {
@@ -181,7 +199,59 @@ const getVoteColor = (vote: number): BadgeProps["color"] => {
 	}
 };
 
-const addMovieToCollection = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
-	await trpc.movies.createFromExternal.mutate({ externalId: row.original.id });
+const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
+	try {
+		loadingMovieIds.add(row.original.id);
+
+		const movie = await trpc.movies.createFromExternal.mutate({ externalId: row.original.id });
+
+		if (!data.value) {
+			return;
+		}
+
+		data.value = {
+			...data.value,
+			results: data.value.results.map((m) => (m.id === row.original.id ? Object.assign(m, { internalId: movie.id }) : m)),
+		};
+	} catch (err: any) {
+		toast.add({
+			title: "Oops!",
+			description: "Something went wrong while adding a movie",
+			color: "error",
+			type: "foreground",
+		});
+	} finally {
+		loadingMovieIds.delete(row.original.id);
+	}
+};
+
+const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
+	try {
+		loadingMovieIds.add(row.original.id);
+
+		if (!row.original.internalId) {
+			return;
+		}
+
+		await trpc.movies.remove.mutate({ id: row.original.internalId });
+
+		if (!data.value) {
+			return;
+		}
+
+		data.value = {
+			...data.value,
+			results: data.value.results.map((m) => (m.id === row.original.id ? Object.assign(m, { internalId: undefined }) : m)),
+		};
+	} catch (err: any) {
+		toast.add({
+			title: "Oops!",
+			description: "Something went wrong while removing a movie",
+			color: "error",
+			type: "foreground",
+		});
+	} finally {
+		loadingMovieIds.delete(row.original.id);
+	}
 };
 </script>

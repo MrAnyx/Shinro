@@ -11,7 +11,7 @@ export const TmdbMovieSearchDefaultViewSchema = z.object({
 	vote_average: z.number(),
 	vote_count: z.number(),
 	adult: z.boolean(),
-	internalMovieId: z.uuid().optional(),
+	internalId: z.uuid().optional(),
 });
 
 export const TmdbMovieSearchResponseSchema = z.object({
