@@ -13,7 +13,11 @@
 			toggle-side="left"
 		>
 			<template #header="{ collapsed }">
-				<ULink class="flex flex-row items-center gap-x-1 text-highlighted" :class="{ 'mx-auto': !collapsed }" to="/">
+				<ULink
+					class="flex flex-row items-center gap-x-1 text-highlighted"
+					:class="{ 'mx-auto': !collapsed }"
+					to="/"
+				>
 					<NuxtImg src="/images/icone.svg" class="size-11" />
 					<span class="font-brand text-4xl" v-show="!collapsed">Shinro</span>
 				</ULink>
@@ -22,10 +26,23 @@
 			<template #default="{ collapsed }">
 				<UDashboardSearchButton :collapsed="collapsed" variant="subtle" />
 
-				<UNavigationMenu :items="dashboardItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
+				<UNavigationMenu
+					:items="dashboardItems"
+					orientation="vertical"
+					:collapsed="collapsed"
+					tooltip
+					popover
+				/>
 				<UNavigationMenu :items="mediaItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
 				<UNavigationMenu :items="toolsItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
-				<UNavigationMenu :items="sidebarSecondaryItems" orientation="vertical" :collapsed="collapsed" tooltip popover class="mt-auto" />
+				<UNavigationMenu
+					:items="sidebarSecondaryItems"
+					orientation="vertical"
+					:collapsed="collapsed"
+					tooltip
+					popover
+					class="mt-auto"
+				/>
 			</template>
 
 			<template #footer="{ collapsed }">

@@ -27,28 +27,16 @@
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="onMovieSelected"
+			@select="onCollectionSelected"
 		>
 			<template #empty>
 				<UEmpty
-					title="No movie found"
-					description="Add your first movie to get started"
+					title="No collection found"
+					description="Create your first collection"
 					variant="naked"
 					icon="i-lucide-ban"
 					:actions="emptyActions"
 				></UEmpty>
-			</template>
-			<template #posterPath-cell="{ row }">
-				<div class="w-14">
-					<NuxtImg
-						provider="tmdb"
-						:src="row.original.posterPath"
-						width="92"
-						class="object-contain"
-						v-if="row.original.posterPath"
-					/>
-					<NuxtImg src="https://placehold.co/500x750" class="object-contain" v-else />
-				</div>
 			</template>
 			<template #createdAt-cell="{ row }">
 				<span>{{ row.original.createdAt.toLocaleString() }}</span>
@@ -74,7 +62,7 @@
 import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
-import { LazyMovieFormModal } from "#components";
+import { LazyCollectionFormModal } from "#components";
 
 definePageMeta({
 	layout: "app",
@@ -83,14 +71,14 @@ definePageMeta({
 
 const overlay = useOverlay();
 const trpc = useTrpc();
-const movieStore = useMovieStore();
+const collectionStore = useCollectionStore();
 const toast = useToast();
 const { openConfirmationModal } = useConfirmation();
 
-const movieFormModal = overlay.create(LazyMovieFormModal);
-const openMovieFormModal = async (movie?: MovieDefaultView) => {
-	const instance = movieFormModal.open({
-		movie,
+const collectionFormModal = overlay.create(LazyCollectionFormModal);
+const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
+	const instance = collectionFormModal.open({
+		collection,
 	});
 
 	const result = await instance.result;
@@ -103,14 +91,14 @@ const openMovieFormModal = async (movie?: MovieDefaultView) => {
 const page = ref(1);
 const search = ref("");
 const { data, pending, refresh } = useAsyncData(
-	"movies",
+	"collections",
 	async () => {
 		try {
-			return await trpc.movies.getAll.query({ page: page.value, search: search.value });
+			return await trpc.collections.getAll.query({ page: page.value, search: search.value });
 		} catch {
 			toast.add({
 				title: "Oops!",
-				description: "Something went wrong while fetching the movies",
+				description: "Something went wrong while fetching the collections",
 				color: "error",
 				type: "foreground",
 			});
@@ -136,19 +124,10 @@ watchDebounced(
 	},
 );
 
-const columns: TableColumn<MovieDefaultView>[] = [
+const columns: TableColumn<CollectionDefaultView>[] = [
 	{
-		accessorKey: "posterPath",
-		header: "",
-		meta: {
-			class: {
-				td: "w-[60px]",
-			},
-		},
-	},
-	{
-		accessorKey: "title",
-		header: "Title",
+		accessorKey: "name",
+		header: "Name",
 		meta: {
 			class: {
 				td: "max-w-[120px] truncate font-bold",
@@ -157,7 +136,7 @@ const columns: TableColumn<MovieDefaultView>[] = [
 	},
 	{
 		accessorKey: "description",
-		header: "Synopsis",
+		header: "Description",
 		meta: {
 			class: {
 				td: "max-w-[300px] truncate",
@@ -167,11 +146,10 @@ const columns: TableColumn<MovieDefaultView>[] = [
 	{
 		accessorKey: "createdAt",
 		header: "Created At",
-		meta: {
-			class: {
-				td: "w-0",
-			},
-		},
+	},
+	{
+		accessorKey: "updatedAt",
+		header: "Updated At",
 	},
 	{
 		id: "actions",
@@ -184,19 +162,21 @@ const columns: TableColumn<MovieDefaultView>[] = [
 	},
 ];
 
-const getRowActions = (row: TableRow<MovieDefaultView>): DropdownMenuItem[][] => [
+const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
 			onSelect() {
-				openMovieFormModal(row.original);
+				openCollectionFormModal(row.original);
 			},
 		},
 		{
 			label: "Delete",
 			color: "error",
 			async onSelect() {
-				const result = await openConfirmationModal(async () => await movieStore.deleteMovie(row.original.id));
+				const result = await openConfirmationModal(
+					async () => await collectionStore.deleteCollection(row.original.id),
+				);
 
 				if (result) {
 					refresh();
@@ -212,17 +192,15 @@ const resetSearchField = () => {
 
 const emptyActions: ButtonProps[] = [
 	{
-		icon: "i-lucide-search",
-		label: "Search",
-		async onClick() {
-			await navigateTo({
-				path: "/app/movies/search",
-			});
+		icon: "i-lucide-plus",
+		label: "New collection",
+		onClick() {
+			openCollectionFormModal();
 		},
 	},
 ];
 
-const onMovieSelected = (e: Event, row: TableRow<MovieDefaultView>) => {
-	openMovieFormModal(row.original);
+const onCollectionSelected = async (e: Event, row: TableRow<CollectionDefaultView>) => {
+	await navigateTo({ path: `/app/collections/${row.original.id}` });
 };
 </script>
