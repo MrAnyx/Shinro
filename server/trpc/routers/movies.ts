@@ -1,5 +1,6 @@
 import { TRPCError } from "@trpc/server";
 import * as z from "zod";
+import { Prisma } from "~~/server/prisma/generated/client";
 
 import { router, protectedProcedure } from "#server/trpc/init";
 
@@ -89,5 +90,41 @@ export default router({
 			});
 
 			return count;
+		}),
+
+	getAll: protectedProcedure
+		.input(
+			z.object({
+				page: PaginationValidation.page,
+				search: PaginationValidation.search,
+			}),
+		)
+		.output(PaginatedSchema(MovieDefaultViewSchema))
+		.query(async ({ input, ctx }) => {
+			const skip = (input.page - 1) * ITEMS_PER_PAGE;
+
+			const where: Prisma.MovieWhereInput = {
+				ownerId: ctx.user.id,
+				...(input.search
+					? {
+							OR: [
+								{ title: { contains: input.search, mode: "insensitive" } },
+								{ description: { contains: input.search, mode: "insensitive" } },
+							],
+						}
+					: {}),
+			};
+
+			const [total, results] = await Promise.all([
+				prisma.movie.count({ where }),
+				prisma.movie.findMany({
+					where,
+					orderBy: [{ title: "asc" }, { createdAt: "asc" }],
+					skip,
+					take: ITEMS_PER_PAGE,
+				}),
+			]);
+
+			return { total, results };
 		}),
 });

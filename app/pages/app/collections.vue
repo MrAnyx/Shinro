@@ -16,10 +16,23 @@
 			<div class="flex justify-between">
 				<UInput v-model="search" placeholder="Search..." leading-icon="i-lucide-search">
 					<template v-if="search?.length > 0" #trailing>
-						<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" aria-label="Clear input" @click="resetSearchField" />
+						<UButton
+							color="neutral"
+							variant="link"
+							size="sm"
+							icon="i-lucide-x"
+							aria-label="Clear input"
+							@click="resetSearchField"
+						/>
 					</template>
 				</UInput>
-				<UButton label="Refresh" leading-icon="i-lucide-rotate-cw" variant="subtle" color="neutral" @click="refresh()" />
+				<UButton
+					label="Refresh"
+					leading-icon="i-lucide-rotate-cw"
+					variant="subtle"
+					color="neutral"
+					@click="refresh()"
+				/>
 			</div>
 			<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 				<UTable :data="data?.results" :columns="columns" :loading="pending" sticky class="h-full">
@@ -45,7 +58,12 @@
 					</template>
 				</UTable>
 			</UCard>
-			<UPagination v-model:page="page" :total="data?.total" :items-per-page="ITEMS_PER_PAGE" v-show="(data?.total ?? 0) > ITEMS_PER_PAGE" />
+			<UPagination
+				v-model:page="page"
+				:total="data?.total"
+				:items-per-page="ITEMS_PER_PAGE"
+				v-show="(data?.total ?? 0) > ITEMS_PER_PAGE"
+			/>
 		</template>
 	</UDashboardPanel>
 </template>
@@ -165,7 +183,9 @@ const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[]
 			label: "Delete",
 			color: "error",
 			async onSelect() {
-				const result = await openConfirmationModal(async () => await collectionStore.deleteCollection(row.original.id));
+				const result = await openConfirmationModal(
+					async () => await collectionStore.deleteCollection(row.original.id),
+				);
 
 				if (result) {
 					refresh();

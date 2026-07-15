@@ -2,10 +2,23 @@
 	<div class="flex justify-between">
 		<UInput ref="searchInput" v-model="search" placeholder="Search..." leading-icon="i-lucide-search">
 			<template v-if="search?.length > 0" #trailing>
-				<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" aria-label="Clear input" @click="resetSearchField" />
+				<UButton
+					color="neutral"
+					variant="link"
+					size="sm"
+					icon="i-lucide-x"
+					aria-label="Clear input"
+					@click="resetSearchField"
+				/>
 			</template>
 		</UInput>
-		<UButton label="Refresh" leading-icon="i-lucide-rotate-cw" variant="subtle" color="neutral" @click="refresh()" />
+		<UButton
+			label="Refresh"
+			leading-icon="i-lucide-rotate-cw"
+			variant="subtle"
+			color="neutral"
+			@click="refresh()"
+		/>
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 		<UTable :data="data?.results" :columns="columns" :loading="pending" sticky class="h-full">
@@ -20,7 +33,13 @@
 			</template>
 			<template #poster_path-cell="{ row }">
 				<div class="w-14">
-					<NuxtImg provider="tmdb" :src="row.original.poster_path" width="92" class="object-contain" v-if="row.original.poster_path" />
+					<NuxtImg
+						provider="tmdb"
+						:src="row.original.poster_path"
+						width="92"
+						class="object-contain"
+						v-if="row.original.poster_path"
+					/>
 					<NuxtImg src="https://placehold.co/500x750" loading="lazy" class="object-contain" v-else />
 				</div>
 			</template>
@@ -41,9 +60,12 @@
 				}}</span>
 			</template>
 			<template #vote_average-cell="{ row }">
-				<UBadge :color="getVoteColor(row.original.vote_average)" variant="subtle" v-if="row.original.vote_count > 0">{{
-					row.original.vote_average
-				}}</UBadge>
+				<UBadge
+					:color="getVoteColor(row.original.vote_average)"
+					variant="subtle"
+					v-if="row.original.vote_count > 0"
+					>{{ row.original.vote_average }}</UBadge
+				>
 				<span v-else />
 			</template>
 			<template #actions-cell="{ row }">
@@ -68,14 +90,17 @@
 			</template>
 		</UTable>
 	</UCard>
-	<UPagination v-model:page="page" :total="data?.total" :items-per-page="TMDB_ITEMS_PER_PAGE" v-show="(data?.total ?? 0) > TMDB_ITEMS_PER_PAGE" />
+	<UPagination
+		v-model:page="page"
+		:total="data?.total"
+		:items-per-page="TMDB_ITEMS_PER_PAGE"
+		v-show="(data?.total ?? 0) > TMDB_ITEMS_PER_PAGE"
+	/>
 </template>
 
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, TableRow, BadgeProps } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
-
-import { LazyConfirmationModal } from "#components";
 
 definePageMeta({
 	layout: "app",
@@ -223,7 +248,9 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 
 		data.value = {
 			...data.value,
-			results: data.value.results.map((m) => (m.id === row.original.id ? Object.assign(m, { internalId: movie.id }) : m)),
+			results: data.value.results.map((m) =>
+				m.id === row.original.id ? Object.assign(m, { internalId: movie.id }) : m,
+			),
 		};
 	} catch (err: any) {
 		toast.add({
@@ -253,7 +280,9 @@ const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) 
 
 		data.value = {
 			...data.value,
-			results: data.value.results.map((m) => (m.id === row.original.id ? Object.assign(m, { internalId: undefined }) : m)),
+			results: data.value.results.map((m) =>
+				m.id === row.original.id ? Object.assign(m, { internalId: undefined }) : m,
+			),
 		};
 	} catch (err: any) {
 		toast.add({

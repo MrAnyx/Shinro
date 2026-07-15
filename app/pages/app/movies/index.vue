@@ -2,10 +2,23 @@
 	<div class="flex justify-between">
 		<UInput v-model="search" placeholder="Search..." leading-icon="i-lucide-search">
 			<template v-if="search?.length > 0" #trailing>
-				<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" aria-label="Clear input" @click="resetSearchField" />
+				<UButton
+					color="neutral"
+					variant="link"
+					size="sm"
+					icon="i-lucide-x"
+					aria-label="Clear input"
+					@click="resetSearchField"
+				/>
 			</template>
 		</UInput>
-		<UButton label="Refresh" leading-icon="i-lucide-rotate-cw" variant="subtle" color="neutral" @click="refresh()" />
+		<UButton
+			label="Refresh"
+			leading-icon="i-lucide-rotate-cw"
+			variant="subtle"
+			color="neutral"
+			@click="refresh()"
+		/>
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 		<UTable :data="data?.results" :columns="columns" :loading="pending" sticky class="h-full">
@@ -17,6 +30,18 @@
 					icon="i-lucide-ban"
 					:actions="emptyActions"
 				></UEmpty>
+			</template>
+			<template #posterPath-cell="{ row }">
+				<div class="w-14">
+					<NuxtImg
+						provider="tmdb"
+						:src="row.original.posterPath"
+						width="92"
+						class="object-contain"
+						v-if="row.original.posterPath"
+					/>
+					<NuxtImg src="https://placehold.co/500x750" class="object-contain" v-else />
+				</div>
 			</template>
 			<template #createdAt-cell="{ row }">
 				<span>{{ row.original.createdAt.toLocaleString() }}</span>
@@ -31,13 +56,18 @@
 			</template>
 		</UTable>
 	</UCard>
-	<UPagination v-model:page="page" :total="data?.total" :items-per-page="ITEMS_PER_PAGE" v-show="(data?.total ?? 0) > ITEMS_PER_PAGE" />
+	<UPagination
+		v-model:page="page"
+		:total="data?.total"
+		:items-per-page="ITEMS_PER_PAGE"
+		v-show="(data?.total ?? 0) > ITEMS_PER_PAGE"
+	/>
 </template>
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
-import { LazyCollectionFormModal, LazyConfirmationModal } from "#components";
+import { LazyMovieFormModal } from "#components";
 
 definePageMeta({
 	layout: "app",
@@ -46,14 +76,14 @@ definePageMeta({
 
 const overlay = useOverlay();
 const trpc = useTrpc();
-const collectionStore = useCollectionStore();
+const movieStore = useMovieStore();
 const toast = useToast();
 const { openConfirmationModal } = useConfirmation();
 
-const collectionFormModal = overlay.create(LazyCollectionFormModal);
-const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
-	const instance = collectionFormModal.open({
-		collection,
+const movieFormModal = overlay.create(LazyMovieFormModal);
+const openMovieFormModal = async (movie?: MovieDefaultView) => {
+	const instance = movieFormModal.open({
+		movie,
 	});
 
 	const result = await instance.result;
@@ -66,14 +96,14 @@ const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 const page = ref(1);
 const search = ref("");
 const { data, pending, refresh } = useAsyncData(
-	"collections",
+	"movies",
 	async () => {
 		try {
-			return await trpc.collections.getAll.query({ page: page.value, search: search.value });
+			return await trpc.movies.getAll.query({ page: page.value, search: search.value });
 		} catch {
 			toast.add({
 				title: "Oops!",
-				description: "Something went wrong while fetching the collections",
+				description: "Something went wrong while fetching the movies",
 				color: "error",
 				type: "foreground",
 			});
@@ -99,10 +129,14 @@ watchDebounced(
 	},
 );
 
-const columns: TableColumn<CollectionDefaultView>[] = [
+const columns: TableColumn<MovieDefaultView>[] = [
 	{
-		accessorKey: "name",
-		header: "Name",
+		accessorKey: "posterPath",
+		header: "",
+	},
+	{
+		accessorKey: "title",
+		header: "Title",
 		meta: {
 			class: {
 				td: "max-w-[120px] truncate font-bold",
@@ -137,19 +171,19 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 	},
 ];
 
-const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[][] => [
+const getRowActions = (row: TableRow<MovieDefaultView>): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
 			onSelect() {
-				openCollectionFormModal(row.original);
+				openMovieFormModal(row.original);
 			},
 		},
 		{
 			label: "Delete",
 			color: "error",
 			async onSelect() {
-				const result = await openConfirmationModal(async () => await collectionStore.deleteCollection(row.original.id));
+				const result = await openConfirmationModal(async () => await movieStore.deleteMovie(row.original.id));
 
 				if (result) {
 					refresh();

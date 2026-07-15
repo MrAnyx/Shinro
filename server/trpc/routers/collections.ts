@@ -123,7 +123,10 @@ export default router({
 				ownerId: ctx.user.id,
 				...(input.search
 					? {
-							OR: [{ name: { contains: input.search, mode: "insensitive" } }, { description: { contains: input.search, mode: "insensitive" } }],
+							OR: [
+								{ name: { contains: input.search, mode: "insensitive" } },
+								{ description: { contains: input.search, mode: "insensitive" } },
+							],
 						}
 					: {}),
 			};
@@ -135,9 +138,6 @@ export default router({
 					orderBy: [{ name: "asc" }, { createdAt: "asc" }],
 					skip,
 					take: ITEMS_PER_PAGE,
-					include: {
-						owner: true,
-					},
 				}),
 			]);
 
