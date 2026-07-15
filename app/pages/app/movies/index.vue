@@ -21,7 +21,14 @@
 		/>
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
-		<UTable :data="data?.results" :columns="columns" :loading="pending" sticky class="h-full">
+		<UTable
+			:data="data?.results"
+			:columns="columns"
+			:loading="pending"
+			sticky
+			class="h-full"
+			@select="onMovieSelected"
+		>
 			<template #empty>
 				<UEmpty
 					title="No movie found"
@@ -133,6 +140,11 @@ const columns: TableColumn<MovieDefaultView>[] = [
 	{
 		accessorKey: "posterPath",
 		header: "",
+		meta: {
+			class: {
+				td: "w-[60px]",
+			},
+		},
 	},
 	{
 		accessorKey: "title",
@@ -145,7 +157,7 @@ const columns: TableColumn<MovieDefaultView>[] = [
 	},
 	{
 		accessorKey: "description",
-		header: "Description",
+		header: "Synopsis",
 		meta: {
 			class: {
 				td: "max-w-[300px] truncate",
@@ -155,10 +167,11 @@ const columns: TableColumn<MovieDefaultView>[] = [
 	{
 		accessorKey: "createdAt",
 		header: "Created At",
-	},
-	{
-		accessorKey: "updatedAt",
-		header: "Updated At",
+		meta: {
+			class: {
+				td: "w-0",
+			},
+		},
 	},
 	{
 		id: "actions",
@@ -208,4 +221,8 @@ const emptyActions: ButtonProps[] = [
 		},
 	},
 ];
+
+const onMovieSelected = (row: TableRow<MovieDefaultView>) => {
+	openMovieFormModal(row.original);
+};
 </script>

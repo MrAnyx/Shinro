@@ -35,7 +35,14 @@
 				/>
 			</div>
 			<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
-				<UTable :data="data?.results" :columns="columns" :loading="pending" sticky class="h-full">
+				<UTable
+					:data="data?.results"
+					:columns="columns"
+					:loading="pending"
+					sticky
+					class="h-full"
+					@select="onCollectionSelected"
+				>
 					<template #empty>
 						<UEmpty
 							title="No collection found"
@@ -208,4 +215,8 @@ const emptyActions: ButtonProps[] = [
 		},
 	},
 ];
+
+const onCollectionSelected = (e: Event, row: TableRow<CollectionDefaultView>) => {
+	openCollectionFormModal(row.original);
+};
 </script>

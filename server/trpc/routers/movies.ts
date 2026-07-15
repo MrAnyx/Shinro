@@ -66,6 +66,44 @@ export default router({
 
 			return movie;
 		}),
+
+	update: protectedProcedure
+		.input(
+			z.object({
+				id: MovieValidation.id,
+				title: MovieValidation.title,
+				description: MovieValidation.description,
+			}),
+		)
+		.output(MovieDefaultViewSchema)
+		.mutation(async ({ input, ctx }) => {
+			const existingMovie = await prisma.movie.findUnique({
+				where: {
+					id: input.id,
+				},
+			});
+
+			if (existingMovie?.ownerId !== ctx.user.id) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "You are not the owner of this movie",
+				});
+			}
+
+			const movie = await prisma.movie.update({
+				where: {
+					id: input.id,
+					ownerId: ctx.user.id,
+				},
+				data: {
+					title: input.title,
+					description: input.description ?? null,
+				},
+			});
+
+			return movie;
+		}),
+
 	delete: protectedProcedure
 		.input(
 			z.object({

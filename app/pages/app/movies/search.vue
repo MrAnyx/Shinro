@@ -165,6 +165,11 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 	{
 		accessorKey: "poster_path",
 		header: "",
+		meta: {
+			class: {
+				td: "w-[60px]",
+			},
+		},
 	},
 	{
 		accessorKey: "title",
@@ -187,14 +192,29 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 	{
 		accessorKey: "adult",
 		header: "Category",
+		meta: {
+			class: {
+				td: "w-0",
+			},
+		},
 	},
 	{
 		accessorKey: "release_date",
 		header: "Released At",
+		meta: {
+			class: {
+				td: "w-0",
+			},
+		},
 	},
 	{
 		accessorKey: "vote_average",
 		header: "Vote",
+		meta: {
+			class: {
+				td: "w-0",
+			},
+		},
 	},
 	{
 		id: "actions",
@@ -240,7 +260,7 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	try {
 		loadingMovieIds.add(row.original.id);
 
-		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
+		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id.toString() });
 
 		if (!data.value) {
 			return;
