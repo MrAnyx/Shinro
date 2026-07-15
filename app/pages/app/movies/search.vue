@@ -75,6 +75,8 @@
 import type { TableColumn, ButtonProps, TableRow, BadgeProps } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
+import { LazyConfirmationModal } from "#components";
+
 definePageMeta({
 	layout: "app",
 	middleware: ["auth"],
@@ -83,21 +85,27 @@ definePageMeta({
 const trpc = useTrpc();
 const movieStore = useMovieStore();
 const toast = useToast();
+const overlay = useOverlay();
 
 const searchInput = useTemplateRef("searchInput");
 
 const page = ref(1);
 const search = ref("");
 const loadingMovieIds = reactive(new Set<number>());
+
+onMounted(() => {
+	focusSearchField();
+});
+
 const { data, pending, refresh } = useAsyncData(
 	"movies-search",
 	async () => {
-		if (!search.value) {
+		if (!search.value.trim()) {
 			return undefined;
 		}
 
 		try {
-			return await trpc.tmdb.movies.query({ page: page.value, search: search.value });
+			return await trpc.tmdb.movies.query({ page: page.value, search: search.value.trim() });
 		} catch {
 			toast.add({
 				title: "Oops!",
@@ -179,11 +187,15 @@ const emptyActions: ButtonProps[] = [
 		icon: "i-lucide-search",
 		label: "Search",
 		onClick() {
-			searchInput.value?.inputRef?.select();
-			searchInput.value?.inputRef?.focus();
+			focusSearchField();
 		},
 	},
 ];
+
+const focusSearchField = () => {
+	searchInput.value?.inputRef?.select();
+	searchInput.value?.inputRef?.focus();
+};
 
 const resetSearchField = () => {
 	search.value = "";

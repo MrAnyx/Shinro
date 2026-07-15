@@ -53,7 +53,7 @@
 import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
-import { LazyCollectionFormModal, LazyConfirmationModal } from "#components";
+import { LazyCollectionFormModal } from "#components";
 
 definePageMeta({
 	layout: "app",
@@ -64,24 +64,12 @@ const overlay = useOverlay();
 const trpc = useTrpc();
 const collectionStore = useCollectionStore();
 const toast = useToast();
+const { openConfirmationModal } = useConfirmation();
 
 const collectionFormModal = overlay.create(LazyCollectionFormModal);
 const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 	const instance = collectionFormModal.open({
 		collection,
-	});
-
-	const result = await instance.result;
-
-	if (result) {
-		refresh();
-	}
-};
-
-const confirmationModal = overlay.create(LazyConfirmationModal);
-const openConfirmationModal = async (callback: () => Promise<void> | void) => {
-	const instance = confirmationModal.open({
-		callback,
 	});
 
 	const result = await instance.result;
@@ -176,8 +164,12 @@ const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[]
 		{
 			label: "Delete",
 			color: "error",
-			onSelect() {
-				openConfirmationModal(async () => await collectionStore.deleteCollection(row.original.id));
+			async onSelect() {
+				const result = await openConfirmationModal(async () => await collectionStore.deleteCollection(row.original.id));
+
+				if (result) {
+					refresh();
+				}
 			},
 		},
 	],
