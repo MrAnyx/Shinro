@@ -24,5 +24,14 @@ export const useMovieStore = defineStore("movie", {
 			await trpc.movies.delete.mutate({ id });
 			this.total -= 1;
 		},
+
+		async updateMovie(id: string, payload: { title: string; description?: string }) {
+			const trpc = useTrpc();
+			const movie = await trpc.movies.update.mutate({
+				id,
+				...payload,
+			});
+			return movie;
+		},
 	},
 });

@@ -1,75 +1,75 @@
 generator client {
-  provider               = "prisma-client"
-  output                 = "./generated"
-  engineType             = "client"
-  moduleFormat           = "esm"
-  runtime                = "nodejs"
-  generatedFileExtension = "ts"
-  importFileExtension    = "ts"
-  previewFeatures        = ["strictUndefinedChecks"]
+    provider               = "prisma-client"
+    output                 = "./generated"
+    engineType             = "client"
+    moduleFormat           = "esm"
+    runtime                = "nodejs"
+    generatedFileExtension = "ts"
+    importFileExtension    = "ts"
+    previewFeatures        = ["strictUndefinedChecks"]
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
 }
 
 enum Role {
-  ADMIN
-  USER
+    ADMIN
+    USER
 }
 
 model User {
-  id           String       @id @default(uuid()) @db.Uuid
-  username     String       @unique @db.VarChar(255)
-  passwordHash String       @db.VarChar(255)
-  role         Role
-  createdAt    DateTime     @default(now()) @db.Timestamptz(6)
-  updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
-  sessions     Session[]
-  collections  Collection[]
-  movies       Movie[]
+    id           String       @id @default(uuid()) @db.Uuid
+    username     String       @unique @db.VarChar(255)
+    passwordHash String       @db.VarChar(255)
+    role         Role
+    createdAt    DateTime     @default(now()) @db.Timestamptz(6)
+    updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
+    sessions     Session[]
+    collections  Collection[]
+    movies       Movie[]
 }
 
 model Session {
-  id        String   @id @default(uuid()) @db.Uuid
-  sessionId String   @unique @db.VarChar(255)
-  userId    String   @db.Uuid
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @db.Timestamptz(6)
-  expiresAt DateTime @db.Timestamptz(6)
+    id        String   @id @default(uuid()) @db.Uuid
+    sessionId String   @unique @db.VarChar(255)
+    userId    String   @db.Uuid
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt DateTime @default(now()) @db.Timestamptz(6)
+    updatedAt DateTime @updatedAt @db.Timestamptz(6)
+    expiresAt DateTime @db.Timestamptz(6)
 }
 
 model Collection {
-  id               String            @id @default(uuid()) @db.Uuid
-  name             String            @db.VarChar(255)
-  description      String?           @db.VarChar(500)
-  ownerId          String            @db.Uuid
-  owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt        DateTime          @default(now()) @db.Timestamptz(6)
-  updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
-  collectionMovies CollectionMovie[]
+    id               String            @id @default(uuid()) @db.Uuid
+    name             String            @db.VarChar(255)
+    description      String?           @db.VarChar(500)
+    ownerId          String            @db.Uuid
+    owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
+    updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
+    collectionMovies CollectionMovie[]
 }
 
 model Movie {
-  id               String            @id @default(uuid()) @db.Uuid
-  externalId       Int
-  title            String            @db.VarChar(255)
-  description      String?           @db.Text
-  posterPath       String?           @db.VarChar(500)
-  ownerId          String            @db.Uuid
-  owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt        DateTime          @default(now()) @db.Timestamptz(6)
-  updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
-  collectionMovies CollectionMovie[]
+    id               String            @id @default(uuid()) @db.Uuid
+    externalId       String?           @db.VarChar(255)
+    title            String            @db.VarChar(255)
+    description      String?           @db.Text
+    posterPath       String?           @db.VarChar(500)
+    ownerId          String            @db.Uuid
+    owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
+    updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
+    collectionMovies CollectionMovie[]
 }
 
 model CollectionMovie {
-  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
-  collectionId String     @db.Uuid
-  movie        Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
-  movieId      String     @db.Uuid
-  addedAt      DateTime   @default(now()) @db.Timestamptz(6)
+    collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+    collectionId String     @db.Uuid
+    movie        Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
+    movieId      String     @db.Uuid
+    addedAt      DateTime   @default(now()) @db.Timestamptz(6)
 
-  @@id([collectionId, movieId])
+    @@id([collectionId, movieId])
 }

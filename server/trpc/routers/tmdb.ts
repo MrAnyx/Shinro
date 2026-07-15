@@ -22,7 +22,7 @@ export default router({
 					},
 				});
 
-				const externalIds = tmdbMovies.results.map((x) => x.id);
+				const externalIds = tmdbMovies.results.map((x) => x.id.toString());
 
 				const myMovies = await prisma.movie.findMany({
 					where: {
@@ -41,7 +41,7 @@ export default router({
 
 				const movies = tmdbMovies.results.map((movie) => ({
 					...movie,
-					internalId: myMoviesMap.get(movie.id) ?? undefined,
+					internalId: myMoviesMap.get(movie.id.toString()) ?? undefined,
 				}));
 
 				return {

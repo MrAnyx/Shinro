@@ -2,7 +2,7 @@ import * as z from "zod";
 
 export const MovieBaseSchema = z.object({
 	id: z.uuid(),
-	externalId: z.number(),
+	externalId: z.string().nullable(),
 	title: z.string(),
 	description: z.string().nullable(),
 	posterPath: z.string().nullable(),

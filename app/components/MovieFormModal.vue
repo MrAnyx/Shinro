@@ -12,6 +12,9 @@
 				<UFormField label="Title" name="title">
 					<UInput v-model="state.title" class="w-full" :maxlength="255" autofocus />
 				</UFormField>
+				<UFormField label="External ID" name="externalId">
+					<UInput v-model="state.externalId" class="w-full" />
+				</UFormField>
 				<UFormField label="Description" name="description">
 					<UTextarea v-model="state.description" class="w-full" :rows="4" />
 				</UFormField>
@@ -43,11 +46,13 @@ const movieStore = useMovieStore();
 const schema = z.object({
 	title: MovieValidation.title,
 	description: MovieValidation.description,
+	externalId: MovieValidation.externalId.optional(),
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
 	title: movie?.title ?? "",
 	description: movie?.description ?? undefined,
+	externalId: movie?.externalId ?? undefined,
 });
 
 const onCancel = () => {

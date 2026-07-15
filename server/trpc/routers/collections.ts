@@ -20,9 +20,6 @@ export default router({
 					description: input.description ?? null,
 					ownerId: ctx.user.id,
 				},
-				include: {
-					owner: true,
-				},
 			});
 
 			return collection;
@@ -58,9 +55,6 @@ export default router({
 				data: {
 					name: input.name,
 					description: input.description ?? null,
-				},
-				include: {
-					owner: true,
 				},
 			});
 

@@ -5,6 +5,26 @@ import { Prisma } from "~~/server/prisma/generated/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
+	create: protectedProcedure
+		.input(
+			z.object({
+				title: MovieValidation.title,
+				description: MovieValidation.description,
+			}),
+		)
+		.output(MovieDefaultViewSchema)
+		.mutation(async ({ input, ctx }) => {
+			const movie = await prisma.movie.create({
+				data: {
+					title: input.title,
+					description: input.description ?? null,
+					ownerId: ctx.user.id,
+				},
+			});
+
+			return movie;
+		}),
+
 	createFromExternal: protectedProcedure
 		.input(
 			z.object({
@@ -36,7 +56,7 @@ export default router({
 
 			const movie = await prisma.movie.create({
 				data: {
-					externalId: input.externalId,
+					externalId: tmdbMovie.id.toString(),
 					title: tmdbMovie.title,
 					description: tmdbMovie.overview,
 					ownerId: ctx.user.id,
