@@ -13,6 +13,7 @@
 		</template>
 	</UDashboardPanel>
 </template>
+
 <script setup lang="ts">
 definePageMeta({
 	layout: "app",

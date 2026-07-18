@@ -12,13 +12,16 @@
 				/>
 			</template>
 		</UInput>
-		<UButton
-			label="Refresh"
-			leading-icon="i-lucide-rotate-cw"
-			variant="subtle"
-			color="neutral"
-			@click="refresh()"
-		/>
+		<div class="flex gap-2">
+			<UButton
+				label="Refresh"
+				leading-icon="i-lucide-rotate-cw"
+				variant="subtle"
+				color="neutral"
+				@click="refresh()"
+			/>
+			<UButton label="New collection" leading-icon="i-lucide-plus" @click="openCollectionFormModal()" />
+		</div>
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 		<UTable
@@ -39,10 +42,24 @@
 				></UEmpty>
 			</template>
 			<template #createdAt-cell="{ row }">
-				<span>{{ row.original.createdAt.toLocaleString() }}</span>
+				<NuxtTime
+					:datetime="row.original.createdAt"
+					year="numeric"
+					month="short"
+					day="numeric"
+					hour="2-digit"
+					minute="2-digit"
+				/>
 			</template>
 			<template #updatedAt-cell="{ row }">
-				<span>{{ row.original.updatedAt.toLocaleString() }}</span>
+				<NuxtTime
+					:datetime="row.original.updatedAt"
+					year="numeric"
+					month="short"
+					day="numeric"
+					hour="2-digit"
+					minute="2-digit"
+				/>
 			</template>
 			<template #actions-cell="{ row }">
 				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row)">
@@ -63,11 +80,6 @@ import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt
 import { watchDebounced } from "@vueuse/core";
 
 import { LazyCollectionFormModal } from "#components";
-
-definePageMeta({
-	layout: "app",
-	middleware: ["auth"],
-});
 
 const overlay = useOverlay();
 const trpc = useTrpc();

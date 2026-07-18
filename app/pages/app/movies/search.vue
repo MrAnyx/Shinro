@@ -48,24 +48,22 @@
 				<UBadge color="success" variant="subtle" v-else>Safe</UBadge>
 			</template>
 			<template #release_date-cell="{ row }">
-				<span>{{
-					row.original.release_date
-						? new Date(row.original.release_date).toLocaleString(undefined, {
-								timeZone: "UTC",
-								year: "numeric",
-								month: "numeric",
-								day: "numeric",
-							})
-						: ""
-				}}</span>
+				<NuxtTime
+					:datetime="row.original.release_date"
+					year="numeric"
+					month="short"
+					day="numeric"
+					timezone="UTC"
+				/>
 			</template>
 			<template #vote_average-cell="{ row }">
 				<UBadge
 					:color="getVoteColor(row.original.vote_average)"
 					variant="subtle"
 					v-if="row.original.vote_count > 0"
-					>{{ row.original.vote_average }}</UBadge
 				>
+					{{ row.original.vote_average }}
+				</UBadge>
 				<span v-else />
 			</template>
 			<template #actions-cell="{ row }">

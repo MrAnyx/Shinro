@@ -9,7 +9,7 @@
 				:validate-on="['change']"
 				class="gap-4 flex flex-col"
 			>
-				<UFormField label="Title" name="title">
+				<UFormField label="Title" name="title" required>
 					<UInput v-model="state.title" class="w-full" :maxlength="255" autofocus />
 				</UFormField>
 				<UFormField label="Description" name="description">

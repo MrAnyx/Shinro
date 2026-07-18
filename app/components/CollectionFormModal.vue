@@ -1,8 +1,15 @@
 <template>
 	<UModal :title="`${collection ? 'Update' : 'Create'} a collection`" :dismissible="!isLoading" :close="!isLoading">
 		<template #body>
-			<UForm ref="form" :schema="schema" :state="state" @submit="onSubmit" :validate-on="['change']" class="gap-4 flex flex-col">
-				<UFormField label="Name" name="name">
+			<UForm
+				ref="form"
+				:schema="schema"
+				:state="state"
+				@submit="onSubmit"
+				:validate-on="['change']"
+				class="gap-4 flex flex-col"
+			>
+				<UFormField label="Name" name="name" required>
 					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus />
 				</UFormField>
 				<UFormField label="Description" name="description">
