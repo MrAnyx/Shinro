@@ -270,6 +270,13 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 				m.id === row.original.id ? Object.assign(m, { internalId: movie.id }) : m,
 			),
 		};
+
+		toast.add({
+			title: "New movie added",
+			description: `${movie.title} has been added to your list`,
+			color: "success",
+			type: "foreground",
+		});
 	} catch (err: any) {
 		toast.add({
 			title: "Oops!",
