@@ -14,7 +14,10 @@ const trpc = initTRPC.context<Context>().create({
 		const timestamp = new Date().toISOString();
 
 		// Override message for INTERNAL_SERVER_ERROR on production
-		const message = error.code === "INTERNAL_SERVER_ERROR" && serverEnv.NODE_ENV === "production" ? "Unexpected error" : error.message;
+		const message =
+			error.code === "INTERNAL_SERVER_ERROR" && serverEnv.NODE_ENV === "production"
+				? "Unexpected error"
+				: error.message;
 
 		return {
 			...shape,
@@ -32,7 +35,7 @@ const trpc = initTRPC.context<Context>().create({
 	},
 });
 
-export const router = trpc.router;
+export const { router } = trpc;
 
 export const publicProcedure = trpc.procedure;
 

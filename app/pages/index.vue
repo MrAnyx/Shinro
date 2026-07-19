@@ -5,7 +5,9 @@
 	>
 		<template #title>
 			Finally a place for your
-			<span class="font-brand underline decoration-dashed decoration-3 decoration-primary underline-offset-8">Chaos</span>
+			<span class="font-brand underline decoration-dashed decoration-3 decoration-primary underline-offset-8"
+				>Chaos</span
+			>
 		</template>
 
 		<ImagePlaceholder />
@@ -70,14 +72,16 @@ const features = ref<PageFeatureProps[][]>([
 		},
 		{
 			title: "Custom Tags",
-			description: 'Label your media with tags like "Guilty Pleasure", "Abandoned Halfway", or "Why Did I Buy This?"',
+			description:
+				'Label your media with tags like "Guilty Pleasure", "Abandoned Halfway", or "Why Did I Buy This?"',
 			icon: "i-lucide-tags",
 		},
 	],
 	[
 		{
 			title: "Consumption Stats",
-			description: 'Track your reading/watching habits with stats like "Most Binge-Watched Genre" or "Books You Started But Never Finished"',
+			description:
+				'Track your reading/watching habits with stats like "Most Binge-Watched Genre" or "Books You Started But Never Finished"',
 			icon: "i-lucide-pie-chart",
 		},
 		{

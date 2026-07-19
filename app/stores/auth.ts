@@ -8,7 +8,8 @@ export const useAuthStore = defineStore("auth", {
 	}),
 	getters: {
 		isAuthenticated: (state) => !!state.user,
-		isLoading: (state) => state.isLoadingLogin || state.isLoadingRegister || state.isLoadingLogout || state.isLoadingFetchMe,
+		isLoading: (state) =>
+			state.isLoadingLogin || state.isLoadingRegister || state.isLoadingLogout || state.isLoadingFetchMe,
 	},
 	actions: {
 		async login(payload: { username: string; password: string }) {

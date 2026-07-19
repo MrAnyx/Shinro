@@ -66,7 +66,10 @@ const schema = z
 		password: UserValidation.password,
 		password_confirmation: UserValidation.password,
 	})
-	.refine((data) => data.password === data.password_confirmation, { message: "Passwords must match", path: ["password_confirmation"] });
+	.refine((data) => data.password === data.password_confirmation, {
+		message: "Passwords must match",
+		path: ["password_confirmation"],
+	});
 
 type Schema = z.output<typeof schema>;
 

@@ -40,11 +40,25 @@ export default defineNuxtConfig({
 		typeCheck: true,
 	},
 	imports: {
-		dirs: ["shared/types", "shared/types/models", "shared/types/requests", "shared/utils", "shared/utils/validation", "shared/utils/models"],
+		dirs: [
+			"shared/types",
+			"shared/types/models",
+			"shared/types/requests",
+			"shared/utils",
+			"shared/utils/validation",
+			"shared/utils/models",
+		],
 	},
 	nitro: {
 		imports: {
-			dirs: ["shared/types", "shared/types/models", "shared/types/requests", "shared/utils", "shared/utils/validation", "shared/utils/models"],
+			dirs: [
+				"shared/types",
+				"shared/types/models",
+				"shared/types/requests",
+				"shared/utils",
+				"shared/utils/validation",
+				"shared/utils/models",
+			],
 		},
 	},
 });

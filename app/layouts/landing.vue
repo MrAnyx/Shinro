@@ -11,7 +11,13 @@
 
 		<template #right>
 			<UColorModeButton />
-			<UButton color="neutral" label="Get started" variant="solid" trailing-icon="i-lucide-arrow-right" to="/app" />
+			<UButton
+				color="neutral"
+				label="Get started"
+				variant="solid"
+				trailing-icon="i-lucide-arrow-right"
+				to="/app"
+			/>
 		</template>
 
 		<template #body>
@@ -29,7 +35,14 @@
 		<NuxtImg src="/images/icone.svg" class="size-8" />
 
 		<template #right>
-			<UButton icon="i-simple-icons-github" color="neutral" variant="ghost" to="https://github.com/nuxt/nuxt" target="_blank" aria-label="GitHub" />
+			<UButton
+				icon="i-simple-icons-github"
+				color="neutral"
+				variant="ghost"
+				to="https://github.com/nuxt/nuxt"
+				target="_blank"
+				aria-label="GitHub"
+			/>
 		</template>
 	</UFooter>
 </template>
