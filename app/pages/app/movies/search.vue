@@ -21,7 +21,14 @@
 		/>
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
-		<UTable :data="data?.results" :columns="columns" :loading="pending" sticky class="h-full">
+		<UTable
+			:data="data?.results"
+			:columns="columns"
+			:loading="pending"
+			sticky
+			class="h-full"
+			@select="onMovieSelected"
+		>
 			<template #empty>
 				<UEmpty
 					title="No movie found"
@@ -309,6 +316,13 @@ const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) 
 				m.id === row.original.id ? Object.assign(m, { internalId: undefined }) : m,
 			),
 		};
+
+		toast.add({
+			title: "Movie removed",
+			description: `${row.original.title} has been removed from your list`,
+			color: "warning",
+			type: "foreground",
+		});
 	} catch (err: any) {
 		toast.add({
 			title: "Oops!",
@@ -318,6 +332,14 @@ const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) 
 		});
 	} finally {
 		loadingMovieIds.delete(row.original.id);
+	}
+};
+
+const onMovieSelected = async (e: Event, row: TableRow<TmdbMovieSearchDefaultView>) => {
+	if (row.original.internalId) {
+		await navigateTo({ path: `/app/movies/internal/${row.original.id}` });
+	} else {
+		await navigateTo({ path: `/app/movies/external/${row.original.id}` });
 	}
 };
 </script>
