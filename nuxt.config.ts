@@ -28,7 +28,7 @@ export default defineNuxtConfig({
 				provider: "~/lib/providers/tmdb.ts",
 				options: {
 					baseURL: "https://image.tmdb.org/t/p",
-					imageSize: "w500",
+					imageSize: "original",
 				},
 			},
 		},
