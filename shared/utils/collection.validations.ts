@@ -13,6 +13,5 @@ export const CollectionValidation = {
 		.string("Collection description must be a valid string")
 		.trim()
 		.max(500, "Can not exceed 500 characters")
-		.optional()
-		.transform((v) => v?.trim() || undefined),
+		.optional(),
 };

@@ -13,7 +13,14 @@ definePageMeta({
 });
 
 const route = useRoute();
+const trpc = useTrpc();
+
 const type = computed(() => route.params.type as "internal" | "external");
 const id = computed(() => route.params.id as string);
 const isExternal = computed(() => type.value === "external");
+const isInternal = computed(() => type.value === "internal");
+
+onMounted(async () => {
+	const tmp = await trpc.tmdb.details.query({ id: id.value });
+});
 </script>

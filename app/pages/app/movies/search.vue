@@ -115,13 +115,12 @@ definePageMeta({
 const trpc = useTrpc();
 const movieStore = useMovieStore();
 const toast = useToast();
-const overlay = useOverlay();
 
 const searchInput = useTemplateRef("searchInput");
 
 const page = ref(1);
 const search = ref("");
-const loadingMovieIds = reactive(new Set<number>());
+const loadingMovieIds = reactive(new Set<string>());
 
 onMounted(() => {
 	focusSearchField();
@@ -135,7 +134,7 @@ const { data, pending, refresh } = useAsyncData(
 		}
 
 		try {
-			return await trpc.tmdb.movies.query({ page: page.value, search: search.value.trim() });
+			return await trpc.tmdb.search.query({ page: page.value, search: search.value.trim() });
 		} catch {
 			toast.add({
 				title: "Oops!",
