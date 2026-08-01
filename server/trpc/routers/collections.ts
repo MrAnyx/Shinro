@@ -17,7 +17,7 @@ export default router({
 			const collection = await prisma.collection.create({
 				data: {
 					name: input.name,
-					description: input.description ?? null,
+					description: input.description,
 					ownerId: ctx.user.id,
 				},
 			});
@@ -54,7 +54,7 @@ export default router({
 				},
 				data: {
 					name: input.name,
-					description: input.description ?? null,
+					description: input.description,
 				},
 			});
 

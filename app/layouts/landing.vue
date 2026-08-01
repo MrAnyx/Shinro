@@ -41,7 +41,6 @@
 				variant="ghost"
 				to="https://github.com/nuxt/nuxt"
 				target="_blank"
-				aria-label="GitHub"
 			/>
 		</template>
 	</UFooter>

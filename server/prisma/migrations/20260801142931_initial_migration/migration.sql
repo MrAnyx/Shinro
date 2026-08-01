@@ -41,7 +41,7 @@ CREATE TABLE "Collection" (
 CREATE TABLE "Movie" (
     "id" UUID NOT NULL,
     "externalId" VARCHAR(255),
-    "title" VARCHAR(255) NOT NULL,
+    "title" VARCHAR(255),
     "description" TEXT,
     "posterPath" VARCHAR(500),
     "ownerId" UUID NOT NULL,

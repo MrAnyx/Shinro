@@ -14,6 +14,13 @@ export default router({
 		.output(PaginatedSchema(TmdbMovieSearchDefaultViewSchema))
 		.query(async ({ input, ctx }) => {
 			try {
+				if (!input.search) {
+					return {
+						total: 0,
+						results: [],
+					};
+				}
+
 				const tmdbMovies = await tmdb("/search/movie", {
 					schema: TmdbMovieSearchResponseSchema,
 					query: {
@@ -41,7 +48,7 @@ export default router({
 
 				const movies = tmdbMovies.results.map((movie) => ({
 					...movie,
-					internalId: myMoviesMap.get(movie.id) ?? null,
+					internalId: myMoviesMap.get(movie.id),
 				}));
 
 				return {
@@ -64,27 +71,11 @@ export default router({
 			}),
 		)
 		.output(TmdbMovieDetailsDefaultViewSchema)
-		.query(async ({ input, ctx }) => {
+		.query(async ({ input }) => {
 			try {
 				const movie = await tmdb(`/movie/${input.id}`, {
 					schema: TmdbMovieDetailsResponseSchema,
 				});
-
-				const myMovie = await prisma.movie.findFirst({
-					where: {
-						ownerId: ctx.user.id,
-						externalId: input.id,
-					},
-					select: {
-						description: true,
-						title: true,
-					},
-				});
-
-				if (myMovie) {
-					movie.title = myMovie.title;
-					movie.overview = myMovie.description;
-				}
 
 				return movie;
 			} catch (err: any) {

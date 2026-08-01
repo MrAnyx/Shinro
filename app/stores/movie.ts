@@ -12,7 +12,7 @@ export const useMovieStore = defineStore("movie", {
 			this.total = count;
 		},
 
-		async createMovie(payload: { title: string; description?: string }) {
+		async createMovie(payload: { title: string; description: string }) {
 			const trpc = useTrpc();
 			const movie = await trpc.movies.create.mutate(payload);
 			this.total += 1;
@@ -32,7 +32,7 @@ export const useMovieStore = defineStore("movie", {
 			this.total -= 1;
 		},
 
-		async updateMovie(id: string, payload: { title: string; description?: string }) {
+		async updateMovie(id: string, payload: { title: string; description: string }) {
 			const trpc = useTrpc();
 			const movie = await trpc.movies.update.mutate({
 				id,

@@ -47,7 +47,7 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
 	name: collection?.name ?? "",
-	description: collection?.description ?? undefined,
+	description: collection?.description ?? "",
 });
 
 const onCancel = () => {

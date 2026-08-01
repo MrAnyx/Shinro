@@ -2,14 +2,7 @@
 	<div class="flex justify-between">
 		<UInput ref="searchInput" v-model="search" placeholder="Search..." leading-icon="i-lucide-search">
 			<template v-if="search?.length > 0" #trailing>
-				<UButton
-					color="neutral"
-					variant="link"
-					size="sm"
-					icon="i-lucide-x"
-					aria-label="Clear input"
-					@click="resetSearchField"
-				/>
+				<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" @click="resetSearchField" />
 			</template>
 		</UInput>
 		<UButton
@@ -56,6 +49,7 @@
 			</template>
 			<template #release_date-cell="{ row }">
 				<NuxtTime
+					v-if="row.original.release_date"
 					:datetime="row.original.release_date"
 					year="numeric"
 					month="short"

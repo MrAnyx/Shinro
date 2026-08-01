@@ -54,7 +54,7 @@ model Collection {
 model Movie {
     id               String            @id @default(uuid()) @db.Uuid
     externalId       String?           @db.VarChar(255)
-    title            String            @db.VarChar(255)
+    title            String?           @db.VarChar(255)
     description      String?           @db.Text
     posterPath       String?           @db.VarChar(500)
     ownerId          String            @db.Uuid

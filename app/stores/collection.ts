@@ -12,14 +12,14 @@ export const useCollectionStore = defineStore("collection", {
 			this.total = count;
 		},
 
-		async createCollection(payload: { name: string; description?: string }) {
+		async createCollection(payload: { name: string; description: string }) {
 			const trpc = useTrpc();
 			const collection = await trpc.collections.create.mutate(payload);
 			this.total += 1;
 			return collection;
 		},
 
-		async updateCollection(id: string, payload: { name: string; description?: string }) {
+		async updateCollection(id: string, payload: { name: string; description: string }) {
 			const trpc = useTrpc();
 			const collection = await trpc.collections.update.mutate({
 				id,

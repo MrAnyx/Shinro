@@ -2,14 +2,7 @@
 	<div class="flex justify-between">
 		<UInput v-model="search" placeholder="Search..." leading-icon="i-lucide-search">
 			<template v-if="search?.length > 0" #trailing>
-				<UButton
-					color="neutral"
-					variant="link"
-					size="sm"
-					icon="i-lucide-x"
-					aria-label="Clear input"
-					@click="resetSearchField"
-				/>
+				<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" @click="resetSearchField" />
 			</template>
 		</UInput>
 		<div class="flex gap-2">

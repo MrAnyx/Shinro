@@ -17,7 +17,7 @@ export default router({
 			const movie = await prisma.movie.create({
 				data: {
 					title: input.title,
-					description: input.description ?? null,
+					description: input.description,
 					ownerId: ctx.user.id,
 				},
 			});
@@ -56,11 +56,11 @@ export default router({
 
 			const movie = await prisma.movie.create({
 				data: {
-					externalId: tmdbMovie.id.toString(),
-					title: tmdbMovie.title,
-					description: tmdbMovie.overview,
+					externalId: tmdbMovie.id,
+					title: tmdbMovie.title ?? null,
+					description: tmdbMovie.overview ?? null,
 					ownerId: ctx.user.id,
-					posterPath: tmdbMovie.poster_path,
+					posterPath: tmdbMovie.poster_path ?? null,
 				},
 			});
 
@@ -77,16 +77,17 @@ export default router({
 		)
 		.output(MovieDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
-			const existingMovie = await prisma.movie.findUnique({
+			const existingMovie = await prisma.movie.findFirst({
 				where: {
 					id: input.id,
+					ownerId: ctx.user.id,
 				},
 			});
 
-			if (existingMovie?.ownerId !== ctx.user.id) {
+			if (!existingMovie) {
 				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "You are not the owner of this movie",
+					code: "BAD_REQUEST",
+					message: "This movie doesn't exist",
 				});
 			}
 
@@ -97,7 +98,7 @@ export default router({
 				},
 				data: {
 					title: input.title,
-					description: input.description ?? null,
+					description: input.description,
 				},
 			});
 
