@@ -59,7 +59,7 @@
 			</template>
 			<template #vote_average-cell="{ row }">
 				<UBadge
-					:color="getVoteColor(row.original.vote_average)"
+					:color="getRatingColor(row.original.vote_average)"
 					variant="subtle"
 					v-if="row.original.vote_count > 0"
 				>
@@ -244,16 +244,6 @@ const resetSearchField = () => {
 	search.value = "";
 };
 
-const getVoteColor = (vote: number): BadgeProps["color"] => {
-	if (vote >= 7) {
-		return "success";
-	} else if (vote >= 5) {
-		return "warning";
-	} else {
-		return "error";
-	}
-};
-
 const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	try {
 		loadingMovieIds.add(row.original.id);
@@ -329,10 +319,6 @@ const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) 
 };
 
 const onMovieSelected = async (e: Event, row: TableRow<TmdbMovieSearchDefaultView>) => {
-	if (row.original.internalId) {
-		await navigateTo({ path: `/app/movies/internal/${row.original.id}` });
-	} else {
-		await navigateTo({ path: `/app/movies/external/${row.original.id}` });
-	}
+	await navigateTo({ path: `/app/movies/external/${row.original.id}` });
 };
 </script>

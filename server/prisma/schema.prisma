@@ -6,7 +6,7 @@ generator client {
     runtime                = "nodejs"
     generatedFileExtension = "ts"
     importFileExtension    = "ts"
-    previewFeatures        = ["strictUndefinedChecks"]
+    previewFeatures        = ["strictUndefinedChecks", "partialIndexes"]
 }
 
 datasource db {
@@ -62,6 +62,8 @@ model Movie {
     createdAt        DateTime          @default(now()) @db.Timestamptz(6)
     updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
     collectionMovies CollectionMovie[]
+
+    @@unique([externalId, ownerId], where: { externalId: { not: null } })
 }
 
 model CollectionMovie {

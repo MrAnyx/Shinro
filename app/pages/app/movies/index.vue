@@ -234,6 +234,10 @@ const emptyActions: ButtonProps[] = [
 ];
 
 const onMovieSelected = async (e: Event, row: TableRow<MovieDefaultView>) => {
-	await navigateTo(`/app/movies/internal/${row.original.id}`);
+	if (row.original.externalId) {
+		await navigateTo(`/app/movies/external/${row.original.externalId}`);
+	} else {
+		await navigateTo(`/app/movies/internal/${row.original.id}`);
+	}
 };
 </script>

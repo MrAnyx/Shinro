@@ -36,6 +36,7 @@ export const TmdbMovieSearchResponseSchema = z.object({
 export const TmdbMovieDetailsDefaultViewSchema = z.object({
 	id: z.string(),
 	title: z.string().nullish(),
+	runtime: z.number().nullish(),
 	poster_path: z.string().nullish(),
 	original_title: z.string().nullish(),
 	overview: z.string().nullish(),
