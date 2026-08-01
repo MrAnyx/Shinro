@@ -8,8 +8,8 @@ export default router({
 	create: protectedProcedure
 		.input(
 			z.object({
-				name: CollectionValidation.name,
-				description: CollectionValidation.description,
+				name: ServerCollectionValidation.name,
+				description: ServerCollectionValidation.description,
 			}),
 		)
 		.output(CollectionDefaultViewSchema)
@@ -27,9 +27,9 @@ export default router({
 	update: protectedProcedure
 		.input(
 			z.object({
-				id: CollectionValidation.id,
-				name: CollectionValidation.name,
-				description: CollectionValidation.description,
+				id: ServerCollectionValidation.id,
+				name: ServerCollectionValidation.name,
+				description: ServerCollectionValidation.description,
 			}),
 		)
 		.output(CollectionDefaultViewSchema)
@@ -105,8 +105,8 @@ export default router({
 	getAll: protectedProcedure
 		.input(
 			z.object({
-				page: PaginationValidation.page,
-				search: PaginationValidation.search,
+				page: ServerPaginationValidation.page,
+				search: ServerPaginationValidation.search,
 			}),
 		)
 		.output(PaginatedSchema(CollectionDefaultViewSchema))

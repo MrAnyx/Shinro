@@ -9,8 +9,8 @@ export default router({
 	register: publicProcedure
 		.input(
 			z.object({
-				username: UserValidation.username,
-				password: UserValidation.password,
+				username: ServerUserValidation.username,
+				password: ServerUserValidation.password,
 			}),
 		)
 		.output(UserDefaultViewSchema)
@@ -68,8 +68,8 @@ export default router({
 	login: publicProcedure
 		.input(
 			z.object({
-				username: UserValidation.username,
-				password: UserValidation.password,
+				username: ServerUserValidation.username,
+				password: ServerUserValidation.password,
 			}),
 		)
 		.output(UserDefaultViewSchema)

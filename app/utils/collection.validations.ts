@@ -1,4 +1,4 @@
-export const CollectionValidation = {
+export const ClientCollectionValidation = {
 	name: CollectionNameSchemaBase,
 	description: CollectionDescriptionSchemaBase,
 };

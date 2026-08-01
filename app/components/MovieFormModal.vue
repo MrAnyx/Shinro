@@ -41,8 +41,8 @@ const toast = useToast();
 const movieStore = useMovieStore();
 
 const schema = z.object({
-	title: MovieValidation.title,
-	description: MovieValidation.description,
+	title: ClientMovieValidation.title,
+	description: ClientMovieValidation.description,
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({

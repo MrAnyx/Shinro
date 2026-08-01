@@ -7,8 +7,8 @@ export default router({
 	search: protectedProcedure
 		.input(
 			z.object({
-				search: PaginationValidation.search,
-				page: PaginationValidation.page,
+				search: ServerPaginationValidation.search,
+				page: ServerPaginationValidation.page,
 			}),
 		)
 		.output(PaginatedSchema(TmdbMovieSearchDefaultViewSchema))
@@ -67,7 +67,7 @@ export default router({
 	details: protectedProcedure
 		.input(
 			z.object({
-				id: TmdbMovieValidation.id,
+				id: ServerTmdbMovieValidation.id,
 			}),
 		)
 		.output(TmdbMovieDetailsDefaultViewSchema)

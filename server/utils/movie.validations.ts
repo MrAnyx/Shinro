@@ -1,4 +1,4 @@
-export const MovieValidation = {
+export const ServerMovieValidation = {
 	id: MovieIdSchemaBase,
 	externalId: MovieExternalIdSchemaBase,
 	title: MovieTitleSchemaBase,

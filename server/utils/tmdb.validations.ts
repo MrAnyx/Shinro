@@ -1,3 +1,3 @@
-export const TmdbMovieValidation = {
+export const ServerTmdbMovieValidation = {
 	id: TmdbMovieIdSchemaBase,
 };

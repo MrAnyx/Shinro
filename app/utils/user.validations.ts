@@ -1,4 +1,4 @@
-export const UserValidation = {
+export const ClientUserValidation = {
 	username: UserUsernameSchemaBase,
 	password: UserPasswordSchemaBase,
 };

@@ -8,8 +8,8 @@ export default router({
 	create: protectedProcedure
 		.input(
 			z.object({
-				title: MovieValidation.title,
-				description: MovieValidation.description,
+				title: ServerMovieValidation.title,
+				description: ServerMovieValidation.description,
 			}),
 		)
 		.output(MovieDefaultViewSchema)
@@ -28,7 +28,7 @@ export default router({
 	createFromExternal: protectedProcedure
 		.input(
 			z.object({
-				externalId: MovieValidation.externalId,
+				externalId: ServerMovieValidation.externalId,
 			}),
 		)
 		.output(MovieDefaultViewSchema)
@@ -70,9 +70,9 @@ export default router({
 	update: protectedProcedure
 		.input(
 			z.object({
-				id: MovieValidation.id,
-				title: MovieValidation.title,
-				description: MovieValidation.description,
+				id: ServerMovieValidation.id,
+				title: ServerMovieValidation.title,
+				description: ServerMovieValidation.description,
 			}),
 		)
 		.output(MovieDefaultViewSchema)
@@ -108,7 +108,7 @@ export default router({
 	delete: protectedProcedure
 		.input(
 			z.object({
-				id: MovieValidation.id,
+				id: ServerMovieValidation.id,
 			}),
 		)
 		.output(z.void())
@@ -154,8 +154,8 @@ export default router({
 	getAll: protectedProcedure
 		.input(
 			z.object({
-				page: PaginationValidation.page,
-				search: PaginationValidation.search,
+				page: ServerPaginationValidation.page,
+				search: ServerPaginationValidation.search,
 			}),
 		)
 		.output(PaginatedSchema(MovieDefaultViewSchema))
