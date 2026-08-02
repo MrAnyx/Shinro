@@ -1,8 +1,7 @@
 <template>
-	<div class="flex gap-x-8 relative">
-		<!-- Aside -->
+	<div class="flex gap-x-8 w-full">
 		<aside class="w-80">
-			<UCard :ui="{ body: 'flex flex-col gap-y-4' }">
+			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle">
 				<div class="h-[400px] w-full rounded-md overflow-hidden">
 					<USkeleton v-if="loadingDetails" class="w-full h-full" />
 					<template v-else>
@@ -32,22 +31,26 @@
 						color="neutral"
 						variant="subtle"
 						block
-						:label="`Edit my rating (${'8.0' ?? 'N/A'})`"
+						label="Set a rating"
 						leading-icon="i-lucide-user-star"
 					/>
 
 					<template #content>
 						<!-- class flex prevents the rating component from having a bigger bottom margin -->
-						<div class="flex">
+						<div class="flex flex-col gap-y-2">
 							<UInputRating :length="10" :step="0.5" :default-value="7.5" />
+							<UButton label="Reset" variant="link" class="p-0 self-end" />
 						</div>
 					</template>
 				</UPopover>
 			</UCard>
 		</aside>
 
-		<main class="flex-1 flex flex-col gap-y-6">
-			<h1 class="font-bold text-4xl">{{ details?.title ?? "No title available" }}</h1>
+		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
+			<div class="flex flex-col gap-y-1">
+				<h1 class="font-bold text-4xl">{{ details?.title ?? "No title available" }}</h1>
+				<h3 class="italic text-muted text-sm" v-if="details?.tagline">{{ details?.tagline }}</h3>
+			</div>
 
 			<div class="flex gap-x-2">
 				<UBadge color="neutral" variant="subtle" leading-icon="i-lucide-calendar" v-if="details?.release_date">
@@ -63,7 +66,7 @@
 				</UBadge>
 
 				<UBadge color="neutral" variant="subtle" leading-icon="i-lucide-clock" v-if="details?.runtime">
-					{{ Math.floor(details?.runtime / 60) }}:{{ details?.runtime % 60 }}
+					{{ Math.floor(details?.runtime / 60) }}:{{ (details?.runtime % 60).toString().padStart(2, "0") }}
 				</UBadge>
 
 				<UBadge
@@ -80,7 +83,89 @@
 				<p class="text-toned" :class="{ 'line-clamp-none': readMore, 'line-clamp-2': !readMore }">
 					{{ details?.overview ?? "No overview available." }}
 				</p>
-				<UButton label="Read more" variant="link" class="p-0" @click="toggleReadMore" v-show="!readMore" />
+				<UButton
+					label="Read more"
+					variant="link"
+					class="p-0 self-start"
+					@click="toggleReadMore"
+					v-show="!readMore"
+				/>
+			</div>
+
+			<div class="flex gap-2 flex-wrap">
+				<template v-if="genres.length > 0">
+					<UBadge
+						v-for="genre in genres"
+						:key="genre.name"
+						color="primary"
+						variant="subtle"
+						leading-icon="i-lucide-tag"
+					>
+						{{ genre.name }}
+					</UBadge>
+				</template>
+				<UBadge v-else color="error" variant="subtle" leading-icon="i-lucide-tag-x">No genres available</UBadge>
+			</div>
+
+			<USeparator />
+
+			<div>
+				<h2 class="font-bold text-xl mb-3">Credits</h2>
+
+				<div class="flex gap-x-3 overflow-x-auto pb-2">
+					<template v-for="(actor, index) in actors" :key="index">
+						<UCard class="w-[170px] shrink-0" :ui="{ body: 'p-0! flex flex-col' }" variant="subtle">
+							<NuxtImg
+								provider="tmdb"
+								:src="actor.profile_path"
+								width="200"
+								class="w-full h-[210px] object-cover"
+								v-if="actor.profile_path"
+							/>
+							<NuxtImg src="https://placehold.co/200x200" class="w-full h-[210px] object-cover" v-else />
+
+							<div class="p-2">
+								<p class="font-semibold text-center line-clamp-1">{{ actor.name }}</p>
+								<p class="text-sm text-muted text-center line-clamp-1">{{ actor.character }}</p>
+							</div>
+						</UCard>
+					</template>
+					<UCard
+						class="w-[170px] shrink-0"
+						:ui="{ body: 'p-0! flex justify-center items-center h-full' }"
+						variant="subtle"
+					>
+						<div class="flex flex-col gap-y-2 items-center justify-center h-full">
+							<UAvatar icon="i-lucide-external-link" size="xl" color="primary" />
+							<span class="text-toned">View all</span>
+							<span class="text-muted text-xs">{{ credits?.cast?.length ?? 0 }} cast members</span>
+						</div>
+					</UCard>
+				</div>
+				<!-- <div class="flex gap-2 overflow-scroll w-full">
+					<template v-for="actor in credits?.cast" :key="actor.name">
+						<UCard class="w-[100px]">
+							<div class="flex flex-col gap-y-2 items-center">
+								<NuxtImg
+									provider="tmdb"
+									:src="actor.profile_path"
+									width="200"
+									class="w-24 h-24 rounded-full object-cover"
+									v-if="actor.profile_path"
+								/>
+								<NuxtImg
+									src="https://placehold.co/200x200"
+									class="w-24 h-24 rounded-full object-contain"
+									v-else
+								/>
+								<div class="text-center">
+									<p class="font-semibold">{{ actor.name }}</p>
+									<p class="text-sm text-muted">{{ actor.character }}</p>
+								</div>
+							</div>
+						</UCard>
+					</template>
+				</div> -->
 			</div>
 		</main>
 	</div>
@@ -109,6 +194,8 @@ const isReleased = computed(() => {
 	}
 	return new Date(details.value.release_date) <= new Date();
 });
+const genres = computed(() => details.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()) ?? []);
+const actors = computed(() => credits.value?.cast?.slice(0, 20) ?? []);
 
 const readMore = ref(false);
 
@@ -123,6 +210,11 @@ const { data: details, pending: loadingDetails } = useAsyncData("movie-details",
 const { data: collections, pending: loadingCollections } = useAsyncData(
 	"collections",
 	async () => await trpc.collections.getAll.query({ page: 1 }),
+);
+
+const { data: credits, pending: loadingCredits } = useAsyncData(
+	"credits",
+	async () => await trpc.tmdb.credits.query({ id: id.value }),
 );
 
 const toggleReadMore = () => {

@@ -86,4 +86,27 @@ export default router({
 				});
 			}
 		}),
+
+	credits: protectedProcedure
+		.input(
+			z.object({
+				id: ServerTmdbMovieValidation.id,
+			}),
+		)
+		.output(TmdbMovieCreditsDefaultViewSchema)
+		.query(async ({ input }) => {
+			try {
+				const credits = await tmdb(`/movie/${input.id}/credits`, {
+					schema: TmdbMovieCreditsResponseSchema,
+				});
+
+				return credits;
+			} catch (err: any) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					cause: err,
+					message: "An error occured while getting movie credits",
+				});
+			}
+		}),
 });
