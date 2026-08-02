@@ -186,4 +186,37 @@ export default router({
 
 			return { total, results };
 		}),
+
+	getByExternalId: protectedProcedure
+		.input(
+			z.object({
+				externalId: ServerTmdbMovieValidation.id,
+			}),
+		)
+		.output(MovieDefaultViewSchema)
+		.query(async ({ input, ctx }) => {
+			try {
+				const movie = await prisma.movie.findFirst({
+					where: {
+						externalId: input.externalId,
+						ownerId: ctx.user.id,
+					},
+				});
+
+				if (!movie) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Movie not found",
+					});
+				}
+
+				return movie;
+			} catch (err: any) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					cause: err,
+					message: "An error occured while getting movie by external ID",
+				});
+			}
+		}),
 });

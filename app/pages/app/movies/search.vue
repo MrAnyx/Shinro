@@ -248,7 +248,7 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	try {
 		loadingMovieIds.add(row.original.id);
 
-		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id.toString() });
+		const movie = await movieStore.createMovieFromExternal(row.original.id);
 
 		if (!data.value) {
 			return;

@@ -6,3 +6,5 @@ export const PaginationPageSchemaBase = z
 	.default(1);
 
 export const PaginationSearchSchemaBase = z.string("Pagination search query must be a valid string").trim();
+
+export const PaginationForceSchemaBase = z.boolean("Pagination force must be a valid boolean").default(false);

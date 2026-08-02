@@ -73,11 +73,9 @@ export default router({
 		.output(TmdbMovieDetailsDefaultViewSchema)
 		.query(async ({ input }) => {
 			try {
-				const movie = await tmdb(`/movie/${input.id}`, {
+				return await tmdb(`/movie/${input.id}`, {
 					schema: TmdbMovieDetailsResponseSchema,
 				});
-
-				return movie;
 			} catch (err: any) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
@@ -96,11 +94,9 @@ export default router({
 		.output(TmdbMovieCreditsDefaultViewSchema)
 		.query(async ({ input }) => {
 			try {
-				const credits = await tmdb(`/movie/${input.id}/credits`, {
+				return await tmdb(`/movie/${input.id}/credits`, {
 					schema: TmdbMovieCreditsResponseSchema,
 				});
-
-				return credits;
 			} catch (err: any) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",

@@ -19,9 +19,9 @@ export const useMovieStore = defineStore("movie", {
 			return movie;
 		},
 
-		async createMovieFromExternal(payload: { externalId: string }) {
+		async createMovieFromExternal(externalId: string) {
 			const trpc = useTrpc();
-			const movie = await trpc.movies.createFromExternal.mutate(payload);
+			const movie = await trpc.movies.createFromExternal.mutate({ externalId });
 			this.total += 1;
 			return movie;
 		},

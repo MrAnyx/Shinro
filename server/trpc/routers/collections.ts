@@ -107,6 +107,7 @@ export default router({
 			z.object({
 				page: ServerPaginationValidation.page,
 				search: ServerPaginationValidation.search,
+				force: ServerPaginationValidation.force,
 			}),
 		)
 		.output(PaginatedSchema(CollectionDefaultViewSchema))
@@ -130,8 +131,7 @@ export default router({
 				prisma.collection.findMany({
 					where,
 					orderBy: [{ name: "asc" }, { createdAt: "asc" }],
-					skip,
-					take: ITEMS_PER_PAGE,
+					...(input.force ? {} : { skip, take: ITEMS_PER_PAGE }),
 				}),
 			]);
 
