@@ -63,7 +63,7 @@
 					variant="subtle"
 					v-if="row.original.vote_count > 0"
 				>
-					{{ row.original.vote_average }}
+					{{ row.original.vote_average.toFixed(1) }} ({{ row.original.vote_count.toLocaleString() }})
 				</UBadge>
 				<span v-else />
 			</template>

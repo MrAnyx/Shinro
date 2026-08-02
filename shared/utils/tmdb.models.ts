@@ -26,12 +26,18 @@ export const TmdbMovieDetailsDefaultViewSchema = z.object({
 	vote_count: z.number().nullish(),
 	genres: z.array(z.object({ name: z.string().nullish() })).nullish(),
 	tagline: z.string().nullish(),
+	belongs_to_collection: z
+		.object({
+			name: z.string().nullish(),
+		})
+		.nullish(),
 });
 
 export const TmdbMovieCreditsDefaultViewSchema = z.object({
 	cast: z
 		.array(
 			z.object({
+				id: z.string(),
 				name: z.string().nullish(),
 				profile_path: z.string().nullish(),
 				character: z.string().nullish(),

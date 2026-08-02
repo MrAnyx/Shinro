@@ -57,6 +57,7 @@ model Movie {
     title            String?           @db.VarChar(255)
     description      String?           @db.Text
     posterPath       String?           @db.VarChar(500)
+    rating           Float?            @db.DoublePrecision
     ownerId          String            @db.Uuid
     owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
     createdAt        DateTime          @default(now()) @db.Timestamptz(6)
