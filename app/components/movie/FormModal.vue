@@ -15,6 +15,9 @@
 				<UFormField label="Description" name="description">
 					<UTextarea v-model="state.description" class="w-full" autoresize :maxrows="10" />
 				</UFormField>
+				<UFormField label="Rating" name="rating">
+					<ClearableRating v-model="state.rating" />
+				</UFormField>
 			</UForm>
 		</template>
 
@@ -44,11 +47,13 @@ const movieStore = useMovieStore();
 const schema = z.object({
 	title: ClientMovieValidation.title,
 	description: ClientMovieValidation.description,
+	rating: ClientMovieValidation.rating,
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
 	title: movie?.title ?? "",
 	description: movie?.description ?? "",
+	rating: movie?.rating ?? undefined,
 });
 
 const onCancel = () => {
@@ -66,7 +71,9 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		if (movie) {
 			const updatedMovie = await trpc.movies.update.mutate({
 				id: movie.id,
-				...payload.data,
+				title: payload.data.title,
+				description: payload.data.description,
+				rating: payload.data.rating ?? null,
 			});
 			toast.add({
 				title: "Movie updated",

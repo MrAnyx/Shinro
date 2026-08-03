@@ -22,3 +22,7 @@ export const MovieDefaultViewSchema = MovieBaseSchema.pick({
 	createdAt: true,
 	updatedAt: true,
 });
+
+export const MovieWithCollectionsViewSchema = MovieDefaultViewSchema.extend({
+	collections: z.array(CollectionDefaultViewSchema),
+});

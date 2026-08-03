@@ -6,7 +6,7 @@
 				<!-- Image -->
 				<TmdbImageFallback
 					provider="tmdb"
-					:src="details?.poster_path"
+					:src="detailsData?.poster_path"
 					:height="400"
 					class="rounded-md"
 					:loading="isLoading"
@@ -39,13 +39,17 @@
 						/>
 
 						<USelectMenu
-							:items="collections?.results.map((x) => x.name) ?? []"
+							:items="collections"
+							:model-value="selectedCollectionIds"
 							:loading="isLoading"
 							variant="subtle"
 							multiple
+							value-key="value"
 							placeholder="Select some collections"
 							leading-icon="i-lucide-folder"
 							clear
+							@clear="clearCollections"
+							@update:model-value="updateMovieCollections"
 						/>
 
 						<UPopover :ui="{ content: 'p-3!' }">
@@ -58,11 +62,11 @@
 							/>
 
 							<template #content>
-								<!-- class flex prevents the rating component from having a bigger bottom margin -->
-								<div class="flex flex-col gap-y-2">
-									<UInputRating :length="10" :step="0.5" v-model="rating" />
-									<UButton label="Reset" variant="link" class="p-0 self-end" @click="clearRating" />
-								</div>
+								<ClearableRating
+									v-model="rating"
+									@update:model-value="updateRating"
+									@clear="clearRating"
+								/>
 							</template>
 						</UPopover>
 					</template>
@@ -79,8 +83,10 @@
 					<USkeleton class="w-1/3 h-[24px] rounded-sm" />
 				</template>
 				<template v-else>
-					<h1 class="font-bold text-4xl">{{ myMovie?.title ?? details?.title ?? "No title available" }}</h1>
-					<h3 class="italic text-muted text-sm" v-if="details?.tagline">{{ details?.tagline }}</h3>
+					<h1 class="font-bold text-4xl">
+						{{ myMovie?.title ?? detailsData?.title ?? "No title available" }}
+					</h1>
+					<h3 class="italic text-muted text-sm" v-if="detailsData?.tagline">{{ detailsData?.tagline }}</h3>
 				</template>
 			</div>
 
@@ -94,9 +100,9 @@
 						color="neutral"
 						variant="subtle"
 						leading-icon="i-lucide-calendar"
-						v-if="details?.release_date"
+						v-if="detailsData?.release_date"
 					>
-						<NuxtTime :datetime="details?.release_date" year="numeric" month="short" day="numeric" />
+						<NuxtTime :datetime="detailsData?.release_date" year="numeric" month="short" day="numeric" />
 					</UBadge>
 
 					<UBadge
@@ -107,28 +113,29 @@
 						{{ isReleased ? "Released" : "Upcoming" }}
 					</UBadge>
 
-					<UBadge color="neutral" variant="subtle" leading-icon="i-lucide-clock" v-if="details?.runtime">
-						{{ Math.floor(details?.runtime / 60) }}:{{
-							(details?.runtime % 60).toString().padStart(2, "0")
+					<UBadge color="neutral" variant="subtle" leading-icon="i-lucide-clock" v-if="detailsData?.runtime">
+						{{ Math.floor(detailsData?.runtime / 60) }}:{{
+							(detailsData?.runtime % 60).toString().padStart(2, "0")
 						}}
 					</UBadge>
 
 					<UBadge
-						:color="getRatingColor(details?.vote_average)"
+						:color="getRatingColor(detailsData?.vote_average)"
 						variant="subtle"
 						leading-icon="i-lucide-star"
-						v-if="details?.vote_average && details?.vote_count"
+						v-if="detailsData?.vote_average && detailsData?.vote_count"
 					>
-						{{ details?.vote_average?.toFixed(1) }} ({{ details?.vote_count.toLocaleString() }} votes)
+						{{ detailsData?.vote_average?.toFixed(1) }} ({{ detailsData?.vote_count.toLocaleString() }}
+						votes)
 					</UBadge>
 
 					<UBadge
 						color="neutral"
 						variant="subtle"
 						leading-icon="i-lucide-list-video"
-						v-if="details?.belongs_to_collection?.name"
+						v-if="detailsData?.belongs_to_collection?.name"
 					>
-						{{ details?.belongs_to_collection?.name }}
+						{{ detailsData?.belongs_to_collection?.name }}
 					</UBadge>
 				</template>
 			</div>
@@ -145,7 +152,7 @@
 
 				<template v-else>
 					<p class="text-toned" :class="{ 'line-clamp-none': readMore, 'line-clamp-2': !readMore }">
-						{{ myMovie?.description ?? details?.overview ?? "No overview available" }}
+						{{ myMovie?.description ?? detailsData?.overview ?? "No overview available" }}
 					</p>
 					<UButton
 						label="Read more"
@@ -226,7 +233,7 @@
 							class="w-[170px] shrink-0"
 							:ui="{ body: 'p-0! flex justify-center items-center h-full' }"
 							variant="subtle"
-							v-if="(credits?.cast?.length ?? 0) > MAX_CREDITS"
+							v-if="(creditsData?.cast?.length ?? 0) > MAX_CREDITS"
 						>
 							<NuxtLink
 								class="flex flex-col gap-y-2 items-center justify-center h-full"
@@ -235,7 +242,9 @@
 							>
 								<UAvatar icon="i-lucide-external-link" size="xl" color="primary" />
 								<span class="text-toned">View all</span>
-								<span class="text-muted text-xs">{{ credits?.cast?.length ?? 0 }} cast members</span>
+								<span class="text-muted text-xs"
+									>{{ creditsData?.cast?.length ?? 0 }} cast members</span
+								>
 							</NuxtLink>
 						</UCard>
 					</template>
@@ -247,7 +256,8 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { debouncedWatch, watchDebounced } from "@vueuse/core";
+import type { SelectMenuItem } from "@nuxt/ui";
+import { isTRPCError } from "~~/app/utils/trpc";
 
 definePageMeta({
 	layout: "app",
@@ -269,56 +279,62 @@ const id = computed(() => route.params.id as string);
 const isExternal = computed(() => type.value === "external");
 const isInternal = computed(() => type.value === "internal");
 const isReleased = computed(() => {
-	if (!details.value?.release_date) {
+	if (!detailsData.value?.release_date) {
 		return false;
 	}
-	return new Date(details.value.release_date) <= new Date();
+	return new Date(detailsData.value.release_date) <= new Date();
 });
-const genres = computed(() => details.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()) ?? []);
-const actors = computed(() => credits.value?.cast?.slice(0, MAX_CREDITS) ?? []);
+const genres = computed(() => detailsData.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()) ?? []);
+const actors = computed(() => creditsData.value?.cast?.slice(0, MAX_CREDITS) ?? []);
 const isLoading = computed(
 	() => loadingDetails.value || loadingMyMovie.value || loadingCollections.value || loadingCredits.value,
 );
 const isInMyList = computed(() => !!myMovie.value);
+const collections = computed<SelectMenuItem[]>(
+	() =>
+		collectionsData.value?.results.map((x) => ({
+			label: x.name,
+			value: x.id,
+		})) ?? [],
+);
 
 // State
 const readMore = ref(false);
 const rating = ref<number | undefined>(4);
+const selectedCollectionIds = ref<string[]>([]);
+
 const myMovie = ref<MovieDefaultView | null | undefined>(null);
 
 // Async data
-const { data: details, pending: loadingDetails } = useAsyncData("movie-details", async () => {
-	if (isExternal.value) {
-		await delay(3000);
-		return await trpc.tmdb.details.query({ id: id.value });
-	} else {
-		// return await trpc.movie.getMovie.query({ id: id.value });
-	}
-});
+const { data: detailsData, pending: loadingDetails } = useAsyncData("movie-details", async () =>
+	isExternal.value ? await trpc.tmdb.details.query({ id: id.value }) : null,
+);
 
-const { data: movie, pending: loadingMyMovie } = useAsyncData("movie-from-external", async () => {
-	try {
-		await delay(3000);
+const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-external", async () => {
+	if (isInternal.value) {
+		return await trpc.movies.getById.query({ id: id.value });
+	} else if (isExternal.value) {
 		return await trpc.movies.getByExternalId.query({ externalId: id.value });
-	} catch {
+	} else {
 		return null;
 	}
 });
 
-watch(movie, (newValue) => {
+watch(movieData, (newValue) => {
 	myMovie.value = newValue;
 	rating.value = newValue?.rating ?? undefined;
+	selectedCollectionIds.value = newValue?.collections.map((x) => x.id) ?? [];
 });
 
-const { data: collections, pending: loadingCollections } = useAsyncData("collections", async () => {
-	await delay(3000);
-	return await trpc.collections.getAll.query({ force: true });
-});
+const { data: collectionsData, pending: loadingCollections } = useAsyncData(
+	"collections",
+	async () => await trpc.collections.getAll.query({ force: true }),
+);
 
-const { data: credits, pending: loadingCredits } = useAsyncData("credits", async () => {
-	await delay(3000);
-	return await trpc.tmdb.credits.query({ id: id.value });
-});
+const { data: creditsData, pending: loadingCredits } = useAsyncData(
+	"credits",
+	async () => await trpc.tmdb.credits.query({ id: id.value }),
+);
 
 // Methods
 const removeMovie = async () => {
@@ -343,35 +359,81 @@ const addMovie = async () => {
 	} catch (err: any) {}
 };
 
-watchDebounced(
-	rating,
-	async (_newValue, oldValue) => {
-		try {
-			if (!isInMyList) {
-				return;
-			}
-
-			await trpc.movies.updateRating.mutate({
-				id: myMovie.value!.id,
-				rating: rating.value ?? null,
-			});
-		} catch (err: any) {
-			const message = isTRPCError(err) ? err.message : "Unknown error";
-			toast.add({
-				title: "An error occurred",
-				description: message,
-				color: "error",
-				type: "foreground",
-			});
+const updateRating = async (newRating: number | null) => {
+	try {
+		if (!isInMyList.value) {
+			return;
 		}
-	},
-	{
-		debounce: DEBOUNCE_TIMER,
-	},
-);
 
-const clearRating = () => {
-	rating.value = undefined;
+		await trpc.movies.update.mutate({
+			id: myMovie.value!.id,
+			rating: newRating,
+		});
+	} catch (err: any) {
+		const message = isTRPCError(err) ? err.message : "Unknown error";
+		toast.add({
+			title: "Unable to set the rating",
+			description: message,
+			color: "error",
+			type: "foreground",
+		});
+	}
+};
+
+const updateMovieCollections = async (collectionIds: string[]) => {
+	if (!isInMyList.value || !myMovie.value) {
+		selectedCollectionIds.value = collectionIds;
+		return;
+	}
+
+	selectedCollectionIds.value = collectionIds;
+
+	try {
+		await trpc.movies.updateCollections.mutate({
+			id: myMovie.value.id,
+			collectionIds,
+		});
+	} catch (err: any) {
+		const message = isTRPCError(err) ? err.message : "Unknown error";
+		toast.add({
+			title: "Unable to update collections",
+			description: message,
+			color: "error",
+			type: "foreground",
+		});
+	}
+};
+
+const clearCollections = async () => {
+	if (!isInMyList.value) {
+		selectedCollectionIds.value = [];
+		return;
+	}
+
+	await updateMovieCollections([]);
+};
+
+const clearRating = async () => {
+	try {
+		if (!isInMyList.value) {
+			return;
+		}
+
+		rating.value = undefined;
+
+		await trpc.movies.update.mutate({
+			id: myMovie.value!.id,
+			rating: null,
+		});
+	} catch (err: any) {
+		const message = isTRPCError(err) ? err.message : "Unknown error";
+		toast.add({
+			title: "Unable to reset the rating",
+			description: message,
+			color: "error",
+			type: "foreground",
+		});
+	}
 };
 
 const toggleReadMore = () => {
