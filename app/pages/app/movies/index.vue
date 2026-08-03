@@ -36,7 +36,7 @@
 				></UEmpty>
 			</template>
 			<template #posterPath-cell="{ row }">
-				<TmdbImageFallback
+				<ImageFallback
 					:width="60"
 					:height="90"
 					class="rounded-sm"

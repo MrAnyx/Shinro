@@ -4,7 +4,7 @@
 		<aside class="w-80">
 			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle">
 				<!-- Image -->
-				<TmdbImageFallback
+				<ImageFallback
 					provider="tmdb"
 					:src="detailsData?.poster_path"
 					:height="400"
@@ -205,18 +205,7 @@
 									:to="`https://www.themoviedb.org/person/${actor.id}`"
 									target="_blank"
 								>
-									<NuxtImg
-										provider="tmdb"
-										:src="actor.profile_path"
-										width="200"
-										class="w-full h-[210px] object-cover"
-										v-if="actor.profile_path"
-									/>
-									<NuxtImg
-										src="https://placehold.co/200x200"
-										class="w-full h-[210px] object-cover"
-										v-else
-									/>
+									<ImageFallback provider="tmdb" :src="actor.profile_path" :height="210" />
 
 									<div class="p-2">
 										<p class="font-semibold text-center line-clamp-1">

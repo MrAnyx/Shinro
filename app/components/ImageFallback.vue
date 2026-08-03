@@ -24,7 +24,6 @@
 
 <script setup lang="ts">
 import type { ConfiguredImageProviders } from "@nuxt/image";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 
 const props = defineProps<{
 	provider?: keyof ConfiguredImageProviders;
