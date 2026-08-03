@@ -82,6 +82,9 @@ export default router({
 					id: input.id,
 					ownerId: ctx.user.id,
 				},
+				select: {
+					id: true,
+				},
 			});
 
 			if (!existingMovie) {
@@ -103,6 +106,43 @@ export default router({
 			});
 
 			return movie;
+		}),
+
+	updateRating: protectedProcedure
+		.input(
+			z.object({
+				id: ServerMovieValidation.id,
+				rating: ServerMovieValidation.rating,
+			}),
+		)
+		.output(z.void())
+		.mutation(async ({ input, ctx }) => {
+			const existingMovie = await prisma.movie.findFirst({
+				where: {
+					id: input.id,
+					ownerId: ctx.user.id,
+				},
+				select: {
+					id: true,
+				},
+			});
+
+			if (!existingMovie) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "This movie doesn't exist",
+				});
+			}
+
+			await prisma.movie.update({
+				where: {
+					id: input.id,
+					ownerId: ctx.user.id,
+				},
+				data: {
+					rating: input.rating,
+				},
+			});
 		}),
 
 	delete: protectedProcedure

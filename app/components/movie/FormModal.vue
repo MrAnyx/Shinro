@@ -13,7 +13,7 @@
 					<UInput v-model="state.title" class="w-full" :maxlength="255" autofocus />
 				</UFormField>
 				<UFormField label="Description" name="description">
-					<UTextarea v-model="state.description" class="w-full" :rows="4" />
+					<UTextarea v-model="state.description" class="w-full" autoresize :maxrows="10" />
 				</UFormField>
 			</UForm>
 		</template>

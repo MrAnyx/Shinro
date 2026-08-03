@@ -3,4 +3,5 @@ export const ServerMovieValidation = {
 	externalId: MovieExternalIdSchemaBase,
 	title: MovieTitleSchemaBase,
 	description: MovieDescriptionSchemaBase.nullable().transform((val) => (val === "" ? null : val)),
+	rating: MovieRatingSchemaBase.nullable(),
 };

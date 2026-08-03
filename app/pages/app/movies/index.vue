@@ -36,16 +36,13 @@
 				></UEmpty>
 			</template>
 			<template #posterPath-cell="{ row }">
-				<div class="w-14">
-					<NuxtImg
-						provider="tmdb"
-						:src="row.original.posterPath"
-						width="92"
-						class="object-contain"
-						v-if="row.original.posterPath"
-					/>
-					<NuxtImg src="https://placehold.co/500x750" class="object-contain" v-else />
-				</div>
+				<TmdbImageFallback
+					:width="60"
+					:height="90"
+					class="rounded-sm"
+					provider="tmdb"
+					:src="row.original.posterPath"
+				/>
 			</template>
 			<template #createdAt-cell="{ row }">
 				<NuxtTime

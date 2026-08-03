@@ -4,19 +4,13 @@
 		<aside class="w-80">
 			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle">
 				<!-- Image -->
-				<div class="h-[400px] w-full rounded-md overflow-hidden">
-					<USkeleton v-if="isLoading" class="w-full h-full" />
-					<template v-else>
-						<NuxtImg
-							provider="tmdb"
-							:src="details?.poster_path"
-							width="500"
-							class="object-cover w-full h-full"
-							v-if="details?.poster_path"
-						/>
-						<NuxtImg src="https://placehold.co/500x750" class="w-full h-full object-cover" v-else />
-					</template>
-				</div>
+				<TmdbImageFallback
+					provider="tmdb"
+					:src="details?.poster_path"
+					:height="400"
+					class="rounded-md"
+					:loading="isLoading"
+				/>
 
 				<!-- Actions -->
 				<template v-if="isLoading">
@@ -59,15 +53,15 @@
 								color="neutral"
 								variant="subtle"
 								block
-								label="Set a rating"
+								:label="rating ? `Edit my rating (${rating.toFixed(1)})` : `Set my rating`"
 								leading-icon="i-lucide-user-star"
 							/>
 
 							<template #content>
 								<!-- class flex prevents the rating component from having a bigger bottom margin -->
 								<div class="flex flex-col gap-y-2">
-									<UInputRating :length="10" :step="0.5" :default-value="7.5" />
-									<UButton label="Reset" variant="link" class="p-0 self-end" />
+									<UInputRating :length="10" :step="0.5" v-model="rating" />
+									<UButton label="Reset" variant="link" class="p-0 self-end" @click="clearRating" />
 								</div>
 							</template>
 						</UPopover>
@@ -76,6 +70,7 @@
 			</UCard>
 		</aside>
 
+		<!-- Main section -->
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
 			<!-- Title and tagline -->
 			<div class="flex flex-col gap-y-1">
@@ -84,7 +79,7 @@
 					<USkeleton class="w-1/3 h-[24px] rounded-sm" />
 				</template>
 				<template v-else>
-					<h1 class="font-bold text-4xl">{{ details?.title ?? "No title available" }}</h1>
+					<h1 class="font-bold text-4xl">{{ myMovie?.title ?? details?.title ?? "No title available" }}</h1>
 					<h3 class="italic text-muted text-sm" v-if="details?.tagline">{{ details?.tagline }}</h3>
 				</template>
 			</div>
@@ -142,15 +137,15 @@
 			<div class="flex flex-col gap-y-2">
 				<template v-if="isLoading">
 					<div class="flex flex-col gap-y-2">
-						<USkeleton class="h-4 w-full" />
-						<USkeleton class="h-4 w-full" />
-						<USkeleton class="h-4 w-3/4" />
+						<USkeleton class="h-4 w-full rounded-sm" />
+						<USkeleton class="h-4 w-full rounded-sm" />
+						<USkeleton class="h-4 w-3/4 rounded-sm" />
 					</div>
 				</template>
 
 				<template v-else>
 					<p class="text-toned" :class="{ 'line-clamp-none': readMore, 'line-clamp-2': !readMore }">
-						{{ details?.overview ?? "No overview available." }}
+						{{ myMovie?.description ?? details?.overview ?? "No overview available" }}
 					</p>
 					<UButton
 						label="Read more"
@@ -187,10 +182,11 @@
 
 			<USeparator />
 
+			<!-- Credits -->
 			<div>
 				<h2 class="font-bold text-xl mb-3">Credits</h2>
 
-				<div class="flex gap-x-3 overflow-x-auto pb-2">
+				<div class="flex gap-x-3 overflow-x-auto pb-2" v-if="actors.length > 0">
 					<template v-if="isLoading">
 						<USkeleton v-for="i in 4" :key="i" class="w-[170px] h-[270px] rounded-sm shrink-0" />
 					</template>
@@ -244,11 +240,15 @@
 						</UCard>
 					</template>
 				</div>
+
+				<p class="text-sm text-muted" v-else>No credits available</p>
 			</div>
 		</main>
 	</div>
 </template>
 <script setup lang="ts">
+import { debouncedWatch, watchDebounced } from "@vueuse/core";
+
 definePageMeta({
 	layout: "app",
 	middleware: ["auth"],
@@ -261,6 +261,7 @@ definePageMeta({
 const route = useRoute();
 const trpc = useTrpc();
 const movieStore = useMovieStore();
+const toast = useToast();
 
 // Computed
 const type = computed(() => route.params.type as "internal" | "external");
@@ -282,6 +283,7 @@ const isInMyList = computed(() => !!myMovie.value);
 
 // State
 const readMore = ref(false);
+const rating = ref<number | undefined>(4);
 const myMovie = ref<MovieDefaultView | null | undefined>(null);
 
 // Async data
@@ -305,6 +307,7 @@ const { data: movie, pending: loadingMyMovie } = useAsyncData("movie-from-extern
 
 watch(movie, (newValue) => {
 	myMovie.value = newValue;
+	rating.value = newValue?.rating ?? undefined;
 });
 
 const { data: collections, pending: loadingCollections } = useAsyncData("collections", async () => {
@@ -338,6 +341,37 @@ const addMovie = async () => {
 		const movie = await movieStore.createMovieFromExternal(id.value);
 		myMovie.value = movie;
 	} catch (err: any) {}
+};
+
+watchDebounced(
+	rating,
+	async (_newValue, oldValue) => {
+		try {
+			if (!isInMyList) {
+				return;
+			}
+
+			await trpc.movies.updateRating.mutate({
+				id: myMovie.value!.id,
+				rating: rating.value ?? null,
+			});
+		} catch (err: any) {
+			const message = isTRPCError(err) ? err.message : "Unknown error";
+			toast.add({
+				title: "An error occurred",
+				description: message,
+				color: "error",
+				type: "foreground",
+			});
+		}
+	},
+	{
+		debounce: DEBOUNCE_TIMER,
+	},
+);
+
+const clearRating = () => {
+	rating.value = undefined;
 };
 
 const toggleReadMore = () => {

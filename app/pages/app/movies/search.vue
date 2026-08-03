@@ -32,16 +32,13 @@
 				></UEmpty>
 			</template>
 			<template #poster_path-cell="{ row }">
-				<div class="w-14">
-					<NuxtImg
-						provider="tmdb"
-						:src="row.original.poster_path"
-						width="92"
-						class="object-contain"
-						v-if="row.original.poster_path"
-					/>
-					<NuxtImg src="https://placehold.co/500x750" loading="lazy" class="object-contain" v-else />
-				</div>
+				<TmdbImageFallback
+					:width="60"
+					:height="90"
+					class="rounded-sm"
+					provider="tmdb"
+					:src="row.original.poster_path"
+				/>
 			</template>
 			<template #adult-cell="{ row }">
 				<UBadge color="error" variant="subtle" v-if="row.original.adult">NSFW</UBadge>
