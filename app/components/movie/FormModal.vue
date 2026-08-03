@@ -1,5 +1,5 @@
 <template>
-	<UModal :title="`${collection ? 'Update' : 'Create'} a collection`" :dismissible="!isLoading" :close="!isLoading">
+	<UModal :title="`${movie ? 'Update' : 'Create'} a movie`" :dismissible="!isLoading" :close="!isLoading">
 		<template #body>
 			<UForm
 				ref="form"
@@ -9,18 +9,18 @@
 				:validate-on="['change']"
 				class="gap-4 flex flex-col"
 			>
-				<UFormField label="Name" name="name" required>
-					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus />
+				<UFormField label="Title" name="title" required>
+					<UInput v-model="state.title" class="w-full" :maxlength="255" autofocus />
 				</UFormField>
 				<UFormField label="Description" name="description">
-					<UInput v-model="state.description" class="w-full" :maxlength="500" />
+					<UTextarea v-model="state.description" class="w-full" :rows="4" />
 				</UFormField>
 			</UForm>
 		</template>
 
 		<template #footer>
 			<UButton label="Cancel" variant="ghost" color="neutral" @click="onCancel" :disabled="isLoading" />
-			<UButton :label="collection ? 'Update' : 'Create'" @click="onSave" :loading="isLoading" />
+			<UButton :label="movie ? 'Update' : 'Create'" @click="onSave" :loading="isLoading" />
 		</template>
 	</UModal>
 </template>
@@ -29,7 +29,7 @@
 import type { FormSubmitEvent } from "@nuxt/ui";
 import * as z from "zod";
 
-const { collection } = defineProps<{ collection?: CollectionDefaultView }>();
+const { movie } = defineProps<{ movie?: MovieDefaultView }>();
 
 const emit = defineEmits<{
 	close: [value?: boolean];
@@ -38,16 +38,17 @@ const emit = defineEmits<{
 const isLoading = ref(false);
 const form = useTemplateRef("form");
 const toast = useToast();
-const collectionStore = useCollectionStore();
+const trpc = useTrpc();
+const movieStore = useMovieStore();
 
 const schema = z.object({
-	name: ClientCollectionValidation.name,
-	description: ClientCollectionValidation.description,
+	title: ClientMovieValidation.title,
+	description: ClientMovieValidation.description,
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
-	name: collection?.name ?? "",
-	description: collection?.description ?? "",
+	title: movie?.title ?? "",
+	description: movie?.description ?? "",
 });
 
 const onCancel = () => {
@@ -62,19 +63,22 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
 		isLoading.value = true;
 
-		if (collection) {
-			const updatedCollection = await collectionStore.updateCollection(collection.id, payload.data);
+		if (movie) {
+			const updatedMovie = await trpc.movies.update.mutate({
+				id: movie.id,
+				...payload.data,
+			});
 			toast.add({
-				title: "Collection updated",
-				description: `Collection ${updatedCollection.name} has been updated`,
+				title: "Movie updated",
+				description: `Movie ${updatedMovie.title} has been updated`,
 				color: "success",
 				type: "foreground",
 			});
 		} else {
-			const newCollection = await collectionStore.createCollection(payload.data);
+			const newMovie = await movieStore.createMovie(payload.data);
 			toast.add({
-				title: "New collection created",
-				description: `Collection ${newCollection.name} has been created`,
+				title: "New movie created",
+				description: `Movie ${newMovie.title} has been created`,
 				color: "success",
 				type: "foreground",
 			});
