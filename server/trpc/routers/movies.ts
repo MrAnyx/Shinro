@@ -11,6 +11,7 @@ export default router({
 			z.object({
 				title: ServerMovieValidation.title,
 				description: ServerMovieValidation.description,
+				rating: ServerMovieValidation.rating,
 			}),
 		)
 		.output(MovieDefaultViewSchema)
@@ -20,6 +21,7 @@ export default router({
 					title: input.title,
 					description: input.description,
 					ownerId: ctx.user.id,
+					rating: input.rating,
 				},
 			});
 

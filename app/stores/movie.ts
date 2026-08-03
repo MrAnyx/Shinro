@@ -12,7 +12,7 @@ export const useMovieStore = defineStore("movie", {
 			this.total = count;
 		},
 
-		async createMovie(payload: { title: string; description: string }) {
+		async createMovie(payload: { title: string; description: string; rating: number | null }) {
 			const trpc = useTrpc();
 			const movie = await trpc.movies.create.mutate(payload);
 			this.total += 1;

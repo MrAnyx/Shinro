@@ -24,11 +24,11 @@
 						leading-icon="i-lucide-plus"
 						variant="subtle"
 						color="success"
-						v-if="!isInMyList"
+						v-if="!isInMyList && isExternal"
 						@click="addMovie"
 					/>
 
-					<template v-else>
+					<template v-else-if="isInMyList">
 						<UButton
 							label="Remove from My List"
 							block
@@ -257,7 +257,6 @@
 </template>
 <script setup lang="ts">
 import type { SelectMenuItem } from "@nuxt/ui";
-import { isTRPCError } from "~~/app/utils/trpc";
 
 definePageMeta({
 	layout: "app",
@@ -339,12 +338,16 @@ const { data: creditsData, pending: loadingCredits } = useAsyncData(
 // Methods
 const removeMovie = async () => {
 	try {
-		if (!myMovie.value || !isInMyList.value) {
+		if (!isInMyList.value) {
 			return;
 		}
 
-		await movieStore.deleteMovie(myMovie.value.id);
-		myMovie.value = null;
+		await movieStore.deleteMovie(myMovie.value!.id);
+		movieData.value = null;
+
+		if (isInternal.value) {
+			await navigateTo("/app/movies");
+		}
 	} catch (err: any) {}
 };
 

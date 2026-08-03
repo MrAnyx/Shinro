@@ -82,7 +82,11 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				type: "foreground",
 			});
 		} else {
-			const newMovie = await movieStore.createMovie(payload.data);
+			const newMovie = await movieStore.createMovie({
+				title: payload.data.title,
+				description: payload.data.description,
+				rating: payload.data.rating ?? null,
+			});
 			toast.add({
 				title: "New movie created",
 				description: `Movie ${newMovie.title} has been created`,
