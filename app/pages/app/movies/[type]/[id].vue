@@ -91,7 +91,7 @@
 			</div>
 
 			<!-- Details badges -->
-			<div class="flex gap-x-2">
+			<div class="flex gap-x-2" v-if="isExternal">
 				<template v-if="isLoading">
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
@@ -165,7 +165,7 @@
 			</div>
 
 			<!-- Genres -->
-			<div class="flex gap-2 flex-wrap">
+			<div class="flex gap-2 flex-wrap" v-if="isExternal">
 				<template v-if="isLoading">
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
@@ -187,17 +187,17 @@
 				</template>
 			</div>
 
-			<USeparator />
+			<USeparator v-if="isExternal" />
 
 			<!-- Credits -->
-			<div>
+			<div v-if="isExternal">
 				<h2 class="font-bold text-xl mb-3">Credits</h2>
 
-				<div class="flex gap-x-3 overflow-x-auto pb-2" v-if="actors.length > 0">
+				<div class="flex gap-x-3 overflow-x-auto pb-2">
 					<template v-if="isLoading">
 						<USkeleton v-for="i in 4" :key="i" class="w-[170px] h-[270px] rounded-sm shrink-0" />
 					</template>
-					<template v-else>
+					<template v-else-if="actors.length > 0">
 						<template v-for="(actor, index) in actors" :key="index">
 							<UCard class="w-[170px] shrink-0" :ui="{ body: 'p-0!' }" variant="subtle">
 								<NuxtLink
@@ -248,9 +248,9 @@
 							</NuxtLink>
 						</UCard>
 					</template>
-				</div>
 
-				<p class="text-sm text-muted" v-else>No credits available</p>
+					<p class="text-sm text-muted" v-else>No credits available</p>
+				</div>
 			</div>
 		</main>
 	</div>
@@ -348,7 +348,15 @@ const removeMovie = async () => {
 		if (isInternal.value) {
 			await navigateTo("/app/movies");
 		}
-	} catch (err: any) {}
+	} catch (err: any) {
+		const message = isTRPCError(err) ? err.message : "Unknown error";
+		toast.add({
+			title: "Unable to remove a movie",
+			description: message,
+			color: "error",
+			type: "foreground",
+		});
+	}
 };
 
 const addMovie = async () => {
@@ -359,7 +367,46 @@ const addMovie = async () => {
 
 		const movie = await movieStore.createMovieFromExternal(id.value);
 		myMovie.value = movie;
-	} catch (err: any) {}
+	} catch (err: any) {
+		const message = isTRPCError(err) ? err.message : "Unknown error";
+		toast.add({
+			title: "Unable to add a movie",
+			description: message,
+			color: "error",
+			type: "foreground",
+		});
+	}
+};
+
+const updateMovieCollections = async (collectionIds: string[]) => {
+	if (!isInMyList.value) {
+		return;
+	}
+
+	selectedCollectionIds.value = collectionIds;
+
+	try {
+		await trpc.movies.updateCollections.mutate({
+			id: myMovie.value!.id,
+			collectionIds,
+		});
+	} catch (err: any) {
+		const message = isTRPCError(err) ? err.message : "Unknown error";
+		toast.add({
+			title: "Unable to update collections",
+			description: message,
+			color: "error",
+			type: "foreground",
+		});
+	}
+};
+
+const clearCollections = async () => {
+	if (!isInMyList.value) {
+		return;
+	}
+
+	await updateMovieCollections([]);
 };
 
 const updateRating = async (newRating: number | null) => {
@@ -381,39 +428,6 @@ const updateRating = async (newRating: number | null) => {
 			type: "foreground",
 		});
 	}
-};
-
-const updateMovieCollections = async (collectionIds: string[]) => {
-	if (!isInMyList.value || !myMovie.value) {
-		selectedCollectionIds.value = collectionIds;
-		return;
-	}
-
-	selectedCollectionIds.value = collectionIds;
-
-	try {
-		await trpc.movies.updateCollections.mutate({
-			id: myMovie.value.id,
-			collectionIds,
-		});
-	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to update collections",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
-	}
-};
-
-const clearCollections = async () => {
-	if (!isInMyList.value) {
-		selectedCollectionIds.value = [];
-		return;
-	}
-
-	await updateMovieCollections([]);
 };
 
 const clearRating = async () => {
