@@ -94,6 +94,7 @@ const trpc = useTrpc();
 const movieStore = useMovieStore();
 const toast = useToast();
 const { openConfirmationModal } = useConfirmation();
+const { search, page } = useSearchPagination();
 
 const movieFormModal = overlay.create(LazyMovieFormModal);
 const openMovieFormModal = async (movie?: MovieDefaultView) => {
@@ -108,8 +109,6 @@ const openMovieFormModal = async (movie?: MovieDefaultView) => {
 	}
 };
 
-const page = ref(1);
-const search = ref("");
 const { data, pending, refresh } = useAsyncData(
 	"movies",
 	async () => {
@@ -129,20 +128,9 @@ const { data, pending, refresh } = useAsyncData(
 	},
 );
 
-watchDebounced(page, () => refresh(), {
+watchDebounced([page, search], () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
-
-watchDebounced(
-	search,
-	() => {
-		page.value = 1;
-		refresh();
-	},
-	{
-		debounce: DEBOUNCE_TIMER,
-	},
-);
 
 const columns: TableColumn<MovieDefaultView>[] = [
 	{

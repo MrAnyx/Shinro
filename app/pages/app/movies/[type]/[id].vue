@@ -57,7 +57,7 @@
 								color="neutral"
 								variant="subtle"
 								block
-								:label="rating ? `Edit my rating (${rating.toFixed(1)})` : `Set my rating`"
+								:label="ratingButtonLabel"
 								leading-icon="i-lucide-user-star"
 							/>
 
@@ -284,6 +284,9 @@ const collections = computed<SelectMenuItem[]>(
 			label: x.name,
 			value: x.id,
 		})) ?? [],
+);
+const ratingButtonLabel = computed(() =>
+	rating.value ? `Edit my rating (${rating.value.toFixed(1)})` : `Set my rating`,
 );
 
 // State

@@ -79,6 +79,7 @@ const trpc = useTrpc();
 const collectionStore = useCollectionStore();
 const toast = useToast();
 const { openConfirmationModal } = useConfirmation();
+const { search, page } = useSearchPagination();
 
 const collectionFormModal = overlay.create(LazyCollectionFormModal);
 const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
@@ -93,8 +94,6 @@ const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 	}
 };
 
-const page = ref(1);
-const search = ref("");
 const { data, pending, refresh } = useAsyncData(
 	"collections",
 	async () => {

@@ -95,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn, ButtonProps, TableRow, BadgeProps } from "@nuxt/ui";
+import type { TableColumn, ButtonProps, TableRow } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
 definePageMeta({
@@ -106,11 +106,10 @@ definePageMeta({
 const trpc = useTrpc();
 const movieStore = useMovieStore();
 const toast = useToast();
+const { search, page } = useSearchPagination();
 
 const searchInput = useTemplateRef("searchInput");
 
-const page = ref(1);
-const search = ref("");
 const loadingMovieIds = reactive(new Set<string>());
 
 onMounted(() => {
@@ -136,25 +135,13 @@ const { data, pending, refresh } = useAsyncData(
 		}
 	},
 	{
-		immediate: false,
 		dedupe: "cancel",
 	},
 );
 
-watchDebounced(page, () => refresh(), {
+watchDebounced([page, search], () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
-
-watchDebounced(
-	search,
-	() => {
-		page.value = 1;
-		refresh();
-	},
-	{
-		debounce: DEBOUNCE_TIMER,
-	},
-);
 
 const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 	{
