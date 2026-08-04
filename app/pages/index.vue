@@ -5,9 +5,9 @@
 	>
 		<template #title>
 			Finally a place for your
-			<span class="font-brand underline decoration-dashed decoration-3 decoration-primary underline-offset-8"
-				>Chaos</span
-			>
+			<span class="font-brand underline decoration-dashed decoration-3 decoration-primary underline-offset-8">
+				Chaos
+			</span>
 		</template>
 
 		<ImagePlaceholder />
