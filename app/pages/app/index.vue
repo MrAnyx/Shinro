@@ -10,8 +10,8 @@
 		<template #body>
 			<UCard>
 				<div class="flex flex-col gap-y-3">
-					<h2 class="text-2xl text-highlighted">
-						Welcome back <span class="font-bold">{{ authStore.user?.username }}</span>
+					<h2 class="text-2xl">
+						{{ greeting }} <span class="font-bold text-highlighted">{{ authStore.user?.username }}</span>
 					</h2>
 					<p class="text-muted">
 						Because remembering the plot of everything you've ever consumed is overrated. Just log it here
@@ -50,6 +50,7 @@ definePageMeta({
 	middleware: ["auth"],
 });
 
+const { greeting } = useTimeGreeting();
 const authStore = useAuthStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
