@@ -184,12 +184,14 @@ const getRowActions = (row: TableRow<MovieDefaultView>): DropdownMenuItem[][] =>
 	[
 		{
 			label: "Edit",
+			icon: "i-lucide-square-pen",
 			onSelect() {
 				openMovieFormModal(row.original);
 			},
 		},
 		{
 			label: "Delete",
+			icon: "i-lucide-trash",
 			color: "error",
 			async onSelect() {
 				const result = await openConfirmationModal(async () => await movieStore.deleteMovie(row.original.id));

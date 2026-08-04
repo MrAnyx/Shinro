@@ -128,6 +128,11 @@ const mediaItems = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Series",
 		icon: "i-lucide-tv-minimal-play",
+		badge: {
+			label: "Soon",
+			color: "info",
+		},
+		disabled: true,
 	},
 	{
 		label: "Music",

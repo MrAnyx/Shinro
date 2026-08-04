@@ -113,20 +113,9 @@ const { data, pending, refresh } = useAsyncData(
 	},
 );
 
-watchDebounced(page, () => refresh(), {
+watchDebounced([page, search], () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
-
-watchDebounced(
-	search,
-	() => {
-		page.value = 1;
-		refresh();
-	},
-	{
-		debounce: DEBOUNCE_TIMER,
-	},
-);
 
 const columns: TableColumn<CollectionDefaultView>[] = [
 	{
@@ -170,12 +159,14 @@ const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[]
 	[
 		{
 			label: "Edit",
+			icon: "i-lucide-square-pen",
 			onSelect() {
 				openCollectionFormModal(row.original);
 			},
 		},
 		{
 			label: "Delete",
+			icon: "i-lucide-trash",
 			color: "error",
 			async onSelect() {
 				const result = await openConfirmationModal(
