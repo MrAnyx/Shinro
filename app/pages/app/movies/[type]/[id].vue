@@ -96,6 +96,10 @@
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
 				<template v-else>
+					<UBadge color="error" variant="subtle" leading-icon="i-lucide-user-x" v-if="detailsData?.adult">
+						18+
+					</UBadge>
+
 					<UBadge
 						color="neutral"
 						variant="subtle"

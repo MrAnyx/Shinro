@@ -41,7 +41,7 @@
 				/>
 			</template>
 			<template #adult-cell="{ row }">
-				<UBadge color="error" variant="subtle" v-if="row.original.adult">NSFW</UBadge>
+				<UBadge color="error" variant="subtle" v-if="row.original.adult">18+</UBadge>
 				<UBadge color="success" variant="subtle" v-else>Safe</UBadge>
 			</template>
 			<template #release_date-cell="{ row }">

@@ -17,13 +17,14 @@ export const TmdbMovieSearchDefaultViewSchema = z.object({
 export const TmdbMovieDetailsDefaultViewSchema = z.object({
 	id: z.string(),
 	title: z.string().nullish(),
-	runtime: z.number().nullish(),
+	runtime: z.number(),
 	poster_path: z.string().nullish(),
 	original_title: z.string().nullish(),
 	overview: z.string().nullish(),
+	adult: z.boolean(),
 	release_date: z.string().nullish(),
-	vote_average: z.number().nullish(),
-	vote_count: z.number().nullish(),
+	vote_average: z.number(),
+	vote_count: z.number(),
 	genres: z.array(z.object({ name: z.string().nullish() })).nullish(),
 	tagline: z.string().nullish(),
 	belongs_to_collection: z
