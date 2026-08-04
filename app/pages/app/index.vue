@@ -40,11 +40,33 @@
 				<DataCard icon="i-lucide-book-open" title="Books" subtitle="Read (or lied about)" :value="0" />
 				<DataCard icon="i-lucide-gamepad-2" title="Games" subtitle="Backlog forever" :value="0" />
 			</div>
+
+			<div class="flex flex-col gap-y-3">
+				<div class="flex items-center gap-x-2">
+					<UIcon name="i-lucide-clock" class="w-5 h-5" />
+					<h2 class="text-xl">Recently Added</h2>
+				</div>
+				<UCard :ui="{ body: 'p-0!' }">
+					<UTable :columns="columns" />
+				</UCard>
+			</div>
+
+			<div class="flex flex-col gap-y-3">
+				<div class="flex items-center gap-x-2">
+					<UIcon name="i-lucide-folder" class="w-5 h-5" />
+					<h2 class="text-xl">Watchlist</h2>
+				</div>
+				<UCard :ui="{ body: 'p-0!' }">
+					<UTable :columns="columns" />
+				</UCard>
+			</div>
 		</template>
 	</UDashboardPanel>
 </template>
 
 <script setup lang="ts">
+import type { TableColumn } from "@nuxt/ui";
+
 definePageMeta({
 	layout: "app",
 	middleware: ["auth"],
@@ -54,4 +76,13 @@ const { greeting } = useTimeGreeting();
 const authStore = useAuthStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
+
+const columns: TableColumn<string>[] = [
+	{
+		header: "Name",
+	},
+	{
+		header: "Date",
+	},
+];
 </script>
