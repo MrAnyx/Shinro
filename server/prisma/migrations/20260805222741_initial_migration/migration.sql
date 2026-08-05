@@ -1,6 +1,9 @@
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 
+-- CreateEnum
+CREATE TYPE "MediaType" AS ENUM ('MOVIE', 'SERIES', 'BOOK', 'MUSIC', 'GAME');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" UUID NOT NULL,
@@ -30,6 +33,7 @@ CREATE TABLE "Collection" (
     "id" UUID NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "description" VARCHAR(500),
+    "favorite" BOOLEAN NOT NULL DEFAULT false,
     "ownerId" UUID NOT NULL,
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(6) NOT NULL,
@@ -38,26 +42,36 @@ CREATE TABLE "Collection" (
 );
 
 -- CreateTable
-CREATE TABLE "Movie" (
+CREATE TABLE "Media" (
     "id" UUID NOT NULL,
+    "type" "MediaType" NOT NULL,
     "externalId" VARCHAR(255),
-    "title" VARCHAR(255),
-    "description" TEXT,
-    "posterPath" VARCHAR(500),
+    "name" VARCHAR(255),
+    "imagePath" VARCHAR(500),
+    "rating" DOUBLE PRECISION,
     "ownerId" UUID NOT NULL,
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(6) NOT NULL,
+
+    CONSTRAINT "Media_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Movie" (
+    "id" UUID NOT NULL,
+    "overview" TEXT,
+    "mediaId" UUID NOT NULL,
 
     CONSTRAINT "Movie_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "CollectionMovie" (
+CREATE TABLE "CollectionMedia" (
     "collectionId" UUID NOT NULL,
-    "movieId" UUID NOT NULL,
+    "mediaId" UUID NOT NULL,
     "addedAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "CollectionMovie_pkey" PRIMARY KEY ("collectionId","movieId")
+    CONSTRAINT "CollectionMedia_pkey" PRIMARY KEY ("collectionId","mediaId")
 );
 
 -- CreateIndex
@@ -66,6 +80,12 @@ CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 -- CreateIndex
 CREATE UNIQUE INDEX "Session_sessionId_key" ON "Session"("sessionId");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Media_externalId_ownerId_key" ON "Media"("externalId", "ownerId") WHERE ("externalId" IS NOT NULL);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Movie_mediaId_key" ON "Movie"("mediaId");
+
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -73,10 +93,13 @@ ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "Collection" ADD CONSTRAINT "Collection_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Movie" ADD CONSTRAINT "Movie_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Media" ADD CONSTRAINT "Media_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CollectionMovie" ADD CONSTRAINT "CollectionMovie_collectionId_fkey" FOREIGN KEY ("collectionId") REFERENCES "Collection"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Movie" ADD CONSTRAINT "Movie_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CollectionMovie" ADD CONSTRAINT "CollectionMovie_movieId_fkey" FOREIGN KEY ("movieId") REFERENCES "Movie"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "CollectionMedia" ADD CONSTRAINT "CollectionMedia_collectionId_fkey" FOREIGN KEY ("collectionId") REFERENCES "Collection"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CollectionMedia" ADD CONSTRAINT "CollectionMedia_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;

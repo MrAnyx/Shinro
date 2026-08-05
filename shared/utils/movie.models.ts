@@ -1,28 +1,11 @@
 import * as z from "zod";
 
-export const MovieBaseSchema = z.object({
+export const MovieDefaultViewSchema = z.object({
 	id: z.uuid(),
-	externalId: z.string().nullable(),
-	title: z.string().nullable(),
-	rating: z.number().nullable(),
-	description: z.string().nullable(),
-	posterPath: z.string().nullable(),
-	ownerId: z.uuid(),
-	createdAt: z.date(),
-	updatedAt: z.date(),
+	overview: z.string().nullable(),
+	mediaId: z.uuid(),
 });
 
-export const MovieDefaultViewSchema = MovieBaseSchema.pick({
-	id: true,
-	externalId: true,
-	title: true,
-	rating: true,
-	description: true,
-	posterPath: true,
-	createdAt: true,
-	updatedAt: true,
-});
-
-export const MovieWithCollectionsViewSchema = MovieDefaultViewSchema.extend({
-	collections: z.array(z.lazy(() => CollectionDefaultViewSchema)),
+export const MovieWithMediaViewSchema = MovieDefaultViewSchema.extend({
+	media: z.lazy(() => MediaDefaultViewSchema),
 });

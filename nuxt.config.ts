@@ -1,3 +1,5 @@
+import { fileURLToPath } from "node:url";
+
 import "./server/utils/serverEnv";
 
 export default defineNuxtConfig({
@@ -44,26 +46,8 @@ export default defineNuxtConfig({
 		strict: true,
 		typeCheck: true,
 	},
-	imports: {
-		dirs: [
-			"shared/types",
-			"shared/types/models",
-			"shared/types/requests",
-			"shared/utils",
-			"shared/utils/validation",
-			"shared/utils/models",
-		],
-	},
-	nitro: {
-		imports: {
-			dirs: [
-				"shared/types",
-				"shared/types/models",
-				"shared/types/requests",
-				"shared/utils",
-				"shared/utils/validation",
-				"shared/utils/models",
-			],
-		},
+	alias: {
+		"#lib": fileURLToPath(new URL("./lib", import.meta.url)),
+		"#prisma": fileURLToPath(new URL("./lib/prisma", import.meta.url)),
 	},
 });

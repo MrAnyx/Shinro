@@ -1,6 +1,6 @@
 generator client {
     provider               = "prisma-client"
-    output                 = "./generated"
+    output                 = "../../lib/prisma"
     engineType             = "client"
     moduleFormat           = "esm"
     runtime                = "nodejs"
@@ -21,19 +21,22 @@ enum Role {
 enum MediaType {
     MOVIE
     SERIES
+    BOOK
+    MUSIC
     GAME
 }
 
 model User {
-    id           String       @id @default(uuid()) @db.Uuid
-    username     String       @unique @db.VarChar(255)
-    passwordHash String       @db.VarChar(255)
+    id           String   @id @default(uuid()) @db.Uuid
+    username     String   @unique @db.VarChar(255)
+    passwordHash String   @db.VarChar(255)
     role         Role
-    createdAt    DateTime     @default(now()) @db.Timestamptz(6)
-    updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
-    sessions     Session[]
-    collections  Collection[]
-    media        Media[]
+    createdAt    DateTime @default(now()) @db.Timestamptz(6)
+    updatedAt    DateTime @updatedAt @db.Timestamptz(6)
+
+    sessions    Session[]
+    collections Collection[]
+    medias      Media[]
 }
 
 model Session {
@@ -47,63 +50,41 @@ model Session {
 }
 
 model Collection {
-    id               String            @id @default(uuid()) @db.Uuid
-    name             String            @db.VarChar(255)
-    description      String?           @db.VarChar(500)
-    favorite         Boolean           @default(false) @db.Boolean
-    ownerId          String            @db.Uuid
-    owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
-    updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
-    collectionMedia  CollectionMedia[]
+    id          String   @id @default(uuid()) @db.Uuid
+    name        String   @db.VarChar(255)
+    description String?  @db.VarChar(500)
+    favorite    Boolean  @default(false) @db.Boolean
+    ownerId     String   @db.Uuid
+    owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    createdAt   DateTime @default(now()) @db.Timestamptz(6)
+    updatedAt   DateTime @updatedAt @db.Timestamptz(6)
+
+    collectionMedias CollectionMedia[]
 }
 
 model Media {
-    id               String            @id @default(uuid()) @db.Uuid
-    type             MediaType
-    externalId       String?           @db.VarChar(255)
-    title            String?           @db.VarChar(255)
-    description      String?           @db.Text
-    posterPath       String?           @db.VarChar(500)
-    rating           Float?            @db.DoublePrecision
-    ownerId          String            @db.Uuid
-    owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-    createdAt        DateTime          @default(now()) @db.Timestamptz(6)
-    updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
-    
-    // Type-specific relations
+    id         String    @id @default(uuid()) @db.Uuid
+    type       MediaType
+    externalId String?   @db.VarChar(255)
+    name       String?   @db.VarChar(255)
+    imagePath  String?   @db.VarChar(500)
+    rating     Float?    @db.DoublePrecision
+    ownerId    String    @db.Uuid
+    owner      User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+    createdAt  DateTime  @default(now()) @db.Timestamptz(6)
+    updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
+
     movie            Movie?
-    series           Series?
-    game             Game?
-    
-    collectionMedia  CollectionMedia[]
+    collectionMedias CollectionMedia[]
 
     @@unique([externalId, ownerId], where: { externalId: { not: null } })
 }
 
 model Movie {
-    id          String   @id @default(uuid()) @db.Uuid
-    mediaId     String   @unique @db.Uuid
-    media       Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
-    releaseDate DateTime? @db.Date
-    duration    Int?     // in minutes
-}
-
-model Series {
-    id          String   @id @default(uuid()) @db.Uuid
-    mediaId     String   @unique @db.Uuid
-    media       Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
-    releaseDate DateTime? @db.Date
-    endDate     DateTime? @db.Date
-    seasons     Int?
-}
-
-model Game {
-    id          String   @id @default(uuid()) @db.Uuid
-    mediaId     String   @unique @db.Uuid
-    media       Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
-    releaseDate DateTime? @db.Date
-    platforms   String[]? // e.g., ["PC", "PS5", "Xbox"]
+    id       String  @id @default(uuid()) @db.Uuid
+    overview String? @db.Text
+    mediaId  String  @unique @db.Uuid
+    media    Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
 }
 
 model CollectionMedia {

@@ -1,4 +1,4 @@
-import { PrismaClient } from "#server/prisma/generated/client";
+import { PrismaClient } from "#prisma/client";
 
 type ClientOptions = NonNullable<ConstructorParameters<typeof PrismaClient>[0]>;
 
