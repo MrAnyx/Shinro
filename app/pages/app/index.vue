@@ -8,7 +8,7 @@
 			</UDashboardNavbar>
 		</template>
 		<template #body>
-			<UCard>
+			<UCard class="shrink-0">
 				<div class="flex flex-col gap-y-3">
 					<h2 class="text-2xl">
 						{{ greeting }} <span class="font-bold text-highlighted">{{ authStore.user?.username }}</span>
@@ -51,15 +51,17 @@
 				</UCard>
 			</div>
 
-			<div class="flex flex-col gap-y-3">
-				<div class="flex items-center gap-x-2">
-					<UIcon name="i-lucide-folder" class="w-5 h-5" />
-					<h2 class="text-xl">Watchlist</h2>
+			<template v-if="!pending">
+				<div class="flex flex-col gap-y-3" v-for="collection in data">
+					<div class="flex items-center gap-x-2">
+						<UIcon name="i-lucide-folder" class="w-5 h-5" />
+						<h2 class="text-xl">{{ collection.name }}</h2>
+					</div>
+					<UCard :ui="{ body: 'p-0!' }">
+						<UTable :columns="columns" :data="collection?.collectionMovies" />
+					</UCard>
 				</div>
-				<UCard :ui="{ body: 'p-0!' }">
-					<UTable :columns="columns" />
-				</UCard>
-			</div>
+			</template>
 		</template>
 	</UDashboardPanel>
 </template>
@@ -76,13 +78,20 @@ const { greeting } = useTimeGreeting();
 const authStore = useAuthStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
+const trpc = useTrpc();
 
-const columns: TableColumn<string>[] = [
+const { data, pending } = useAsyncData("favorite-collections", async () => {
+	return await trpc.collections.getAllWithMedias.query({ favorite: true });
+});
+
+const columns: TableColumn<CollectionMovieWithMovieView>[] = [
 	{
-		header: "Name",
+		header: "Title",
+		accessorFn: (x) => x.movie.title,
 	},
 	{
-		header: "Date",
+		header: "Added At",
+		accessorFn: (x) => x.addedAt,
 	},
 ];
 </script>

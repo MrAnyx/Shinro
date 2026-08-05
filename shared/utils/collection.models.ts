@@ -18,3 +18,7 @@ export const CollectionDefaultViewSchema = CollectionBaseSchema.pick({
 	createdAt: true,
 	updatedAt: true,
 });
+
+export const CollectionWithMediaViewSchema = CollectionDefaultViewSchema.extend({
+	collectionMovies: z.array(z.lazy(() => CollectionMovieWithMovieViewSchema)),
+});

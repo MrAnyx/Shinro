@@ -24,5 +24,5 @@ export const MovieDefaultViewSchema = MovieBaseSchema.pick({
 });
 
 export const MovieWithCollectionsViewSchema = MovieDefaultViewSchema.extend({
-	collections: z.array(CollectionDefaultViewSchema),
+	collections: z.array(z.lazy(() => CollectionDefaultViewSchema)),
 });

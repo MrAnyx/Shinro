@@ -141,4 +141,31 @@ export default router({
 
 			return { total, results };
 		}),
+
+	getAllWithMedias: protectedProcedure
+		.input(
+			z.object({
+				favorite: ServerCollectionValidation.favorite.optional(),
+			}),
+		)
+		.output(z.array(CollectionWithMediaViewSchema))
+		.query(async ({ input, ctx }) => {
+			const collections = await prisma.collection.findMany({
+				where: {
+					ownerId: ctx.user.id,
+					...(input.favorite === undefined ? {} : { favorite: input.favorite }),
+				},
+				include: {
+					collectionMovies: {
+						include: {
+							movie: true,
+						},
+						take: 10,
+						orderBy: [{ addedAt: "desc" }],
+					},
+				},
+			});
+
+			return collections;
+		}),
 });

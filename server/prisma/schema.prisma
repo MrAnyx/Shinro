@@ -18,6 +18,12 @@ enum Role {
     USER
 }
 
+enum MediaType {
+    MOVIE
+    SERIES
+    GAME
+}
+
 model User {
     id           String       @id @default(uuid()) @db.Uuid
     username     String       @unique @db.VarChar(255)
@@ -27,7 +33,7 @@ model User {
     updatedAt    DateTime     @updatedAt @db.Timestamptz(6)
     sessions     Session[]
     collections  Collection[]
-    movies       Movie[]
+    media        Media[]
 }
 
 model Session {
@@ -49,11 +55,12 @@ model Collection {
     owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
     createdAt        DateTime          @default(now()) @db.Timestamptz(6)
     updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
-    collectionMovies CollectionMovie[]
+    collectionMedia  CollectionMedia[]
 }
 
-model Movie {
+model Media {
     id               String            @id @default(uuid()) @db.Uuid
+    type             MediaType
     externalId       String?           @db.VarChar(255)
     title            String?           @db.VarChar(255)
     description      String?           @db.Text
@@ -63,17 +70,48 @@ model Movie {
     owner            User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
     createdAt        DateTime          @default(now()) @db.Timestamptz(6)
     updatedAt        DateTime          @updatedAt @db.Timestamptz(6)
-    collectionMovies CollectionMovie[]
+    
+    // Type-specific relations
+    movie            Movie?
+    series           Series?
+    game             Game?
+    
+    collectionMedia  CollectionMedia[]
 
     @@unique([externalId, ownerId], where: { externalId: { not: null } })
 }
 
-model CollectionMovie {
+model Movie {
+    id          String   @id @default(uuid()) @db.Uuid
+    mediaId     String   @unique @db.Uuid
+    media       Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+    releaseDate DateTime? @db.Date
+    duration    Int?     // in minutes
+}
+
+model Series {
+    id          String   @id @default(uuid()) @db.Uuid
+    mediaId     String   @unique @db.Uuid
+    media       Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+    releaseDate DateTime? @db.Date
+    endDate     DateTime? @db.Date
+    seasons     Int?
+}
+
+model Game {
+    id          String   @id @default(uuid()) @db.Uuid
+    mediaId     String   @unique @db.Uuid
+    media       Media    @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+    releaseDate DateTime? @db.Date
+    platforms   String[]? // e.g., ["PC", "PS5", "Xbox"]
+}
+
+model CollectionMedia {
     collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
     collectionId String     @db.Uuid
-    movie        Movie      @relation(fields: [movieId], references: [id], onDelete: Cascade)
-    movieId      String     @db.Uuid
+    media        Media      @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+    mediaId      String     @db.Uuid
     addedAt      DateTime   @default(now()) @db.Timestamptz(6)
 
-    @@id([collectionId, movieId])
+    @@id([collectionId, mediaId])
 }
