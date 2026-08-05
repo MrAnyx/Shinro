@@ -14,6 +14,11 @@ export default defineNuxtConfig({
 			allowRegistration: true,
 		},
 	},
+	icon: {
+		clientBundle: {
+			scan: true,
+		},
+	},
 	telemetry: false,
 	colorMode: {
 		fallback: "dark",

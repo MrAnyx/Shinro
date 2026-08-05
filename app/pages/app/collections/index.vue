@@ -54,6 +54,16 @@
 					minute="2-digit"
 				/>
 			</template>
+			<template #favorite-cell="{ row }">
+				<UButton
+					:icon="row.original.favorite ? 'i-ph-star-fill' : 'i-ph-star'"
+					variant="ghost"
+					:color="row.original.favorite ? 'warning' : 'neutral'"
+					@click="toggleCollectionFavorite(row)"
+					:disabled="loadingCollectionIds.has(row.original.id)"
+					:loading="loadingCollectionIds.has(row.original.id)"
+				/>
+			</template>
 			<template #actions-cell="{ row }">
 				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row)">
 					<UButton variant="ghost" icon="i-lucide-ellipsis-vertical" color="neutral"> </UButton>
@@ -73,6 +83,8 @@ import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt
 import { watchDebounced } from "@vueuse/core";
 
 import { LazyCollectionFormModal } from "#components";
+
+const loadingCollectionIds = reactive(new Set<string>());
 
 const overlay = useOverlay();
 const trpc = useTrpc();
@@ -119,8 +131,8 @@ watchDebounced([page, search], () => refresh(), {
 
 const columns: TableColumn<CollectionDefaultView>[] = [
 	{
-		accessorKey: "name",
 		header: "Name",
+		accessorKey: "name",
 		meta: {
 			class: {
 				td: "max-w-[120px] truncate font-bold",
@@ -128,8 +140,8 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "description",
 		header: "Description",
+		accessorKey: "description",
 		meta: {
 			class: {
 				td: "max-w-[300px] truncate",
@@ -137,12 +149,22 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "createdAt",
 		header: "Created At",
+		accessorKey: "createdAt",
 	},
 	{
-		accessorKey: "updatedAt",
 		header: "Updated At",
+		accessorKey: "updatedAt",
+	},
+	{
+		header: "Favorite",
+		accessorKey: "favorite",
+		meta: {
+			class: {
+				th: "w-0",
+				td: "w-0",
+			},
+		},
 	},
 	{
 		id: "actions",
@@ -194,6 +216,44 @@ const emptyActions: ButtonProps[] = [
 		},
 	},
 ];
+
+const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) => {
+	try {
+		loadingCollectionIds.add(row.original.id);
+
+		const collection = await trpc.collections.update.mutate({
+			id: row.original.id,
+			favorite: !row.original.favorite,
+		});
+
+		if (!data.value) {
+			return;
+		}
+
+		data.value = {
+			...data.value,
+			results: data.value.results.map((m) => (m.id === row.original.id ? collection : m)),
+		};
+
+		toast.add({
+			title: "Collection updated",
+			description: row.original.favorite
+				? "Collection removed from your favorites"
+				: "Collection added to your favorites",
+			color: "success",
+			type: "foreground",
+		});
+	} catch (err: any) {
+		toast.add({
+			title: "Oops!",
+			description: "Something went wrong while updating a collection",
+			color: "error",
+			type: "foreground",
+		});
+	} finally {
+		loadingCollectionIds.delete(row.original.id);
+	}
+};
 
 const onCollectionSelected = async (e: Event, row: TableRow<CollectionDefaultView>) => {
 	await navigateTo({ path: `/app/collections/${row.original.id}` });

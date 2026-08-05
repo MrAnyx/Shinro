@@ -30,9 +30,9 @@ export default router({
 		.input(
 			z.object({
 				id: ServerCollectionValidation.id,
-				name: ServerCollectionValidation.name,
-				description: ServerCollectionValidation.description,
-				favorite: ServerCollectionValidation.favorite,
+				name: ServerCollectionValidation.name.optional(),
+				description: ServerCollectionValidation.description.optional(),
+				favorite: ServerCollectionValidation.favorite.optional(),
 			}),
 		)
 		.output(CollectionDefaultViewSchema)
@@ -56,9 +56,9 @@ export default router({
 					ownerId: ctx.user.id,
 				},
 				data: {
-					name: input.name,
-					description: input.description,
-					favorite: input.favorite,
+					name: input.name ?? Prisma.skip,
+					description: input.description === undefined ? Prisma.skip : input.description,
+					favorite: input.favorite === undefined ? Prisma.skip : input.favorite,
 				},
 			});
 

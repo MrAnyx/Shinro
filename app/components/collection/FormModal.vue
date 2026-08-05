@@ -15,7 +15,7 @@
 				<UFormField label="Description" name="description">
 					<UInput v-model="state.description" class="w-full" :maxlength="500" />
 				</UFormField>
-				<UFormField label="Favorite" name="favorite" help="Favorite collections are shown on the overview page">
+				<UFormField label="Favorite" name="favorite">
 					<USwitch v-model="state.favorite" />
 				</UFormField>
 			</UForm>
