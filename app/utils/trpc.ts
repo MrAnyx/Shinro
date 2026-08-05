@@ -1,6 +1,12 @@
 import { TRPCClientError } from "@trpc/client";
+import type { inferProcedureInput, AnyProcedure } from "@trpc/server";
 import type { TRPC_ERROR_CODE_KEY } from "@trpc/server/rpc";
 import type { AppRouter } from "~~/server/trpc/router";
+
+export type TRPCProcedureInput<
+	TRouter extends keyof AppRouter,
+	TProcedure extends keyof AppRouter[TRouter],
+> = AppRouter[TRouter][TProcedure] extends AnyProcedure ? inferProcedureInput<AppRouter[TRouter][TProcedure]> : never;
 
 export const isTRPCError = (err: unknown): err is TRPCClientError<AppRouter> => {
 	return err instanceof TRPCClientError;

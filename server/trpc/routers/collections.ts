@@ -10,6 +10,7 @@ export default router({
 			z.object({
 				name: ServerCollectionValidation.name,
 				description: ServerCollectionValidation.description,
+				favorite: ServerCollectionValidation.favorite,
 			}),
 		)
 		.output(CollectionDefaultViewSchema)
@@ -18,6 +19,7 @@ export default router({
 				data: {
 					name: input.name,
 					description: input.description,
+					favorite: input.favorite,
 					ownerId: ctx.user.id,
 				},
 			});
@@ -30,6 +32,7 @@ export default router({
 				id: ServerCollectionValidation.id,
 				name: ServerCollectionValidation.name,
 				description: ServerCollectionValidation.description,
+				favorite: ServerCollectionValidation.favorite,
 			}),
 		)
 		.output(CollectionDefaultViewSchema)
@@ -55,6 +58,7 @@ export default router({
 				data: {
 					name: input.name,
 					description: input.description,
+					favorite: input.favorite,
 				},
 			});
 

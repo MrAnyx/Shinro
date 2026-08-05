@@ -232,7 +232,7 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	try {
 		loadingMovieIds.add(row.original.id);
 
-		const movie = await movieStore.createMovieFromExternal(row.original.id);
+		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
 
 		if (!data.value) {
 			return;
@@ -271,7 +271,7 @@ const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) 
 			return;
 		}
 
-		await movieStore.deleteMovie(row.original.internalId);
+		await movieStore.deleteMovie({ id: row.original.internalId });
 
 		if (!data.value) {
 			return;

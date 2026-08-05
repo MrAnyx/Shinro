@@ -338,7 +338,7 @@ const removeMovie = async () => {
 			return;
 		}
 
-		await movieStore.deleteMovie(myMovie.value!.id);
+		await movieStore.deleteMovie({ id: myMovie.value!.id });
 		movieData.value = null;
 
 		if (isInternal.value) {
@@ -361,7 +361,7 @@ const addMovie = async () => {
 			return;
 		}
 
-		const movie = await movieStore.createMovieFromExternal(id.value);
+		const movie = await movieStore.createMovieFromExternal({ externalId: id.value });
 		myMovie.value = movie;
 	} catch (err: any) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";

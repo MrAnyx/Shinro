@@ -15,6 +15,9 @@
 				<UFormField label="Description" name="description">
 					<UInput v-model="state.description" class="w-full" :maxlength="500" />
 				</UFormField>
+				<UFormField label="Favorite" name="favorite" help="Favorite collections are shown on the overview page">
+					<USwitch v-model="state.favorite" />
+				</UFormField>
 			</UForm>
 		</template>
 
@@ -44,11 +47,13 @@ const collectionStore = useCollectionStore();
 const schema = z.object({
 	name: ClientCollectionValidation.name,
 	description: ClientCollectionValidation.description,
+	favorite: ClientCollectionValidation.favorite,
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
 	name: collection?.name ?? "",
 	description: collection?.description ?? "",
+	favorite: collection?.favorite ?? false,
 });
 
 const onCancel = () => {
@@ -66,7 +71,9 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		if (collection) {
 			const updatedCollection = await trpc.collections.update.mutate({
 				id: collection.id,
-				...payload.data,
+				name: payload.data.name,
+				description: payload.data.description,
+				favorite: payload.data.favorite,
 			});
 			toast.add({
 				title: "Collection updated",

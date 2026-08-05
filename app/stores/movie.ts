@@ -12,23 +12,23 @@ export const useMovieStore = defineStore("movie", {
 			this.total = count;
 		},
 
-		async createMovie(payload: { title: string; description: string; rating: number | null }) {
+		async createMovie(payload: TRPCProcedureInput<"movies", "create">) {
 			const trpc = useTrpc();
 			const movie = await trpc.movies.create.mutate(payload);
 			this.total += 1;
 			return movie;
 		},
 
-		async createMovieFromExternal(externalId: string) {
+		async createMovieFromExternal(payload: TRPCProcedureInput<"movies", "createFromExternal">) {
 			const trpc = useTrpc();
-			const movie = await trpc.movies.createFromExternal.mutate({ externalId });
+			const movie = await trpc.movies.createFromExternal.mutate(payload);
 			this.total += 1;
 			return movie;
 		},
 
-		async deleteMovie(id: string) {
+		async deleteMovie(payload: TRPCProcedureInput<"movies", "delete">) {
 			const trpc = useTrpc();
-			await trpc.movies.delete.mutate({ id });
+			await trpc.movies.delete.mutate(payload);
 			this.total -= 1;
 		},
 	},

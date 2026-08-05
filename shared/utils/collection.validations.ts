@@ -12,3 +12,5 @@ export const CollectionDescriptionSchemaBase = z
 	.string("Collection description must be a valid string")
 	.trim()
 	.max(500, "Collection description can not exceed 500 characters");
+
+export const CollectionFavoriteSchemaBase = z.boolean("Collection favorite must be a valid boolean");
