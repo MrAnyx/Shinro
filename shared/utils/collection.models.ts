@@ -9,3 +9,7 @@ export const CollectionDefaultViewSchema = z.object({
 	createdAt: z.date(),
 	updatedAt: z.date(),
 });
+
+export const CollectionWithMediaTypesViewSchema = CollectionDefaultViewSchema.extend({
+	collectionMedias: z.array(z.lazy(() => CollectionMediaWithMediaViewSchema)),
+});

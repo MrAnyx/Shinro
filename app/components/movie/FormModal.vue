@@ -71,8 +71,8 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		if (movie) {
 			const updatedMovie = await trpc.movies.update.mutate({
 				id: movie.id,
-				title: payload.data.title,
-				description: payload.data.description,
+				name: payload.data.title,
+				overview: payload.data.description,
 				rating: payload.data.rating ?? null,
 			});
 			toast.add({

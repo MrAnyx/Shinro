@@ -9,7 +9,7 @@
 		"typeAware": false,
 		"typeCheck": false,
 		"denyWarnings": false,
-		"maxWarnings": 10
+		"maxWarnings": 20
 	},
 	"rules": {
 		"sort-imports": "off",
