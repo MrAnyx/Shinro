@@ -81,10 +81,9 @@ model Media {
 }
 
 model Movie {
-    id       String  @id @default(uuid()) @db.Uuid
+    id       String  @id @db.Uuid
     overview String? @db.Text
-    mediaId  String  @unique @db.Uuid
-    media    Media   @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+    media    Media   @relation(fields: [id], references: [id], onDelete: Cascade)
 }
 
 model CollectionMedia {

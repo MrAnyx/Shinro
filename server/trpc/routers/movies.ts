@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import * as z from "zod";
 
 import { MediaType, Prisma } from "#prisma/client";
+import type { CollectionMediaCreateManyInput } from "#prisma/models";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -13,7 +14,7 @@ export default router({
 				rating: ServerMovieValidation.rating,
 			}),
 		)
-		.output(MovieDefaultViewSchema)
+		.output(MovieWithMediaViewSchema)
 		.mutation(async ({ input, ctx }) => {
 			const movie = await prisma.movie.create({
 				data: {
@@ -41,7 +42,7 @@ export default router({
 				externalId: ServerMovieValidation.externalId,
 			}),
 		)
-		.output(MovieDefaultViewSchema)
+		.output(MovieWithMediaViewSchema)
 		.mutation(async ({ input, ctx }) => {
 			const movieExist = await prisma.movie.findFirst({
 				where: {
@@ -96,7 +97,7 @@ export default router({
 				rating: ServerMovieValidation.rating.optional(),
 			}),
 		)
-		.output(MovieDefaultViewSchema)
+		.output(MovieWithMediaViewSchema)
 		.mutation(async ({ input, ctx }) => {
 			const existingMovie = await prisma.movie.findFirst({
 				where: {
@@ -202,7 +203,7 @@ export default router({
 				force: ServerPaginationValidation.force,
 			}),
 		)
-		.output(PaginatedSchema(MovieDefaultViewSchema))
+		.output(PaginatedSchema(MovieWithMediaViewSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 
@@ -241,7 +242,7 @@ export default router({
 				externalId: ServerTmdbMovieValidation.id,
 			}),
 		)
-		.output(MovieDefaultViewSchema)
+		.output(MovieWithMediaViewSchema)
 		.query(async ({ input, ctx }) => {
 			try {
 				const movie = await prisma.movie.findFirst({
@@ -252,15 +253,7 @@ export default router({
 						},
 					},
 					include: {
-						media: {
-							include: {
-								collectionMedias: {
-									include: {
-										collection: true,
-									},
-								},
-							},
-						},
+						media: true,
 					},
 				});
 
@@ -271,10 +264,7 @@ export default router({
 					});
 				}
 
-				return {
-					...movie,
-					collections: movie.media.collectionMedias.map((x) => x.collection),
-				};
+				return movie;
 			} catch (err: any) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
@@ -284,105 +274,101 @@ export default router({
 			}
 		}),
 
-	// getById: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			id: ServerMovieValidation.id,
-	// 		}),
-	// 	)
-	// 	.output(MovieWithCollectionsViewSchema)
-	// 	.query(async ({ input, ctx }) => {
-	// 		try {
-	// 			const movie = await prisma.movie.findFirst({
-	// 				where: {
-	// 					id: input.id,
-	// 					ownerId: ctx.user.id,
-	// 				},
-	// 				include: {
-	// 					collectionMovies: {
-	// 						include: {
-	// 							collection: true,
-	// 						},
-	// 					},
-	// 				},
-	// 			});
+	getById: protectedProcedure
+		.input(
+			z.object({
+				id: ServerMovieValidation.id,
+			}),
+		)
+		.output(MovieWithMediaViewSchema)
+		.query(async ({ input, ctx }) => {
+			try {
+				const movie = await prisma.movie.findFirst({
+					where: {
+						id: input.id,
+						ownerId: ctx.user.id,
+					},
+					include: {
+						media: true,
+					},
+				});
 
-	// 			if (!movie) {
-	// 				throw new TRPCError({
-	// 					code: "NOT_FOUND",
-	// 					message: "Movie not found",
-	// 				});
-	// 			}
+				if (!movie) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Movie not found",
+					});
+				}
 
-	// 			return {
-	// 				...movie,
-	// 				collections: movie.collectionMovies.map((x) => x.collection),
-	// 			};
-	// 		} catch (err: any) {
-	// 			throw new TRPCError({
-	// 				code: "BAD_REQUEST",
-	// 				cause: err,
-	// 				message: "An error occured while getting movie by external ID",
-	// 			});
-	// 		}
-	// 	}),
+				return movie;
+			} catch (err: any) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					cause: err,
+					message: "An error occured while getting movie by external ID",
+				});
+			}
+		}),
 
-	// updateCollections: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			id: ServerMovieValidation.id,
-	// 			collectionIds: z.array(ServerCollectionValidation.id),
-	// 		}),
-	// 	)
-	// 	.output(z.void())
-	// 	.mutation(async ({ input, ctx }) => {
-	// 		const movie = await prisma.movie.findFirst({
-	// 			where: {
-	// 				id: input.id,
-	// 				ownerId: ctx.user.id,
-	// 			},
-	// 			select: {
-	// 				id: true,
-	// 			},
-	// 		});
+	updateCollections: protectedProcedure
+		.input(
+			z.object({
+				id: ServerMovieValidation.id,
+				collectionIds: z.array(ServerCollectionValidation.id),
+			}),
+		)
+		.output(z.void())
+		.mutation(async ({ input, ctx }) => {
+			const movie = await prisma.movie.findFirst({
+				where: {
+					id: input.id,
+					ownerId: ctx.user.id,
+				},
+				select: {
+					id: true,
+				},
+			});
 
-	// 		if (!movie) {
-	// 			throw new TRPCError({
-	// 				code: "BAD_REQUEST",
-	// 				message: "This movie doesn't exist",
-	// 			});
-	// 		}
+			if (!movie) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "This movie doesn't exist",
+				});
+			}
 
-	// 		if (input.collectionIds.length > 0) {
-	// 			const ownedCollections = await prisma.collection.findMany({
-	// 				where: {
-	// 					id: { in: input.collectionIds },
-	// 					ownerId: ctx.user.id,
-	// 				},
-	// 				select: { id: true },
-	// 			});
+			if (input.collectionIds.length > 0) {
+				const ownedCollections = await prisma.collection.findMany({
+					where: {
+						id: { in: input.collectionIds },
+						ownerId: ctx.user.id,
+					},
+					select: { id: true },
+				});
 
-	// 			if (ownedCollections.length !== input.collectionIds.length) {
-	// 				throw new TRPCError({
-	// 					code: "FORBIDDEN",
-	// 					message: "One or more selected collections are invalid",
-	// 				});
-	// 			}
-	// 		}
+				if (ownedCollections.length !== input.collectionIds.length) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "One or more selected collections are invalid",
+					});
+				}
+			}
 
-	// 		await prisma.$transaction(async (tx) => {
-	// 			await tx.collectionMovie.deleteMany({
-	// 				where: { movieId: input.id },
-	// 			});
+			await prisma.$transaction(async (tx) => {
+				await tx.collectionMedia.deleteMany({
+					where: { mediaId: input.id },
+				});
 
-	// 			if (input.collectionIds.length > 0) {
-	// 				await tx.collectionMovie.createMany({
-	// 					data: input.collectionIds.map((collectionId) => ({
-	// 						movieId: input.id,
-	// 						collectionId,
-	// 					})),
-	// 				});
-	// 			}
-	// 		});
-	// 	}),
+				if (input.collectionIds.length > 0) {
+					await tx.collectionMedia.createMany({
+						data: input.collectionIds.map(
+							(collectionId) =>
+								({
+									mediaId: input.id,
+									collectionId,
+								}) as CollectionMediaCreateManyInput,
+						),
+					});
+				}
+			});
+		}),
 });

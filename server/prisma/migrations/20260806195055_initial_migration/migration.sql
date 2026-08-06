@@ -60,7 +60,6 @@ CREATE TABLE "Media" (
 CREATE TABLE "Movie" (
     "id" UUID NOT NULL,
     "overview" TEXT,
-    "mediaId" UUID NOT NULL,
 
     CONSTRAINT "Movie_pkey" PRIMARY KEY ("id")
 );
@@ -83,9 +82,6 @@ CREATE UNIQUE INDEX "Session_sessionId_key" ON "Session"("sessionId");
 -- CreateIndex
 CREATE UNIQUE INDEX "Media_externalId_ownerId_key" ON "Media"("externalId", "ownerId") WHERE ("externalId" IS NOT NULL);
 
--- CreateIndex
-CREATE UNIQUE INDEX "Movie_mediaId_key" ON "Movie"("mediaId");
-
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -96,7 +92,7 @@ ALTER TABLE "Collection" ADD CONSTRAINT "Collection_ownerId_fkey" FOREIGN KEY ("
 ALTER TABLE "Media" ADD CONSTRAINT "Media_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Movie" ADD CONSTRAINT "Movie_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "Movie" ADD CONSTRAINT "Movie_id_fkey" FOREIGN KEY ("id") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "CollectionMedia" ADD CONSTRAINT "CollectionMedia_collectionId_fkey" FOREIGN KEY ("collectionId") REFERENCES "Collection"("id") ON DELETE CASCADE ON UPDATE CASCADE;

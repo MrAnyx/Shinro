@@ -41,7 +41,7 @@
 				<DataCard icon="i-lucide-gamepad-2" title="Games" subtitle="Backlog forever" :value="0" />
 			</div>
 
-			<div class="flex flex-col gap-y-3">
+			<!-- <div class="flex flex-col gap-y-3">
 				<div class="flex items-center gap-x-2">
 					<UIcon name="i-lucide-clock" class="w-5 h-5" />
 					<h2 class="text-xl">Recently Added</h2>
@@ -49,9 +49,9 @@
 				<UCard :ui="{ body: 'p-0!' }">
 					<UTable :columns="columns" />
 				</UCard>
-			</div>
+			</div> -->
 
-			<template v-if="!pending">
+			<!-- <template v-if="!pending">
 				<div class="flex flex-col gap-y-3" v-for="collection in data">
 					<div class="flex items-center gap-x-2">
 						<UIcon name="i-lucide-folder" class="w-5 h-5" />
@@ -61,7 +61,7 @@
 						<UTable :columns="columns" :data="collection?.collectionMovies" />
 					</UCard>
 				</div>
-			</template>
+			</template> -->
 		</template>
 	</UDashboardPanel>
 </template>
@@ -80,18 +80,18 @@ const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
 const trpc = useTrpc();
 
-const { data, pending } = useAsyncData("favorite-collections", async () => {
-	return await trpc.collections.getAllWithMedias.query({ favorite: true });
-});
+// const { data, pending } = useAsyncData("favorite-collections", async () => {
+// 	return await trpc.collections.getAllWithMedias.query({ favorite: true });
+// });
 
-const columns: TableColumn<CollectionMovieWithMovieView>[] = [
-	{
-		header: "Title",
-		accessorFn: (x) => x.movie.title,
-	},
-	{
-		header: "Added At",
-		accessorFn: (x) => x.addedAt,
-	},
-];
+// const columns: TableColumn<CollectionMovieWithMovieView>[] = [
+// 	{
+// 		header: "Title",
+// 		accessorFn: (x) => x.movie.title,
+// 	},
+// 	{
+// 		header: "Added At",
+// 		accessorFn: (x) => x.addedAt,
+// 	},
+// ];
 </script>

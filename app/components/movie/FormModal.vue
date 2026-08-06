@@ -10,10 +10,10 @@
 				class="gap-4 flex flex-col"
 			>
 				<UFormField label="Title" name="title" required>
-					<UInput v-model="state.title" class="w-full" :maxlength="255" autofocus />
+					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus />
 				</UFormField>
 				<UFormField label="Description" name="description">
-					<UTextarea v-model="state.description" class="w-full" autoresize :maxrows="10" />
+					<UTextarea v-model="state.overview" class="w-full" autoresize :maxrows="10" />
 				</UFormField>
 				<UFormField label="Rating" name="rating">
 					<ClearableRating v-model="state.rating" />
@@ -45,14 +45,14 @@ const trpc = useTrpc();
 const movieStore = useMovieStore();
 
 const schema = z.object({
-	title: ClientMovieValidation.title,
-	description: ClientMovieValidation.description,
+	name: ClientMovieValidation.name,
+	overview: ClientMovieValidation.description,
 	rating: ClientMovieValidation.rating,
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
-	title: movie?.title ?? "",
-	description: movie?.description ?? "",
+	name: movie?.title ?? "",
+	overview: movie?.description ?? "",
 	rating: movie?.rating ?? undefined,
 });
 
@@ -71,25 +71,25 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		if (movie) {
 			const updatedMovie = await trpc.movies.update.mutate({
 				id: movie.id,
-				name: payload.data.title,
-				overview: payload.data.description,
+				name: payload.data.name,
+				overview: payload.data.overview,
 				rating: payload.data.rating ?? null,
 			});
 			toast.add({
 				title: "Movie updated",
-				description: `Movie ${updatedMovie.title} has been updated`,
+				description: `Movie ${updatedMovie.newMovie.media.name} has been updated`,
 				color: "success",
 				type: "foreground",
 			});
 		} else {
 			const newMovie = await movieStore.createMovie({
-				title: payload.data.title,
-				description: payload.data.description,
+				name: payload.data.name,
+				overview: payload.data.overview,
 				rating: payload.data.rating ?? null,
 			});
 			toast.add({
 				title: "New movie created",
-				description: `Movie ${newMovie.title} has been created`,
+				description: `Movie ${newMovie.media.name} has been created`,
 				color: "success",
 				type: "foreground",
 			});

@@ -84,7 +84,7 @@
 				</template>
 				<template v-else>
 					<h1 class="font-bold text-4xl">
-						{{ myMovie?.title ?? detailsData?.title ?? "No title available" }}
+						{{ myMovie?.media.name ?? detailsData?.title ?? "No title available" }}
 					</h1>
 					<h3 class="italic text-muted text-sm" v-if="detailsData?.tagline">{{ detailsData?.tagline }}</h3>
 				</template>
@@ -156,7 +156,7 @@
 
 				<template v-else>
 					<p class="text-toned" :class="{ 'line-clamp-none': readMore, 'line-clamp-2': !readMore }">
-						{{ myMovie?.description ?? detailsData?.overview ?? "No overview available" }}
+						{{ myMovie?.overview ?? detailsData?.overview ?? "No overview available" }}
 					</p>
 					<UButton
 						label="Read more"
@@ -298,7 +298,7 @@ const readMore = ref(false);
 const rating = ref<number | undefined>(4);
 const selectedCollectionIds = ref<string[]>([]);
 
-const myMovie = ref<MovieDefaultView | null | undefined>(null);
+const myMovie = ref<MovieWithMediaView | null | undefined>(null);
 
 // Async data
 const { data: detailsData, pending: loadingDetails } = useAsyncData("movie-details", async () =>
@@ -317,8 +317,8 @@ const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-ex
 
 watch(movieData, (newValue) => {
 	myMovie.value = newValue;
-	rating.value = newValue?.rating ?? undefined;
-	selectedCollectionIds.value = newValue?.collections.map((x) => x.id) ?? [];
+	rating.value = newValue?.media.rating ?? undefined;
+	selectedCollectionIds.value = newValue?.media.collections.map((x) => x.id) ?? [];
 });
 
 const { data: collectionsData, pending: loadingCollections } = useAsyncData(

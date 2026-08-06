@@ -247,7 +247,7 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 
 		toast.add({
 			title: "New movie added",
-			description: `${movie.title} has been added to your list`,
+			description: `${movie.media.name} has been added to your list`,
 			color: "success",
 			type: "foreground",
 		});

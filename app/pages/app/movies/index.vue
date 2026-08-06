@@ -35,28 +35,18 @@
 					:actions="emptyActions"
 				></UEmpty>
 			</template>
-			<template #posterPath-cell="{ row }">
+			<template #image-cell="{ row }">
 				<ImageFallback
 					:width="60"
 					:height="90"
 					class="rounded-sm"
 					provider="tmdb"
-					:src="row.original.posterPath"
+					:src="row.original.media.imagePath"
 				/>
 			</template>
 			<template #createdAt-cell="{ row }">
 				<NuxtTime
-					:datetime="row.original.createdAt"
-					year="numeric"
-					month="short"
-					day="numeric"
-					hour="2-digit"
-					minute="2-digit"
-				/>
-			</template>
-			<template #updatedAt-cell="{ row }">
-				<NuxtTime
-					:datetime="row.original.updatedAt"
+					:datetime="row.original.media.createdAt"
 					year="numeric"
 					month="short"
 					day="numeric"
@@ -132,10 +122,10 @@ watchDebounced([page, search], () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
 
-const columns: TableColumn<MovieDefaultView>[] = [
+const columns: TableColumn<MovieWithMediaView>[] = [
 	{
-		accessorKey: "posterPath",
 		header: "",
+		id: "image",
 		meta: {
 			class: {
 				td: "w-[60px]",
@@ -143,7 +133,7 @@ const columns: TableColumn<MovieDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "title",
+		accessorFn: (x) => x.media.name,
 		header: "Title",
 		meta: {
 			class: {
@@ -152,8 +142,8 @@ const columns: TableColumn<MovieDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "description",
-		header: "Synopsis",
+		accessorKey: "overview",
+		header: "Overview",
 		meta: {
 			class: {
 				td: "max-w-[300px] truncate",
@@ -161,8 +151,8 @@ const columns: TableColumn<MovieDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "createdAt",
 		header: "Created At",
+		id: "createdAt",
 		meta: {
 			class: {
 				td: "w-0",
@@ -180,7 +170,7 @@ const columns: TableColumn<MovieDefaultView>[] = [
 	},
 ];
 
-const getRowActions = (row: TableRow<MovieDefaultView>): DropdownMenuItem[][] => [
+const getRowActions = (row: TableRow<MovieWithMediaView>): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
@@ -222,9 +212,9 @@ const emptyActions: ButtonProps[] = [
 	},
 ];
 
-const onMovieSelected = async (e: Event, row: TableRow<MovieDefaultView>) => {
-	if (row.original.externalId) {
-		await navigateTo(`/app/movies/external/${row.original.externalId}`);
+const onMovieSelected = async (e: Event, row: TableRow<MovieWithMediaView>) => {
+	if (row.original.media.externalId) {
+		await navigateTo(`/app/movies/external/${row.original.media.externalId}`);
 	} else {
 		await navigateTo(`/app/movies/internal/${row.original.id}`);
 	}
