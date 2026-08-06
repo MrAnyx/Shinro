@@ -3,7 +3,6 @@ import * as z from "zod";
 
 import { MediaType, Prisma } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
-import { ServerCollectionValidation } from "#server/utils/collection.validations";
 
 export default router({
 	create: protectedProcedure
@@ -44,10 +43,6 @@ export default router({
 		)
 		.output(MovieWithMediaViewSchema)
 		.mutation(async ({ input, ctx }) => {
-			const tmdbMovie = await tmdb(`/movie/${input.externalId}`, {
-				schema: TmdbMovieDetailsResponseSchema,
-			});
-
 			const movieExist = await prisma.movie.findFirst({
 				where: {
 					ownerId: ctx.user.id,
@@ -67,10 +62,15 @@ export default router({
 				});
 			}
 
+			const tmdbMovie = await tmdb(`/movie/${input.externalId}`, {
+				schema: TmdbMovieDetailsResponseSchema,
+			});
+
 			const movie = await prisma.movie.create({
 				data: {
 					media: {
 						create: {
+							externalId: tmdbMovie.id,
 							name: tmdbMovie.title ?? null,
 							type: MediaType.MOVIE,
 							ownerId: ctx.user.id,
@@ -139,87 +139,95 @@ export default router({
 			return movie;
 		}),
 
-	// delete: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			id: ServerMovieValidation.id,
-	// 		}),
-	// 	)
-	// 	.output(z.void())
-	// 	.mutation(async ({ input, ctx }) => {
-	// 		const movieExist = await prisma.movie.findFirst({
-	// 			where: {
-	// 				id: input.id,
-	// 				ownerId: ctx.user.id,
-	// 			},
-	// 			select: {
-	// 				id: true,
-	// 			},
-	// 		});
+	delete: protectedProcedure
+		.input(
+			z.object({
+				id: ServerMovieValidation.id,
+			}),
+		)
+		.output(z.void())
+		.mutation(async ({ input, ctx }) => {
+			const movieExist = await prisma.movie.findFirst({
+				where: {
+					id: input.id,
+					media: {
+						ownerId: ctx.user.id,
+					},
+				},
+				select: {
+					id: true,
+				},
+			});
 
-	// 		if (!movieExist) {
-	// 			throw new TRPCError({
-	// 				code: "BAD_REQUEST",
-	// 				message: "This movie doesn't exist",
-	// 			});
-	// 		}
+			if (!movieExist) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "This movie doesn't exist",
+				});
+			}
 
-	// 		await prisma.movie.deleteMany({
-	// 			where: {
-	// 				id: input.id,
-	// 				ownerId: ctx.user.id,
-	// 			},
-	// 		});
-	// 	}),
+			await prisma.movie.delete({
+				where: {
+					id: input.id,
+					media: {
+						ownerId: ctx.user.id,
+					},
+				},
+			});
+		}),
 
-	// count: protectedProcedure
-	// 	.input(z.void())
-	// 	.output(z.number())
-	// 	.query(async ({ ctx }) => {
-	// 		const count = await prisma.movie.count({
-	// 			where: {
-	// 				ownerId: ctx.user.id,
-	// 			},
-	// 		});
+	count: protectedProcedure
+		.input(z.void())
+		.output(z.number())
+		.query(async ({ ctx }) => {
+			const count = await prisma.movie.count({
+				where: {
+					media: {
+						ownerId: ctx.user.id,
+					},
+				},
+			});
 
-	// 		return count;
-	// 	}),
+			return count;
+		}),
 
-	// getAll: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			page: ServerPaginationValidation.page,
-	// 			search: ServerPaginationValidation.search,
-	// 		}),
-	// 	)
-	// 	.output(PaginatedSchema(MovieDefaultViewSchema))
-	// 	.query(async ({ input, ctx }) => {
-	// 		const skip = (input.page - 1) * ITEMS_PER_PAGE;
+	getAll: protectedProcedure
+		.input(
+			z.object({
+				page: ServerPaginationValidation.page,
+				search: ServerPaginationValidation.search,
+			}),
+		)
+		.output(PaginatedSchema(MovieDefaultViewSchema))
+		.query(async ({ input, ctx }) => {
+			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 
-	// 		const where: Prisma.MovieWhereInput = {
-	// 			ownerId: ctx.user.id,
-	// 			...(input.search
-	// 				? {
-	// 						OR: [
-	// 							{ title: { contains: input.search, mode: "insensitive" } },
-	// 							{ description: { contains: input.search, mode: "insensitive" } },
-	// 						],
-	// 					}
-	// 				: {}),
-	// 		};
+			const where: Prisma.MovieWhereInput = {
+				media: {
+					ownerId: ctx.user.id,
+				},
+				...(input.search
+					? {
+							OR: [
+								{ media: { name: { contains: input.search, mode: "insensitive" } } },
+								{ overview: { contains: input.search, mode: "insensitive" } },
+							],
+						}
+					: {}),
+			};
 
-	// 		const [total, results] = await Promise.all([
-	// 			prisma.movie.count({ where }),
-	// 			prisma.movie.findMany({
-	// 				where,
-	// 				orderBy: [{ title: "asc" }, { createdAt: "asc" }],
-	// 				skip,
-	// 				take: ITEMS_PER_PAGE,
-	// 			}),
-	// 		]);
+			const [total, results] = await Promise.all([
+				prisma.movie.count({ where }),
+				prisma.movie.findMany({
+					where,
+					orderBy: [{ media: { name: "asc" } }, { media: { createdAt: "asc" } }],
+					skip,
+					take: ITEMS_PER_PAGE,
+				}),
+			]);
 
-	// 		return { total, results };
-	// 	}),
+			return { total, results };
+		}),
 
 	// getByExternalId: protectedProcedure
 	// 	.input(
