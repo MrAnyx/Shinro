@@ -59,7 +59,7 @@ model Collection {
     createdAt   DateTime @default(now()) @db.Timestamptz(6)
     updatedAt   DateTime @updatedAt @db.Timestamptz(6)
 
-    collectionMedias CollectionMedia[]
+    medias CollectionMedia[]
 }
 
 model Media {
@@ -74,8 +74,8 @@ model Media {
     createdAt  DateTime  @default(now()) @db.Timestamptz(6)
     updatedAt  DateTime  @updatedAt @db.Timestamptz(6)
 
-    movie            Movie?
-    collectionMedias CollectionMedia[]
+    movie       Movie?
+    collections CollectionMedia[]
 
     @@unique([externalId, ownerId], where: { externalId: { not: null } })
 }

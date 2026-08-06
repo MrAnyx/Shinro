@@ -10,6 +10,6 @@ export const CollectionDefaultViewSchema = z.object({
 	updatedAt: z.date(),
 });
 
-export const CollectionWithMediaTypesViewSchema = CollectionDefaultViewSchema.extend({
-	collectionMedias: z.array(z.lazy(() => CollectionMediaWithMediaViewSchema)),
+export const CollectionWithMediasViewSchema = CollectionDefaultViewSchema.extend({
+	medias: z.array(z.lazy(() => CollectionMediaWithMediaViewSchema)),
 });

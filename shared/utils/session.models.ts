@@ -8,3 +8,7 @@ export const SessionDefaultSchema = z.object({
 	updatedAt: z.date(),
 	expiresAt: z.date(),
 });
+
+export const SessionWithUserViewSchema = SessionDefaultSchema.extend({
+	user: z.lazy(() => UserDefaultViewSchema),
+});

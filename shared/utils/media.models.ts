@@ -17,3 +17,7 @@ export const MediaDefaultViewSchema = z.object({
 export const MediaWithMediaTypesViewSchema = MediaDefaultViewSchema.extend({
 	movie: z.lazy(() => MovieDefaultViewSchema).nullable(),
 });
+
+export const MediaWithMovieViewSchema = MediaDefaultViewSchema.extend({
+	movie: z.lazy(() => MovieDefaultViewSchema),
+});

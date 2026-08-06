@@ -8,24 +8,24 @@ export default router({
 	create: protectedProcedure
 		.input(
 			z.object({
-				title: ServerMovieValidation.name,
-				description: ServerMovieValidation.overview,
+				name: ServerMovieValidation.name,
+				overview: ServerMovieValidation.overview,
 				rating: ServerMovieValidation.rating,
 			}),
 		)
-		.output(MovieWithMediaViewSchema)
+		.output(MovieDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
 			const movie = await prisma.movie.create({
 				data: {
 					media: {
 						create: {
-							name: input.title,
+							name: input.name,
 							type: MediaType.MOVIE,
 							ownerId: ctx.user.id,
 							rating: input.rating,
 						},
 					},
-					overview: input.description,
+					overview: input.overview,
 				},
 				include: {
 					media: true,
@@ -41,7 +41,7 @@ export default router({
 				externalId: ServerMovieValidation.externalId,
 			}),
 		)
-		.output(MovieWithMediaViewSchema)
+		.output(MovieDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
 			const movieExist = await prisma.movie.findFirst({
 				where: {
@@ -96,12 +96,14 @@ export default router({
 				rating: ServerMovieValidation.rating.optional(),
 			}),
 		)
-		.output(MovieWithMediaViewSchema)
+		.output(MovieDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
 			const existingMovie = await prisma.movie.findFirst({
 				where: {
 					id: input.id,
-					ownerId: ctx.user.id,
+					media: {
+						ownerId: ctx.user.id,
+					},
 				},
 				select: {
 					id: true,
@@ -166,11 +168,12 @@ export default router({
 				});
 			}
 
-			await prisma.movie.delete({
+			// Use the media model to leverage the cascade on delete feature
+			await prisma.media.deleteMany({
 				where: {
-					id: input.id,
-					media: {
-						ownerId: ctx.user.id,
+					ownerId: ctx.user.id,
+					movie: {
+						id: input.id,
 					},
 				},
 			});
@@ -196,6 +199,7 @@ export default router({
 			z.object({
 				page: ServerPaginationValidation.page,
 				search: ServerPaginationValidation.search,
+				force: ServerPaginationValidation.force,
 			}),
 		)
 		.output(PaginatedSchema(MovieDefaultViewSchema))
@@ -221,56 +225,64 @@ export default router({
 				prisma.movie.findMany({
 					where,
 					orderBy: [{ media: { name: "asc" } }, { media: { createdAt: "asc" } }],
-					skip,
-					take: ITEMS_PER_PAGE,
+					...(input.force ? {} : { skip, take: ITEMS_PER_PAGE }),
+					include: {
+						media: true,
+					},
 				}),
 			]);
 
 			return { total, results };
 		}),
 
-	// getByExternalId: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			externalId: ServerTmdbMovieValidation.id,
-	// 		}),
-	// 	)
-	// 	.output(MovieWithCollectionsViewSchema)
-	// 	.query(async ({ input, ctx }) => {
-	// 		try {
-	// 			const movie = await prisma.movie.findFirst({
-	// 				where: {
-	// 					externalId: input.externalId,
-	// 					ownerId: ctx.user.id,
-	// 				},
-	// 				include: {
-	// 					collectionMovies: {
-	// 						include: {
-	// 							collection: true,
-	// 						},
-	// 					},
-	// 				},
-	// 			});
+	getByExternalId: protectedProcedure
+		.input(
+			z.object({
+				externalId: ServerTmdbMovieValidation.id,
+			}),
+		)
+		.output(MovieDefaultViewSchema)
+		.query(async ({ input, ctx }) => {
+			try {
+				const movie = await prisma.movie.findFirst({
+					where: {
+						media: {
+							externalId: input.externalId,
+							ownerId: ctx.user.id,
+						},
+					},
+					include: {
+						media: {
+							include: {
+								collectionMedias: {
+									include: {
+										collection: true,
+									},
+								},
+							},
+						},
+					},
+				});
 
-	// 			if (!movie) {
-	// 				throw new TRPCError({
-	// 					code: "NOT_FOUND",
-	// 					message: "Movie not found",
-	// 				});
-	// 			}
+				if (!movie) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Movie not found",
+					});
+				}
 
-	// 			return {
-	// 				...movie,
-	// 				collections: movie.collectionMovies.map((x) => x.collection),
-	// 			};
-	// 		} catch (err: any) {
-	// 			throw new TRPCError({
-	// 				code: "BAD_REQUEST",
-	// 				cause: err,
-	// 				message: "An error occured while getting movie by external ID",
-	// 			});
-	// 		}
-	// 	}),
+				return {
+					...movie,
+					collections: movie.media.collectionMedias.map((x) => x.collection),
+				};
+			} catch (err: any) {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					cause: err,
+					message: "An error occured while getting movie by external ID",
+				});
+			}
+		}),
 
 	// getById: protectedProcedure
 	// 	.input(
