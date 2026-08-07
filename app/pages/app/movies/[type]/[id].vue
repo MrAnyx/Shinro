@@ -279,7 +279,12 @@ const isReleased = computed(() => {
 const genres = computed(() => detailsData.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()) ?? []);
 const actors = computed(() => creditsData.value?.cast?.slice(0, MAX_CREDITS) ?? []);
 const isLoading = computed(
-	() => loadingDetails.value || loadingMyMovie.value || loadingCollections.value || loadingCredits.value,
+	() =>
+		loadingDetails.value ||
+		loadingMyMovie.value ||
+		loadingCollections.value ||
+		loadingCredits.value ||
+		loadingMovieCollections.value,
 );
 const isInMyList = computed(() => !!myMovie.value);
 const collections = computed<SelectMenuItem[]>(
@@ -295,7 +300,7 @@ const ratingButtonLabel = computed(() =>
 
 // State
 const readMore = ref(false);
-const rating = ref<number | undefined>(4);
+const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);
 
 const myMovie = ref<MovieWithMediaView | null | undefined>(null);
@@ -309,7 +314,7 @@ const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-ex
 	if (isInternal.value) {
 		return await trpc.movies.getById.query({ id: id.value });
 	} else if (isExternal.value) {
-		return await trpc.movies.getByExternalId.query({ externalId: id.value });
+		return await trpc.movies.getById.query({ externalId: id.value });
 	} else {
 		return null;
 	}
@@ -318,7 +323,20 @@ const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-ex
 watch(movieData, (newValue) => {
 	myMovie.value = newValue;
 	rating.value = newValue?.media.rating ?? undefined;
-	selectedCollectionIds.value = newValue?.media.collections.map((x) => x.id) ?? [];
+});
+
+const { data: movieCollections, pending: loadingMovieCollections } = useAsyncData("movie-collections", async () => {
+	if (isInternal.value) {
+		return await trpc.movies.getCollections.query({ id: id.value });
+	} else if (isExternal.value) {
+		return await trpc.movies.getCollections.query({ externalId: id.value });
+	} else {
+		return null;
+	}
+});
+
+watch(movieCollections, (newValue) => {
+	selectedCollectionIds.value = newValue?.map((x) => x.id) ?? [];
 });
 
 const { data: collectionsData, pending: loadingCollections } = useAsyncData(

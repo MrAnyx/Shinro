@@ -150,15 +150,15 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 	},
 	{
 		header: "Created At",
-		accessorKey: "createdAt",
+		id: "createdAt",
 	},
 	{
 		header: "Updated At",
-		accessorKey: "updatedAt",
+		id: "updatedAt",
 	},
 	{
 		header: "Favorite",
-		accessorKey: "favorite",
+		id: "favorite",
 		meta: {
 			class: {
 				th: "w-0",

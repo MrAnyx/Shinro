@@ -48,7 +48,7 @@ export default router({
 				},
 			});
 
-			if (existingCollection) {
+			if (!existingCollection) {
 				throw new TRPCError({
 					code: "CONFLICT",
 					message: "Collection not found",
@@ -88,7 +88,7 @@ export default router({
 				},
 			});
 
-			if (existingCollection) {
+			if (!existingCollection) {
 				throw new TRPCError({
 					code: "CONFLICT",
 					message: "Collection not found",

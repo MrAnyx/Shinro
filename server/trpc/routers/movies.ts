@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import * as z from "zod";
 
 import { MediaType, Prisma } from "#prisma/client";
-import type { CollectionMediaCreateManyInput } from "#prisma/models";
+import type { CollectionMediaCreateManyInput, MovieWhereInput } from "#prisma/models";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -46,8 +46,8 @@ export default router({
 		.mutation(async ({ input, ctx }) => {
 			const movieExist = await prisma.movie.findFirst({
 				where: {
-					ownerId: ctx.user.id,
 					media: {
+						ownerId: ctx.user.id,
 						externalId: input.externalId,
 					},
 				},
@@ -236,78 +236,85 @@ export default router({
 			return { total, results };
 		}),
 
-	getByExternalId: protectedProcedure
-		.input(
-			z.object({
-				externalId: ServerTmdbMovieValidation.id,
-			}),
-		)
-		.output(MovieWithMediaViewSchema)
-		.query(async ({ input, ctx }) => {
-			try {
-				const movie = await prisma.movie.findFirst({
-					where: {
-						media: {
-							externalId: input.externalId,
-							ownerId: ctx.user.id,
-						},
-					},
-					include: {
-						media: true,
-					},
-				});
-
-				if (!movie) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Movie not found",
-					});
-				}
-
-				return movie;
-			} catch (err: any) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					cause: err,
-					message: "An error occured while getting movie by external ID",
-				});
-			}
-		}),
-
 	getById: protectedProcedure
 		.input(
 			z.object({
-				id: ServerMovieValidation.id,
+				id: ServerMovieValidation.id.optional(),
+				externalId: ServerTmdbMovieValidation.id.optional(),
 			}),
 		)
 		.output(MovieWithMediaViewSchema)
 		.query(async ({ input, ctx }) => {
-			try {
-				const movie = await prisma.movie.findFirst({
-					where: {
-						id: input.id,
+			if (!input.id && !input.externalId) {
+				throw new TRPCError({ code: "BAD_REQUEST", message: "Either id or externalId must be specified" });
+			}
+
+			const mediaFilter: Prisma.MediaWhereInput = input.id ? { id: input.id } : { externalId: input.externalId };
+
+			const movie = await prisma.movie.findFirst({
+				where: {
+					media: {
+						...mediaFilter,
 						ownerId: ctx.user.id,
 					},
-					include: {
-						media: true,
+				},
+				include: { media: true },
+			});
+
+			if (!movie) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Movie not found" });
+			}
+
+			return movie;
+		}),
+
+	getCollections: protectedProcedure
+		.input(
+			z.object({
+				id: ServerMovieValidation.id.optional(),
+				externalId: ServerTmdbMovieValidation.id.optional(),
+			}),
+		)
+		.output(z.array(CollectionDefaultViewSchema))
+		.query(async ({ input, ctx }) => {
+			if (!input.id && !input.externalId) {
+				throw new TRPCError({ code: "BAD_REQUEST", message: "Either id or externalId must be specified" });
+			}
+
+			const mediaFilter: Prisma.MediaWhereInput = input.id ? { id: input.id } : { externalId: input.externalId };
+
+			const movie = await prisma.movie.findFirst({
+				where: {
+					media: {
+						...mediaFilter,
+						ownerId: ctx.user.id,
 					},
-				});
+				},
+				select: {
+					id: true,
+				},
+			});
 
-				if (!movie) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Movie not found",
-					});
-				}
-
-				return movie;
-			} catch (err: any) {
+			if (!movie) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					cause: err,
-					message: "An error occured while getting movie by external ID",
+					message: "This movie doesn't exist",
 				});
 			}
+
+			const collections = await prisma.collectionMedia.findMany({
+				where: {
+					mediaId: movie.id,
+					media: {
+						ownerId: ctx.user.id,
+					},
+				},
+				select: {
+					collection: true,
+				},
+			});
+
+			return collections.map((x) => x.collection);
 		}),
 
 	updateCollections: protectedProcedure
@@ -322,7 +329,9 @@ export default router({
 			const movie = await prisma.movie.findFirst({
 				where: {
 					id: input.id,
-					ownerId: ctx.user.id,
+					media: {
+						ownerId: ctx.user.id,
+					},
 				},
 				select: {
 					id: true,
