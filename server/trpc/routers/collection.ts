@@ -121,15 +121,16 @@ export default router({
 				page: ServerPaginationValidation.page,
 				search: ServerPaginationValidation.search,
 				force: ServerPaginationValidation.force,
-				orderBy: SortableSchema(ServerCollectionValidation.sort),
+				orderBy: SortableSchema(ServerCollectionValidation.sort).optional(),
 			}),
 		)
 		.output(PaginatedSchema(CollectionDefaultViewSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
-			const orderBy: Prisma.CollectionOrderByWithRelationInput[] = input.orderBy.map(({ sort, order }) => ({
-				[sort]: order,
-			}));
+			const orderBy: Prisma.CollectionOrderByWithRelationInput[] =
+				input.orderBy?.map(({ sort, order }) => ({
+					[sort]: order,
+				})) ?? [];
 
 			const where: Prisma.CollectionWhereInput = {
 				ownerId: ctx.user.id,

@@ -201,15 +201,16 @@ export default router({
 				page: ServerPaginationValidation.page,
 				search: ServerPaginationValidation.search,
 				force: ServerPaginationValidation.force,
-				orderBy: SortableSchema(ServerMovieValidation.sort),
+				orderBy: SortableSchema(ServerMovieValidation.sort).optional(),
 			}),
 		)
 		.output(PaginatedSchema(MovieWithMediaViewSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
-			const orderBy: Prisma.MovieOrderByWithRelationInput[] = input.orderBy.map(({ sort, order }) => ({
-				[sort]: order,
-			}));
+			const orderBy: Prisma.MovieOrderByWithRelationInput[] =
+				input.orderBy?.map(({ sort, order }) => ({
+					[sort]: order,
+				})) ?? [];
 
 			const where: Prisma.MovieWhereInput = {
 				media: {

@@ -11,15 +11,16 @@ export default router({
 				page: ServerPaginationValidation.page,
 				search: ServerPaginationValidation.search,
 				force: ServerPaginationValidation.force,
-				orderBy: SortableSchema(ServerMediaValidation.sort),
+				orderBy: SortableSchema(ServerMediaValidation.sort).optional(),
 			}),
 		)
 		.output(PaginatedSchema(MediaDefaultViewSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
-			const orderBy: Prisma.MediaOrderByWithRelationInput[] = input.orderBy.map(({ sort, order }) => ({
-				[sort]: order,
-			}));
+			const orderBy: Prisma.MediaOrderByWithRelationInput[] =
+				input.orderBy?.map(({ sort, order }) => ({
+					[sort]: order,
+				})) ?? [];
 
 			const where: Prisma.MediaWhereInput = {
 				ownerId: ctx.user.id,
