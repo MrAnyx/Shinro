@@ -255,7 +255,10 @@ definePageMeta({
 	layout: "app",
 	middleware: ["auth"],
 	validate(route) {
-		return typeof route.params.type === "string" && ["internal", "external"].includes(route.params.type);
+		return (
+			typeof route.params.type === "string" &&
+			(Object.values(MediaSourceTypes) as string[]).includes(route.params.type)
+		);
 	},
 });
 
@@ -266,10 +269,10 @@ const movieStore = useMovieStore();
 const toast = useToast();
 
 // Computed
-const type = computed(() => route.params.type as "internal" | "external");
+const type = computed(() => route.params.type as MediaSourceType);
 const id = computed(() => route.params.id as string);
-const isExternal = computed(() => type.value === "external");
-const isInternal = computed(() => type.value === "internal");
+const isExternal = computed(() => type.value === MediaSourceTypes.internal);
+const isInternal = computed(() => type.value === MediaSourceTypes.external);
 const isReleased = computed(() => {
 	if (!detailsData.value?.release_date) {
 		return false;
