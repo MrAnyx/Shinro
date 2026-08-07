@@ -271,8 +271,8 @@ const toast = useToast();
 // Computed
 const type = computed(() => route.params.type as MediaSourceType);
 const id = computed(() => route.params.id as string);
-const isExternal = computed(() => type.value === MediaSourceTypes.internal);
-const isInternal = computed(() => type.value === MediaSourceTypes.external);
+const isExternal = computed(() => type.value === MediaSourceTypes.external);
+const isInternal = computed(() => type.value === MediaSourceTypes.internal);
 const isReleased = computed(() => {
 	if (!detailsData.value?.release_date) {
 		return false;
