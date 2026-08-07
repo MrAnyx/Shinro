@@ -7,9 +7,11 @@ export const PaginatedSchema = <T extends z.ZodTypeAny>(schema: T) =>
 	});
 
 export const SortableSchema = <T extends z.ZodTypeAny>(fields: T) =>
-	z.array(
-		z.object({
-			sort: fields,
-			order: PaginationOrderSchemaBase,
-		}),
-	);
+	z
+		.array(
+			z.object({
+				sort: fields,
+				order: PaginationOrderSchemaBase,
+			}),
+		)
+		.default([]);
