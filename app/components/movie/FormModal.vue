@@ -32,7 +32,7 @@
 import type { FormSubmitEvent } from "@nuxt/ui";
 import * as z from "zod";
 
-const { movie } = defineProps<{ movie?: MovieDefaultView }>();
+const { movie } = defineProps<{ movie?: MovieWithMediaView }>();
 
 const emit = defineEmits<{
 	close: [value?: boolean];
@@ -45,15 +45,15 @@ const trpc = useTrpc();
 const movieStore = useMovieStore();
 
 const schema = z.object({
-	name: ClientMovieValidation.name,
-	overview: ClientMovieValidation.description,
-	rating: ClientMovieValidation.rating,
+	name: ClientMediaValidation.name,
+	overview: ClientMovieValidation.overview,
+	rating: ClientMediaValidation.rating,
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
-	name: movie?.title ?? "",
-	overview: movie?.description ?? "",
-	rating: movie?.rating ?? undefined,
+	name: movie?.media.name ?? "",
+	overview: movie?.overview ?? "",
+	rating: movie?.media.rating ?? undefined,
 });
 
 const onCancel = () => {
@@ -77,7 +77,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 			});
 			toast.add({
 				title: "Movie updated",
-				description: `Movie ${updatedMovie.newMovie.media.name} has been updated`,
+				description: `Movie ${updatedMovie.media.name} has been updated`,
 				color: "success",
 				type: "foreground",
 			});

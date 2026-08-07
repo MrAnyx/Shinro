@@ -87,10 +87,8 @@ const { openConfirmationModal } = useConfirmation();
 const { search, page } = useSearchPagination();
 
 const movieFormModal = overlay.create(LazyMovieFormModal);
-const openMovieFormModal = async (movie?: MovieDefaultView) => {
-	const instance = movieFormModal.open({
-		movie,
-	});
+const openMovieFormModal = async (movie?: MovieWithMediaView) => {
+	const instance = movieFormModal.open({ movie });
 
 	const result = await instance.result;
 

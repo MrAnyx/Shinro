@@ -9,9 +9,9 @@ export default router({
 	create: protectedProcedure
 		.input(
 			z.object({
-				name: ServerMovieValidation.name,
+				name: ServerMediaValidation.name,
 				overview: ServerMovieValidation.overview,
-				rating: ServerMovieValidation.rating,
+				rating: ServerMediaValidation.rating,
 			}),
 		)
 		.output(MovieWithMediaViewSchema)
@@ -39,7 +39,7 @@ export default router({
 	createFromExternal: protectedProcedure
 		.input(
 			z.object({
-				externalId: ServerMovieValidation.externalId,
+				externalId: ServerMediaValidation.externalId,
 			}),
 		)
 		.output(MovieWithMediaViewSchema)
@@ -92,9 +92,9 @@ export default router({
 		.input(
 			z.object({
 				id: ServerMovieValidation.id,
-				name: ServerMovieValidation.name.optional(),
+				name: ServerMediaValidation.name.optional(),
 				overview: ServerMovieValidation.overview.optional(),
-				rating: ServerMovieValidation.rating.optional(),
+				rating: ServerMediaValidation.rating.optional(),
 			}),
 		)
 		.output(MovieWithMediaViewSchema)
