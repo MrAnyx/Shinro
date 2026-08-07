@@ -292,10 +292,17 @@ const isLoading = computed(
 const isInMyList = computed(() => !!myMovie.value);
 const collections = computed<SelectMenuItem[]>(
 	() =>
-		collectionsData.value?.results.map((x) => ({
-			label: x.name,
-			value: x.id,
-		})) ?? [],
+		collectionsData.value?.results.map(
+			(x) =>
+				({
+					label: x.name,
+					value: x.id,
+					icon: x.favorite ? "i-ph-star-fill" : undefined,
+					ui: {
+						itemLeadingIcon: x.favorite ? "text-warning" : undefined,
+					},
+				}) as SelectMenuItem,
+		) ?? [],
 );
 const ratingButtonLabel = computed(() =>
 	rating.value ? `Edit my rating (${rating.value.toFixed(1)})` : `Set my rating`,
@@ -344,7 +351,14 @@ watch(movieCollections, (newValue) => {
 
 const { data: collectionsData, pending: loadingCollections } = useAsyncData(
 	"collections",
-	async () => await trpc.collection.getAll.query({ force: true }),
+	async () =>
+		await trpc.collection.getAll.query({
+			force: true,
+			orderBy: [
+				{ sort: "favorite", order: "desc" },
+				{ sort: "name", order: "asc" },
+			],
+		}),
 );
 
 const { data: creditsData, pending: loadingCredits } = useAsyncData(

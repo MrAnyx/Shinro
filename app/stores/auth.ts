@@ -12,7 +12,7 @@ export const useAuthStore = defineStore("auth", {
 			state.isLoadingLogin || state.isLoadingRegister || state.isLoadingLogout || state.isLoadingFetchMe,
 	},
 	actions: {
-		async login(payload: TRPCProcedureInput<"users", "login">) {
+		async login(payload: TRPCProcedureInput<"user", "login">) {
 			const trpc = useTrpc();
 
 			try {
@@ -25,7 +25,7 @@ export const useAuthStore = defineStore("auth", {
 				this.isLoadingLogin = false;
 			}
 		},
-		async register(payload: TRPCProcedureInput<"users", "register">) {
+		async register(payload: TRPCProcedureInput<"user", "register">) {
 			const trpc = useTrpc();
 
 			try {

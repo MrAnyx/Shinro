@@ -12,14 +12,14 @@ export const useCollectionStore = defineStore("collection", {
 			this.total = count;
 		},
 
-		async createCollection(payload: TRPCProcedureInput<"collections", "create">) {
+		async createCollection(payload: TRPCProcedureInput<"collection", "create">) {
 			const trpc = useTrpc();
 			const collection = await trpc.collection.create.mutate(payload);
 			this.total += 1;
 			return collection;
 		},
 
-		async deleteCollection(payload: TRPCProcedureInput<"collections", "delete">) {
+		async deleteCollection(payload: TRPCProcedureInput<"collection", "delete">) {
 			const trpc = useTrpc();
 			await trpc.collection.delete.mutate(payload);
 			this.total -= 1;
