@@ -110,7 +110,7 @@ const { data, pending, refresh } = useAsyncData(
 	"collections",
 	async () => {
 		try {
-			return await trpc.collections.getAll.query({ page: page.value, search: search.value });
+			return await trpc.collection.getAll.query({ page: page.value, search: search.value });
 		} catch {
 			toast.add({
 				title: "Oops!",
@@ -221,7 +221,7 @@ const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) =>
 	try {
 		loadingCollectionIds.add(row.original.id);
 
-		const collection = await trpc.collections.update.mutate({
+		const collection = await trpc.collection.update.mutate({
 			id: row.original.id,
 			favorite: !row.original.favorite,
 		});

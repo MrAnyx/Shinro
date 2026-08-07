@@ -17,7 +17,7 @@ export const useAuthStore = defineStore("auth", {
 
 			try {
 				this.isLoadingLogin = true;
-				this.user = await trpc.users.login.mutate(payload);
+				this.user = await trpc.user.login.mutate(payload);
 			} catch (error) {
 				this.user = null;
 				throw error;
@@ -30,7 +30,7 @@ export const useAuthStore = defineStore("auth", {
 
 			try {
 				this.isLoadingRegister = true;
-				this.user = await trpc.users.register.mutate(payload);
+				this.user = await trpc.user.register.mutate(payload);
 			} catch (error) {
 				this.user = null;
 				throw error;
@@ -43,7 +43,7 @@ export const useAuthStore = defineStore("auth", {
 
 			try {
 				this.isLoadingLogout = true;
-				await trpc.users.logout.mutate();
+				await trpc.user.logout.mutate();
 			} finally {
 				this.user = null;
 				this.isLoadingLogout = false;
@@ -58,7 +58,7 @@ export const useAuthStore = defineStore("auth", {
 
 			try {
 				this.isLoadingFetchMe = true;
-				this.user = await trpc.users.me.query();
+				this.user = await trpc.user.me.query();
 			} catch (err) {
 				this.user = null;
 				throw err;

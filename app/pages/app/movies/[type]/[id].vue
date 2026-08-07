@@ -315,9 +315,9 @@ const { data: detailsData, pending: loadingDetails } = useAsyncData("movie-detai
 
 const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-external", async () => {
 	if (isInternal.value) {
-		return await trpc.movies.getById.query({ id: id.value });
+		return await trpc.movie.getById.query({ id: id.value });
 	} else if (isExternal.value) {
-		return await trpc.movies.getById.query({ externalId: id.value });
+		return await trpc.movie.getById.query({ externalId: id.value });
 	} else {
 		return null;
 	}
@@ -330,9 +330,9 @@ watch(movieData, (newValue) => {
 
 const { data: movieCollections, pending: loadingMovieCollections } = useAsyncData("movie-collections", async () => {
 	if (isInternal.value) {
-		return await trpc.movies.getCollections.query({ id: id.value });
+		return await trpc.movie.getCollections.query({ id: id.value });
 	} else if (isExternal.value) {
-		return await trpc.movies.getCollections.query({ externalId: id.value });
+		return await trpc.movie.getCollections.query({ externalId: id.value });
 	} else {
 		return null;
 	}
@@ -344,7 +344,7 @@ watch(movieCollections, (newValue) => {
 
 const { data: collectionsData, pending: loadingCollections } = useAsyncData(
 	"collections",
-	async () => await trpc.collections.getAll.query({ force: true }),
+	async () => await trpc.collection.getAll.query({ force: true }),
 );
 
 const { data: creditsData, pending: loadingCredits } = useAsyncData(
@@ -403,7 +403,7 @@ const updateMovieCollections = async (collectionIds: string[]) => {
 	selectedCollectionIds.value = collectionIds;
 
 	try {
-		await trpc.movies.updateCollections.mutate({
+		await trpc.movie.updateCollections.mutate({
 			id: myMovie.value!.id,
 			collectionIds,
 		});
@@ -432,7 +432,7 @@ const updateRating = async (newRating: number | null) => {
 			return;
 		}
 
-		await trpc.movies.update.mutate({
+		await trpc.movie.update.mutate({
 			id: myMovie.value!.id,
 			rating: newRating,
 		});
@@ -455,7 +455,7 @@ const clearRating = async () => {
 
 		rating.value = undefined;
 
-		await trpc.movies.update.mutate({
+		await trpc.movie.update.mutate({
 			id: myMovie.value!.id,
 			rating: null,
 		});

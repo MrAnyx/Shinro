@@ -101,7 +101,7 @@ const { data, pending, refresh } = useAsyncData(
 	"movies",
 	async () => {
 		try {
-			return await trpc.movies.getAll.query({ page: page.value, search: search.value });
+			return await trpc.movie.getAll.query({ page: page.value, search: search.value });
 		} catch {
 			toast.add({
 				title: "Oops!",

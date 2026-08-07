@@ -3,4 +3,6 @@ export const ServerMediaValidation = {
 	externalId: MediaExternalIdSchemaBase,
 	name: MediaNameSchemaBase,
 	rating: MediaRatingSchemaBase.nullable(),
+
+	sort: MediaSortSchemaBase,
 };

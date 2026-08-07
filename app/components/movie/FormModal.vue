@@ -69,7 +69,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		isLoading.value = true;
 
 		if (movie) {
-			const updatedMovie = await trpc.movies.update.mutate({
+			const updatedMovie = await trpc.movie.update.mutate({
 				id: movie.id,
 				name: payload.data.name,
 				overview: payload.data.overview,

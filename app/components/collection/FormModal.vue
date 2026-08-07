@@ -69,7 +69,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		isLoading.value = true;
 
 		if (collection) {
-			const updatedCollection = await trpc.collections.update.mutate({
+			const updatedCollection = await trpc.collection.update.mutate({
 				id: collection.id,
 				name: payload.data.name,
 				description: payload.data.description,
