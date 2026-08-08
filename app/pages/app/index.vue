@@ -41,27 +41,85 @@
 				<DataCard icon="i-lucide-gamepad-2" title="Games" subtitle="Backlog forever" :value="0" />
 			</div>
 
-			<!-- <div class="flex flex-col gap-y-3">
+			<div class="flex flex-col gap-y-3">
 				<div class="flex items-center gap-x-2">
 					<UIcon name="i-lucide-clock" class="w-5 h-5" />
 					<h2 class="text-xl">Recently Added</h2>
 				</div>
 				<UCard :ui="{ body: 'p-0!' }">
-					<UTable :columns="columns" />
+					<UTable :columns="recentMediasColumns" :data="recentMedias" :loading="loadingRecent">
+						<template #image-cell="{ row }">
+							<ImageFallback
+								:width="60"
+								:height="90"
+								class="rounded-sm"
+								provider="tmdb"
+								:src="row.original.imagePath"
+							/>
+						</template>
+						<template #date-cell="{ row }">
+							<NuxtTime
+								:datetime="row.original.createdAt"
+								year="numeric"
+								month="short"
+								day="numeric"
+								hour="2-digit"
+								minute="2-digit"
+							/>
+						</template>
+						<template #type-cell="{ row }">
+							<UBadge variant="subtle" color="neutral">{{ capitalize(row.original.type) }}</UBadge>
+						</template>
+					</UTable>
 				</UCard>
-			</div> -->
+			</div>
 
-			<!-- <template v-if="!pending">
-				<div class="flex flex-col gap-y-3" v-for="collection in data">
+			<template v-if="!loadingCollections">
+				<div class="flex flex-col gap-y-3" v-for="collection in favoriteCollections">
 					<div class="flex items-center gap-x-2">
 						<UIcon name="i-lucide-folder" class="w-5 h-5" />
 						<h2 class="text-xl">{{ collection.name }}</h2>
 					</div>
 					<UCard :ui="{ body: 'p-0!' }">
-						<UTable :columns="columns" :data="collection?.collectionMovies" />
+						<UTable :columns="favoriteCollectionColumns" :data="collection.medias">
+							<template #image-cell="{ row }">
+								<ImageFallback
+									:width="60"
+									:height="90"
+									class="rounded-sm"
+									provider="tmdb"
+									:src="row.original.media.imagePath"
+								/>
+							</template>
+							<template #type-cell="{ row }">
+								<UBadge variant="subtle" color="neutral">{{
+									capitalize(row.original.media.type)
+								}}</UBadge>
+							</template>
+							<template #createdAt-cell="{ row }">
+								<NuxtTime
+									:datetime="row.original.media.createdAt"
+									year="numeric"
+									month="short"
+									day="numeric"
+									hour="2-digit"
+									minute="2-digit"
+								/>
+							</template>
+							<template #addedAt-cell="{ row }">
+								<NuxtTime
+									:datetime="row.original.addedAt"
+									year="numeric"
+									month="short"
+									day="numeric"
+									hour="2-digit"
+									minute="2-digit"
+								/>
+							</template>
+						</UTable>
 					</UCard>
 				</div>
-			</template> -->
+			</template>
 		</template>
 	</UDashboardPanel>
 </template>
@@ -80,18 +138,98 @@ const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
 const trpc = useTrpc();
 
-// const { data, pending } = useAsyncData("favorite-collections", async () => {
-// 	return await trpc.collections.getAllWithMedias.query({ favorite: true });
-// });
+const recentMedias = computed(() => recentData.value?.results.slice(0, 5) ?? []);
 
-// const columns: TableColumn<CollectionMovieWithMovieView>[] = [
-// 	{
-// 		header: "Title",
-// 		accessorFn: (x) => x.movie.title,
-// 	},
-// 	{
-// 		header: "Added At",
-// 		accessorFn: (x) => x.addedAt,
-// 	},
-// ];
+const { data: recentData, pending: loadingRecent } = useAsyncData("recent-media", async () => {
+	return await trpc.media.getAll.query({ orderBy: [{ sort: "createdAt", order: "desc" }] });
+});
+
+const { data: favoriteCollections, pending: loadingCollections } = useAsyncData("favorite-collections", async () => {
+	return await trpc.collection.getFavoritesWithMedias.query();
+});
+
+const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
+	{
+		id: "image",
+		meta: {
+			class: {
+				td: "w-[60px]",
+			},
+		},
+	},
+	{
+		header: "Name",
+		accessorKey: "name",
+		meta: {
+			class: {
+				td: "max-w-[120px] truncate font-bold",
+			},
+		},
+	},
+	{
+		header: "Type",
+		id: "type",
+		meta: {
+			class: {
+				td: "w-0",
+			},
+		},
+	},
+	{
+		header: "Created At",
+		id: "date",
+		meta: {
+			class: {
+				td: "w-0",
+			},
+		},
+	},
+];
+
+const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
+	{
+		id: "image",
+		meta: {
+			class: {
+				td: "w-[60px]",
+			},
+		},
+	},
+	{
+		header: "Name",
+		accessorFn: (x) => x.media.name,
+		meta: {
+			class: {
+				td: "max-w-[120px] truncate font-bold",
+			},
+		},
+	},
+	{
+		header: "Type",
+		id: "type",
+		meta: {
+			class: {
+				td: "w-0",
+			},
+		},
+	},
+	{
+		header: "Created At",
+		id: "createdAt",
+		meta: {
+			class: {
+				td: "w-0",
+			},
+		},
+	},
+	{
+		header: "Added At",
+		id: "addedAt",
+		meta: {
+			class: {
+				td: "w-0",
+			},
+		},
+	},
+];
 </script>

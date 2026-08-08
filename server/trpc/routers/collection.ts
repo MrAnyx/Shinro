@@ -115,6 +115,27 @@ export default router({
 			return count;
 		}),
 
+	getFavoritesWithMedias: protectedProcedure
+		.input(z.void())
+		.output(z.array(CollectionWithMediasViewSchema))
+		.query(async ({ ctx }) => {
+			return await prisma.collection.findMany({
+				where: {
+					ownerId: ctx.user.id,
+					favorite: true,
+				},
+				orderBy: [{ name: "asc" }, { createdAt: "desc" }],
+				include: {
+					medias: {
+						orderBy: [{ addedAt: "desc" }],
+						include: {
+							media: true,
+						},
+					},
+				},
+			});
+		}),
+
 	getAll: protectedProcedure
 		.input(
 			z.object({
