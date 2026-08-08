@@ -34,7 +34,6 @@
 					popover
 				/>
 				<UNavigationMenu :items="mediaItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
-				<UNavigationMenu :items="toolsItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
 				<UNavigationMenu
 					:items="sidebarSecondaryItems"
 					orientation="vertical"
@@ -172,40 +171,7 @@ const mediaItems = computed<NavigationMenuItem[]>(() => [
 	},
 ]);
 
-const toolsItems: NavigationMenuItem[] = [
-	{
-		label: "Tools",
-		type: "label",
-	},
-	{
-		label: "Help",
-		icon: "i-lucide-info",
-	},
-	{
-		label: "Settings",
-		icon: "i-lucide-settings",
-		defaultOpen: true,
-		children: [
-			{
-				label: "General",
-			},
-			{
-				label: "Appearence",
-			},
-			{
-				label: "Account",
-			},
-		],
-	},
-];
-
 const sidebarSecondaryItems: NavigationMenuItem[] = [
-	{
-		label: "Feedback",
-		icon: "i-lucide-message-circle",
-		to: "https://github.com/nuxt-ui-templates/dashboard",
-		target: "_blank",
-	},
 	{
 		label: "Github",
 		icon: "i-lucide-github",
@@ -226,43 +192,11 @@ const userDropdown = computed<DropdownMenuItem[][]>(() => [
 	],
 	[
 		{
-			label: "Account",
-			icon: "i-lucide-user",
+			label: "Settings",
+			icon: "i-lucide-settings",
+			to: "/app/settings/profile",
 		},
 	],
-	[
-		{
-			label: "Theme",
-			icon: "i-lucide-palette",
-			children: [
-				{
-					label: "Light",
-					type: "checkbox",
-					icon: "i-lucide-sun",
-					checked: colorTheme.value === "light",
-					onSelect(e: Event) {
-						e.preventDefault();
-						colorTheme.preference = "light";
-					},
-				},
-				{
-					label: "Dark",
-					type: "checkbox",
-					icon: "i-lucide-moon",
-					checked: colorTheme.value === "dark",
-					onSelect(e: Event) {
-						e.preventDefault();
-						colorTheme.preference = "dark";
-					},
-				},
-			],
-		},
-		{
-			label: "About",
-			icon: "i-lucide-info",
-		},
-	],
-
 	[
 		{
 			label: "Sign out",
