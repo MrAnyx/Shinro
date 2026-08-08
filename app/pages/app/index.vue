@@ -48,6 +48,14 @@
 				</div>
 				<UCard :ui="{ body: 'p-0!' }">
 					<UTable :columns="recentMediasColumns" :data="recentMedias" :loading="loadingRecent">
+						<template #empty>
+							<UEmpty
+								title="No media found"
+								description="Add you first media to see them here"
+								variant="naked"
+								icon="i-lucide-ban"
+							></UEmpty>
+						</template>
 						<template #image-cell="{ row }">
 							<ImageFallback
 								:width="60"
@@ -82,6 +90,14 @@
 					</div>
 					<UCard :ui="{ body: 'p-0!' }">
 						<UTable :columns="favoriteCollectionColumns" :data="collection.medias">
+							<template #empty>
+								<UEmpty
+									title="No media found"
+									description="Add you first media in this collection to see them"
+									variant="naked"
+									icon="i-lucide-ban"
+								></UEmpty>
+							</template>
 							<template #image-cell="{ row }">
 								<ImageFallback
 									:width="60"
