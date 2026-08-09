@@ -141,10 +141,14 @@ export default router({
 
 	updateMe: protectedProcedure
 		.input(
-			z.object({
-				username: ServerUserValidation.username.optional(),
-				password: ServerUserValidation.password.optional(),
-			}),
+			z
+				.object({
+					username: ServerUserValidation.username.optional(),
+					password: ServerUserValidation.password.optional(),
+				})
+				.refine((input) => input.username !== undefined || input.password !== undefined, {
+					message: "At least one profile field must be provided",
+				}),
 		)
 		.output(UserDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
@@ -174,7 +178,7 @@ export default router({
 					},
 				});
 
-				if (usernameExist) {
+				if (usernameExist && usernameExist.id !== user.id) {
 					throw new TRPCError({
 						code: "CONFLICT",
 						message: "Username already exist",
@@ -208,5 +212,7 @@ export default router({
 					id: ctx.user.id,
 				},
 			});
+
+			deleteCookie(ctx.event, "session_id");
 		}),
 });

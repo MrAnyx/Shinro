@@ -80,6 +80,7 @@
 						class="self-end"
 						variant="subtle"
 						type="submit"
+						:loading="isLoadingPassword"
 					/>
 				</div>
 			</UForm>
@@ -124,7 +125,6 @@ import * as z from "zod";
 const { openConfirmationModal } = useConfirmation();
 const userStore = useUserStore();
 const toast = useToast();
-const trpc = useTrpc();
 
 // Username
 const isLoadingUsername = ref(false);
@@ -188,9 +188,13 @@ const onSavePassword = async (payload: FormSubmitEvent<PasswordSchema>) => {
 	try {
 		isLoadingPassword.value = true;
 
-		await trpc.user.updateMe.mutate({
+		await userStore.updateMe({
 			password: payload.data.password,
 		});
+
+		passwordState.password = "";
+		passwordState.password_confirmation = "";
+
 		toast.add({
 			title: "Profile updated",
 			description: `Your password has been updated`,
