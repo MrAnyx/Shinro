@@ -78,10 +78,10 @@ import type { NavigationMenuItem, CommandPaletteItem, DropdownMenuItem } from "@
 const initializationStore = useInitializationStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
-const authStore = useAuthStore();
+const userStore = useUserStore();
 const colorTheme = useColorMode();
 
-const username = computed(() => authStore.user?.username ?? "Unknown");
+const username = computed(() => userStore.user?.username ?? "Unknown");
 
 onMounted(async () => {
 	await initializationStore.initialize();
@@ -203,7 +203,7 @@ const userDropdown = computed<DropdownMenuItem[][]>(() => [
 			icon: "i-lucide-log-out",
 			color: "error",
 			async onSelect() {
-				await authStore.logout();
+				await userStore.logout();
 				await navigateTo("/");
 			},
 		},

@@ -1,5 +1,5 @@
 export default defineNuxtRouteMiddleware(() => {
-	const { isAuthenticated } = useAuthStore();
+	const { isAuthenticated } = useUserStore();
 	const toast = useToast();
 
 	if (isAuthenticated) {

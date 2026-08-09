@@ -5,7 +5,7 @@
 		icon="i-lucide-user-plus"
 		:fields="fields"
 		@submit="onSubmit"
-		:loading="authStore.isLoading"
+		:loading="userStore.isLoading"
 		:submit="{ label: 'Register' }"
 		:validate-on="['change']"
 	>
@@ -30,7 +30,7 @@ definePageMeta({
 });
 
 const toast = useToast();
-const authStore = useAuthStore();
+const userStore = useUserStore();
 
 const fields: AuthFormField[] = [
 	{
@@ -75,7 +75,7 @@ type Schema = z.output<typeof schema>;
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
-		await authStore.register(payload.data);
+		await userStore.register(payload.data);
 		await navigateTo({ path: "/app" });
 	} catch (err) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";

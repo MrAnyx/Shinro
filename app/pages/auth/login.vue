@@ -5,7 +5,7 @@
 		icon="i-lucide-user-check"
 		:fields="fields"
 		@submit="onSubmit"
-		:loading="authStore.isLoading"
+		:loading="userStore.isLoading"
 		:submit="{ label: 'Login' }"
 		:validate-on="['change']"
 	>
@@ -29,7 +29,7 @@ definePageMeta({
 	middleware: ["guest-only"],
 });
 
-const authStore = useAuthStore();
+const userStore = useUserStore();
 const toast = useToast();
 
 const fields: AuthFormField[] = [
@@ -58,7 +58,7 @@ type Schema = z.output<typeof schema>;
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
-		await authStore.login(payload.data);
+		await userStore.login(payload.data);
 		await navigateTo({ path: "/app" });
 	} catch (err) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";

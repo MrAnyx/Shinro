@@ -1,13 +1,13 @@
 export default defineNuxtRouteMiddleware(async () => {
-	const authStore = useAuthStore();
+	const userStore = useUserStore();
 	const toast = useToast();
 
-	if (authStore.isAuthenticated) {
+	if (userStore.isAuthenticated) {
 		return;
 	}
 
 	try {
-		await authStore.fetchMe();
+		await userStore.fetchMe();
 	} catch (err: any) {
 		const code = getTRPCErrorCode(err);
 

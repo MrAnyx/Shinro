@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { addSeconds } from "date-fns";
 import * as z from "zod";
 
+import { Prisma } from "#prisma/client";
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -136,5 +137,76 @@ export default router({
 			}
 
 			return user;
+		}),
+
+	updateMe: protectedProcedure
+		.input(
+			z.object({
+				username: ServerUserValidation.username.optional(),
+				password: ServerUserValidation.password.optional(),
+			}),
+		)
+		.output(UserDefaultViewSchema)
+		.mutation(async ({ input, ctx }) => {
+			const user = await prisma.user.findUnique({
+				where: {
+					id: ctx.user.id,
+				},
+				select: {
+					id: true,
+				},
+			});
+
+			if (!user) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "User not found",
+				});
+			}
+
+			if (input.username) {
+				const usernameExist = await prisma.user.findUnique({
+					where: {
+						username: input.username,
+					},
+					select: {
+						id: true,
+					},
+				});
+
+				if (usernameExist) {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "Username already exist",
+					});
+				}
+			}
+
+			let password;
+
+			if (input.password) {
+				password = await bcrypt.hash(input.password, 10);
+			}
+
+			return await prisma.user.update({
+				where: {
+					id: ctx.user.id,
+				},
+				data: {
+					username: input.username ?? Prisma.skip,
+					passwordHash: password ?? Prisma.skip,
+				},
+			});
+		}),
+
+	deleteMe: protectedProcedure
+		.input(z.void())
+		.output(z.void())
+		.mutation(async ({ ctx }) => {
+			await prisma.user.delete({
+				where: {
+					id: ctx.user.id,
+				},
+			});
 		}),
 });

@@ -1,4 +1,4 @@
-export const useAuthStore = defineStore("auth", {
+export const useUserStore = defineStore("user", {
 	state: () => ({
 		user: null as UserDefaultView | null,
 		isLoadingLogin: false,
@@ -25,6 +25,7 @@ export const useAuthStore = defineStore("auth", {
 				this.isLoadingLogin = false;
 			}
 		},
+
 		async register(payload: TRPCProcedureInput<"user", "register">) {
 			const trpc = useTrpc();
 
@@ -38,6 +39,7 @@ export const useAuthStore = defineStore("auth", {
 				this.isLoadingRegister = false;
 			}
 		},
+
 		async logout() {
 			const trpc = useTrpc();
 
@@ -49,6 +51,7 @@ export const useAuthStore = defineStore("auth", {
 				this.isLoadingLogout = false;
 			}
 		},
+
 		async fetchMe(force: boolean = false) {
 			if (this.isAuthenticated && !force) {
 				return;
@@ -65,6 +68,19 @@ export const useAuthStore = defineStore("auth", {
 			} finally {
 				this.isLoadingFetchMe = false;
 			}
+		},
+
+		async updateMe(payload: TRPCProcedureInput<"user", "updateMe">) {
+			const trpc = useTrpc();
+
+			this.user = await trpc.user.updateMe.mutate(payload);
+		},
+
+		async deleteMe() {
+			const trpc = useTrpc();
+
+			await trpc.user.deleteMe.mutate();
+			this.user = null;
 		},
 	},
 });
