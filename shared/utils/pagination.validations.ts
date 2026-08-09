@@ -1,7 +1,5 @@
 import * as z from "zod";
 
-import { Prisma } from "#prisma/client";
-
 export const PaginationPageSchemaBase = z
 	.int("Pagination page must be a valid integer")
 	.min(1, "Pagination page must be positive")
@@ -10,5 +8,3 @@ export const PaginationPageSchemaBase = z
 export const PaginationSearchSchemaBase = z.string("Pagination search query must be a valid string").trim();
 
 export const PaginationForceSchemaBase = z.boolean("Pagination force must be a valid boolean").default(false);
-
-export const PaginationOrderSchemaBase = z.enum(Prisma.SortOrder);

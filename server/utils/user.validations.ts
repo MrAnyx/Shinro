@@ -1,5 +1,10 @@
+import { z } from "zod";
+
+import { Prisma } from "#prisma/client";
+
 export const ServerUserValidation = {
 	username: UserUsernameSchemaBase,
 	password: UserPasswordSchemaBase,
-	sort: UserSortSchemaBase,
+
+	sort: z.enum(Prisma.UserScalarFieldEnum),
 };

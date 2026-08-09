@@ -6,12 +6,12 @@ export const PaginatedSchema = <T extends z.ZodTypeAny>(schema: T) =>
 		results: z.array(schema),
 	});
 
-export const SortableSchema = <T extends z.ZodTypeAny>(fields: T) =>
+export const SortableSchema = <T extends z.ZodEnum>(fields: T) =>
 	z
 		.array(
 			z.object({
 				sort: fields,
-				order: PaginationOrderSchemaBase,
+				order: ServerPaginationValidation.order,
 			}),
 		)
 		.default([]);

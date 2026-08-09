@@ -1,9 +1,5 @@
 import * as z from "zod";
 
-import { Prisma } from "#prisma/client";
-
-export const UserSortSchemaBase = z.enum(Prisma.UserScalarFieldEnum);
-
 export const UserUsernameSchemaBase = z
 	.string("User username must be a valid string")
 	.trim()

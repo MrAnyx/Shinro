@@ -1,9 +1,5 @@
 import * as z from "zod";
 
-import { Prisma } from "#prisma/client";
-
-export const CollectionSortSchemaBase = z.enum(Prisma.CollectionScalarFieldEnum);
-
 export const CollectionIdSchemaBase = z.uuid("Collection id must be a valid UUID");
 
 export const CollectionNameSchemaBase = z

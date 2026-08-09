@@ -1,9 +1,5 @@
 import * as z from "zod";
 
-import { Prisma } from "#prisma/client";
-
-export const MediaSortSchemaBase = z.enum(Prisma.MediaScalarFieldEnum);
-
 export const MediaIdSchemaBase = z.uuid("Media id must be a valid UUID");
 
 export const MediaExternalIdSchemaBase = z
