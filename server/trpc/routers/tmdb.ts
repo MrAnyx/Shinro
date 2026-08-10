@@ -13,60 +13,52 @@ export default router({
 		)
 		.output(PaginatedSchema(TmdbMovieSearchDefaultViewSchema))
 		.query(async ({ input, ctx }) => {
-			try {
-				if (!input.search) {
-					return {
-						total: 0,
-						results: [],
-					};
-				}
-
-				const tmdbMovies = await tmdb("/search/movie", {
-					schema: TmdbMovieSearchResponseSchema,
-					query: {
-						query: input.search,
-						page: input.page,
-					},
-				});
-
-				const externalIds = tmdbMovies.results.map((x) => x.id);
-
-				const myMovies = await prisma.movie.findMany({
-					where: {
-						media: {
-							ownerId: ctx.user.id,
-							externalId: {
-								in: externalIds,
-							},
-						},
-					},
-					select: {
-						id: true,
-						media: {
-							select: {
-								externalId: true,
-							},
-						},
-					},
-				});
-
-				const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m.id]));
-
-				const movies = tmdbMovies.results.map((movie) =>
-					Object.assign(movie, { internalId: myMoviesMap.get(movie.id) }),
-				);
-
+			if (!input.search) {
 				return {
-					total: tmdbMovies.total_results,
-					results: movies,
+					total: 0,
+					results: [],
 				};
-			} catch (err: any) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					cause: err,
-					message: "An error occured while getting movies",
-				});
 			}
+
+			const tmdbMovies = await tmdb("/search/movie", {
+				schema: TmdbMovieSearchResponseSchema,
+				query: {
+					query: input.search,
+					page: input.page,
+				},
+			});
+
+			const externalIds = tmdbMovies.results.map((x) => x.id);
+
+			const myMovies = await prisma.movie.findMany({
+				where: {
+					media: {
+						ownerId: ctx.user.id,
+						externalId: {
+							in: externalIds,
+						},
+					},
+				},
+				select: {
+					id: true,
+					media: {
+						select: {
+							externalId: true,
+						},
+					},
+				},
+			});
+
+			const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m.id]));
+
+			const movies = tmdbMovies.results.map((movie) =>
+				Object.assign(movie, { internalId: myMoviesMap.get(movie.id) }),
+			);
+
+			return {
+				total: tmdbMovies.total_results,
+				results: movies,
+			};
 		}),
 
 	details: protectedProcedure
@@ -77,17 +69,9 @@ export default router({
 		)
 		.output(TmdbMovieDetailsDefaultViewSchema)
 		.query(async ({ input }) => {
-			try {
-				return await tmdb(`/movie/${input.id}`, {
-					schema: TmdbMovieDetailsResponseSchema,
-				});
-			} catch (err: any) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					cause: err,
-					message: "An error occured while getting movies",
-				});
-			}
+			return await tmdb(`/movie/${input.id}`, {
+				schema: TmdbMovieDetailsResponseSchema,
+			});
 		}),
 
 	credits: protectedProcedure
@@ -98,16 +82,8 @@ export default router({
 		)
 		.output(TmdbMovieCreditsDefaultViewSchema)
 		.query(async ({ input }) => {
-			try {
-				return await tmdb(`/movie/${input.id}/credits`, {
-					schema: TmdbMovieCreditsResponseSchema,
-				});
-			} catch (err: any) {
-				throw new TRPCError({
-					code: "BAD_REQUEST",
-					cause: err,
-					message: "An error occured while getting movie credits",
-				});
-			}
+			return await tmdb(`/movie/${input.id}/credits`, {
+				schema: TmdbMovieCreditsResponseSchema,
+			});
 		}),
 });
