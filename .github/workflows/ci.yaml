@@ -20,10 +20,17 @@ jobs:
               with:
                   version: ^11.20.0
                   runtime: node@24
+                  cache: true
                   install: false
 
             - name: Install dependencies
               run: pnpm clean-install
+
+            - name: Cleanup Nuxt
+              run: pnpm clean
+
+            - name: Prepare Nuxt
+              run: pnpm prepare
 
             - name: Run Linter
               run: pnpm lint
