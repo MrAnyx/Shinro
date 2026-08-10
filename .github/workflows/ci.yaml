@@ -1,0 +1,35 @@
+name: Lint, Format, and Type-Check
+
+on:
+    push:
+        branches: [master] # Adjust branches as needed
+    pull_request:
+        branches: [master] # Adjust branches as needed
+
+jobs:
+    lint-and-typecheck:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+                  cache: "pnpm"
+
+            - name: Install pnpm
+              run: npm install -g pnpm
+
+            - name: Install dependencies
+              run: pnpm clean-install
+
+            - name: Run Linter
+              run: pnpm lint
+
+            - name: Run Formatter
+              run: pnpm run fmt
+
+            - name: Run TypeScript Type Check
+              run: pnpm typecheck

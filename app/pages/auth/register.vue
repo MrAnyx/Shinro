@@ -5,7 +5,7 @@
 		icon="i-lucide-user-plus"
 		:fields="fields"
 		@submit="onSubmit"
-		:loading="userStore.isLoading"
+		:loading="isLoading"
 		:submit="{ label: 'Register' }"
 		:validate-on="['change']"
 	>
@@ -31,6 +31,8 @@ definePageMeta({
 
 const toast = useToast();
 const userStore = useUserStore();
+
+const isLoading = ref(false);
 
 const fields: AuthFormField[] = [
 	{
@@ -75,6 +77,7 @@ type Schema = z.output<typeof schema>;
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
+		isLoading.value = true;
 		await userStore.register(payload.data);
 		await navigateTo({ path: "/app" });
 	} catch (err) {
@@ -86,6 +89,8 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 			color: "error",
 			type: "foreground",
 		});
+	} finally {
+		isLoading.value = false;
 	}
 };
 </script>
