@@ -7,6 +7,10 @@ on:
 jobs:
     lint-and-typecheck:
         runs-on: ubuntu-latest
+
+        env:
+            CI: true
+
         steps:
             - name: Checkout repository
               uses: actions/checkout@v7
@@ -25,7 +29,7 @@ jobs:
               run: pnpm lint
 
             - name: Run Formatter
-              run: pnpm run fmt
+              run: pnpm fmt
 
             - name: Run TypeScript Type Check
               run: pnpm typecheck
