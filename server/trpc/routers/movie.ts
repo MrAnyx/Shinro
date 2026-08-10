@@ -16,7 +16,7 @@ export default router({
 		)
 		.output(MovieWithMediaViewSchema)
 		.mutation(async ({ input, ctx }) => {
-			const movie = await prisma.movie.create({
+			return await prisma.movie.create({
 				data: {
 					media: {
 						create: {
@@ -32,14 +32,12 @@ export default router({
 					media: true,
 				},
 			});
-
-			return movie;
 		}),
 
 	createFromExternal: protectedProcedure
 		.input(
 			z.object({
-				externalId: ServerMediaValidation.externalId,
+				externalId: ServerTmdbMovieValidation.id,
 			}),
 		)
 		.output(MovieWithMediaViewSchema)
@@ -108,17 +106,24 @@ export default router({
 				},
 				select: {
 					id: true,
+					media: {
+						select: {
+							ownerId: true,
+						},
+					},
 				},
 			});
 
 			if (!existingMovie) {
 				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "This movie doesn't exist",
+					code: "NOT_FOUND",
+					message: "Movie not found",
 				});
 			}
 
-			const movie = await prisma.movie.update({
+			const { name = Prisma.skip, rating = Prisma.skip, overview = Prisma.skip } = input;
+
+			return await prisma.movie.update({
 				where: {
 					id: input.id,
 					media: {
@@ -128,18 +133,16 @@ export default router({
 				data: {
 					media: {
 						update: {
-							name: input.name ?? Prisma.skip,
-							rating: input.rating === undefined ? Prisma.skip : input.rating,
+							name,
+							rating,
 						},
 					},
-					overview: input.overview === undefined ? Prisma.skip : input.overview,
+					overview,
 				},
 				include: {
 					media: true,
 				},
 			});
-
-			return movie;
 		}),
 
 	delete: protectedProcedure
@@ -150,7 +153,7 @@ export default router({
 		)
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
-			const movieExist = await prisma.movie.findFirst({
+			const existingMovie = await prisma.movie.findFirst({
 				where: {
 					id: input.id,
 					media: {
@@ -159,23 +162,25 @@ export default router({
 				},
 				select: {
 					id: true,
+					media: {
+						select: {
+							ownerId: true,
+						},
+					},
 				},
 			});
 
-			if (!movieExist) {
+			if (!existingMovie) {
 				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "This movie doesn't exist",
+					code: "NOT_FOUND",
+					message: "Movie not found",
 				});
 			}
-
 			// Use the media model to leverage the cascade on delete feature
 			await prisma.media.deleteMany({
 				where: {
 					ownerId: ctx.user.id,
-					movie: {
-						id: input.id,
-					},
+					id: input.id,
 				},
 			});
 		}),
@@ -184,15 +189,13 @@ export default router({
 		.input(z.void())
 		.output(z.number())
 		.query(async ({ ctx }) => {
-			const count = await prisma.movie.count({
+			return await prisma.movie.count({
 				where: {
 					media: {
 						ownerId: ctx.user.id,
 					},
 				},
 			});
-
-			return count;
 		}),
 
 	getAll: protectedProcedure
@@ -250,7 +253,10 @@ export default router({
 		.output(MovieWithMediaViewSchema)
 		.query(async ({ input, ctx }) => {
 			if (!input.id && !input.externalId) {
-				throw new TRPCError({ code: "BAD_REQUEST", message: "Either id or externalId must be specified" });
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Either id or externalId must be specified",
+				});
 			}
 
 			const mediaFilter: Prisma.MediaWhereInput = input.id ? { id: input.id } : { externalId: input.externalId };
@@ -262,11 +268,16 @@ export default router({
 						ownerId: ctx.user.id,
 					},
 				},
-				include: { media: true },
+				include: {
+					media: true,
+				},
 			});
 
 			if (!movie) {
-				throw new TRPCError({ code: "NOT_FOUND", message: "Movie not found" });
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Movie not found",
+				});
 			}
 
 			return movie;
@@ -282,7 +293,10 @@ export default router({
 		.output(z.array(CollectionDefaultViewSchema))
 		.query(async ({ input, ctx }) => {
 			if (!input.id && !input.externalId) {
-				throw new TRPCError({ code: "BAD_REQUEST", message: "Either id or externalId must be specified" });
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Either id or externalId must be specified",
+				});
 			}
 
 			const mediaFilter: Prisma.MediaWhereInput = input.id ? { id: input.id } : { externalId: input.externalId };
@@ -301,8 +315,8 @@ export default router({
 
 			if (!movie) {
 				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "This movie doesn't exist",
+					code: "NOT_FOUND",
+					message: "Movie not found",
 				});
 			}
 
@@ -344,18 +358,22 @@ export default router({
 
 			if (!movie) {
 				throw new TRPCError({
-					code: "BAD_REQUEST",
-					message: "This movie doesn't exist",
+					code: "NOT_FOUND",
+					message: "Movie not found",
 				});
 			}
 
 			if (input.collectionIds.length > 0) {
 				const ownedCollections = await prisma.collection.findMany({
 					where: {
-						id: { in: input.collectionIds },
+						id: {
+							in: input.collectionIds,
+						},
 						ownerId: ctx.user.id,
 					},
-					select: { id: true },
+					select: {
+						id: true,
+					},
 				});
 
 				if (ownedCollections.length !== input.collectionIds.length) {
@@ -372,14 +390,16 @@ export default router({
 				});
 
 				if (input.collectionIds.length > 0) {
+					const collectionsToCreate = input.collectionIds.map(
+						(collectionId) =>
+							({
+								mediaId: input.id,
+								collectionId,
+							}) as CollectionMediaCreateManyInput,
+					);
+
 					await tx.collectionMedia.createMany({
-						data: input.collectionIds.map(
-							(collectionId) =>
-								({
-									mediaId: input.id,
-									collectionId,
-								}) as CollectionMediaCreateManyInput,
-						),
+						data: collectionsToCreate,
 					});
 				}
 			});
