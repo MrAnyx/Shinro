@@ -2,25 +2,17 @@ name: Lint, Format, and Type-Check
 
 on:
     push:
-        branches: [master] # Adjust branches as needed
     pull_request:
-        branches: [master] # Adjust branches as needed
 
 jobs:
     lint-and-typecheck:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
 
-            - name: Set up Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: 24
-                  cache: "pnpm"
-
-            - name: Install pnpm
-              run: npm install -g pnpm
+            - name: Set up Node.js and PNPM
+              uses: pnpm/setup@v2
 
             - name: Install dependencies
               run: pnpm clean-install
