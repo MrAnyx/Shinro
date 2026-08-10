@@ -14,6 +14,7 @@ jobs:
             - name: Set up Node.js and PNPM
               uses: pnpm/setup@v2
               with:
+                  version: ^11.20.0
                   runtime: node@24
                   install: false
 
