@@ -1,0 +1,66 @@
+name: Deploy to GHCR
+
+on:
+    push:
+        branches: [master]
+        tags: ["v*"]
+
+# env:
+#     CI: true
+#     REGISTRY: ghcr.io
+#     IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+    build-and-deploy:
+        runs-on: ubuntu-latest
+#         permissions:
+#             contents: read
+#             packages: write
+
+#         steps:
+#             - name: Checkout repository
+#               uses: actions/checkout@v7
+
+#             - name: Set up Node.js and PNPM
+#               uses: pnpm/setup@v2
+#               with:
+#                   version: ^11.20.0
+#                   runtime: node@24
+#                   cache: true
+#                   install: false
+
+#             - name: Install dependencies
+#               run: pnpm clean-install
+
+#             - name: Generate Prisma
+#               run: pnpm db:generate
+
+#             - name: Build Nuxt Application
+#               run: pnpm build
+
+#             # --- Docker Build and Push to GHCR ---
+#             - name: Log in to GHCR
+#               uses: docker/login-action@v4
+#               with:
+#                   registry: ${{ env.REGISTRY }}
+#                   username: ${{ github.actor }}
+#                   password: ${{ secrets.GITHUB_TOKEN }}
+
+#             - name: Extract metadata (tags, labels) for Docker
+#               id: meta
+#               uses: docker/metadata-action@v5
+#               with:
+#                   images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+#                   tags: |
+#                       type=ref,event=branch
+#                       type=ref,event=tag
+#                       type=sha,prefix={{branch}}-
+#                       type=raw,value=latest,enable={{is_default_branch}}
+
+#             - name: Build and push Docker image
+#               uses: docker/build-push-action@v7
+#               with:
+#                   context: .
+#                   push: true
+#                   tags: ${{ steps.meta.outputs.tags }}
+#                   labels: ${{ steps.meta.outputs.labels }}

@@ -4,12 +4,14 @@ on:
     push:
     pull_request:
 
+env:
+    CI: true
+
 jobs:
     lint-and-typecheck:
         runs-on: ubuntu-latest
-
-        env:
-            CI: true
+        permissions:
+            contents: read
 
         steps:
             - name: Checkout repository
