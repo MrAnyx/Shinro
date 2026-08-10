@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import * as z from "zod";
+import { z } from "zod";
 
 import { Prisma } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
@@ -41,19 +41,28 @@ export default router({
 			const existingCollection = await prisma.collection.findFirst({
 				where: {
 					id: input.id,
-					ownerId: ctx.user.id,
 				},
 				select: {
 					id: true,
+					ownerId: true,
 				},
 			});
 
 			if (!existingCollection) {
 				throw new TRPCError({
-					code: "CONFLICT",
+					code: "NOT_FOUND",
 					message: "Collection not found",
 				});
 			}
+
+			if (existingCollection.ownerId !== ctx.user.id) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Your are not the owner of this collection",
+				});
+			}
+
+			const { name = Prisma.skip, description = Prisma.skip, favorite = Prisma.skip } = input;
 
 			const collection = await prisma.collection.update({
 				where: {
@@ -61,9 +70,9 @@ export default router({
 					ownerId: ctx.user.id,
 				},
 				data: {
-					name: input.name ?? Prisma.skip,
-					description: input.description === undefined ? Prisma.skip : input.description,
-					favorite: input.favorite === undefined ? Prisma.skip : input.favorite,
+					name,
+					description,
+					favorite,
 				},
 			});
 
@@ -81,17 +90,24 @@ export default router({
 			const existingCollection = await prisma.collection.findFirst({
 				where: {
 					id: input.id,
-					ownerId: ctx.user.id,
 				},
 				select: {
 					id: true,
+					ownerId: true,
 				},
 			});
 
 			if (!existingCollection) {
 				throw new TRPCError({
-					code: "CONFLICT",
+					code: "NOT_FOUND",
 					message: "Collection not found",
+				});
+			}
+
+			if (existingCollection.ownerId !== ctx.user.id) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Your are not the owner of this collection",
 				});
 			}
 
@@ -107,12 +123,11 @@ export default router({
 		.input(z.void())
 		.output(z.number())
 		.query(async ({ ctx }) => {
-			const count = await prisma.collection.count({
+			return await prisma.collection.count({
 				where: {
 					ownerId: ctx.user.id,
 				},
 			});
-			return count;
 		}),
 
 	getFavoritesWithMedias: protectedProcedure

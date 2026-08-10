@@ -1,3 +1,3 @@
-import * as z from "zod";
+import { z } from "zod";
 
 export type UserDefaultView = z.infer<typeof UserDefaultViewSchema>;

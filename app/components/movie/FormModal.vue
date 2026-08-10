@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import type { FormSubmitEvent } from "@nuxt/ui";
-import * as z from "zod";
+import { z } from "zod";
 
 const { movie } = defineProps<{ movie?: MovieWithMediaView }>();
 

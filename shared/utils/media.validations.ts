@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 
 export const MediaIdSchemaBase = z.uuid("Media id must be a valid UUID");
 

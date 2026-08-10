@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 
 export const CollectionIdSchemaBase = z.uuid("Collection id must be a valid UUID");
 

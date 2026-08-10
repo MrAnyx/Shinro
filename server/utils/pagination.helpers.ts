@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 
 export const PaginatedSchema = <T extends z.ZodTypeAny>(schema: T) =>
 	z.object({

@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
 import { addSeconds } from "date-fns";
-import * as z from "zod";
+import { z } from "zod";
 
 import { Prisma } from "#prisma/client";
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";

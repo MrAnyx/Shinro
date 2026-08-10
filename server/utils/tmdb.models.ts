@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 
 export const TmdbMovieSearchResponseSchema = z.object({
 	total_results: z.number(),

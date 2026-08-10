@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 
 export type CollectionMediaDefaultView = z.infer<typeof CollectionMediaDefaultViewSchema>;
 export type CollectionMediaWithCollectionView = z.infer<typeof CollectionMediaWithCollectionViewSchema>;

@@ -69,16 +69,14 @@ export const protectedProcedure = publicProcedure
 		if (!session || !session.user) {
 			throw new TRPCError({
 				code: "UNAUTHORIZED",
-				cause: "Session doesn't exist or is invalid",
-				message: "This session is invalid or doesn't exist",
+				message: "Session is invalid or doesn't exist",
 			});
 		}
 
 		if (session.expiresAt < new Date()) {
 			throw new TRPCError({
 				code: "UNAUTHORIZED",
-				cause: "Session expired",
-				message: "This session has expired. You must login again",
+				message: "Session has expired. You must login again",
 			});
 		}
 
@@ -102,7 +100,6 @@ export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 	if (ctx.user.role !== "ADMIN") {
 		throw new TRPCError({
 			code: "FORBIDDEN",
-			cause: "User is not authorized",
 			message: "User doesn't have the right authorizations",
 		});
 	}

@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 
 export const PaginationPageSchemaBase = z
 	.int("Pagination page must be a valid integer")

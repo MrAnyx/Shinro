@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
-import * as z from "zod";
+import { z } from "zod";
 
 definePageMeta({
 	layout: "auth",
