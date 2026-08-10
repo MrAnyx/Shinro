@@ -5,6 +5,6 @@
 	"singleQuote": false,
 	"sortImports": true,
 	"sortPackageJson": true,
-	"endOfLine": "crlf",
+	"endOfLine": "lf",
 	"ignorePatterns": ["**/*.toml"]
 }
