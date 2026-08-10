@@ -13,6 +13,9 @@ jobs:
 
             - name: Set up Node.js and PNPM
               uses: pnpm/setup@v2
+              with:
+                  runtime: node@24
+                  install: false
 
             - name: Install dependencies
               run: pnpm clean-install
