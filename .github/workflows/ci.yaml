@@ -26,12 +26,6 @@ jobs:
             - name: Install dependencies
               run: pnpm clean-install
 
-            - name: Cleanup Nuxt
-              run: pnpm clean
-
-            - name: Prepare Nuxt
-              run: pnpm prepare
-
             - name: Run Linter
               run: pnpm lint
 
