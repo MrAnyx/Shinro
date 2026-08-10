@@ -317,7 +317,7 @@ const myMovie = ref<MovieWithMediaView | null | undefined>(null);
 
 // Async data
 const { data: detailsData, pending: loadingDetails } = useAsyncData("movie-details", async () =>
-	isExternal.value ? await trpc.tmdb.details.query({ id: id.value }) : null,
+	isExternal.value ? await trpc.tmdbMovie.details.query({ id: id.value }) : null,
 );
 
 const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-external", async () => {
@@ -363,7 +363,7 @@ const { data: collectionsData, pending: loadingCollections } = useAsyncData(
 
 const { data: creditsData, pending: loadingCredits } = useAsyncData(
 	"credits",
-	async () => await trpc.tmdb.credits.query({ id: id.value }),
+	async () => await trpc.tmdbMovie.credits.query({ id: id.value }),
 );
 
 // Methods
