@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url";
 
 import "./server/utils/serverEnv";
+import { tuple } from "zod";
 
 export default defineNuxtConfig({
 	build: {
@@ -42,11 +43,10 @@ export default defineNuxtConfig({
 	},
 	modules: ["@nuxt/ui", "@pinia/nuxt", "@nuxt/image", "evlog/nuxt"],
 	evlog: {
+		redact: true,
+		enabled: true,
 		console: true,
 		pretty: true,
-		transport: {
-			enabled: false,
-		},
 		env: {
 			service: "shinro-server",
 		},
