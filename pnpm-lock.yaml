@@ -44,6 +44,9 @@ importers:
       date-fns:
         specifier: ^4.4.0
         version: 4.4.0
+      evlog:
+        specifier: ^2.25.0
+        version: 2.25.0(@nuxt/kit@4.5.2(magic-string@1.1.0)(magicast@0.5.4)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(yaml@2.9.0))))(h3@1.15.11)(nitropack@2.13.4(@electric-sql/pglite@0.4.3)(@parcel/watcher@2.6.0)(mysql2@3.15.3)(rolldown@1.2.3)(srvx@0.11.22)(supports-color@10.2.2)(vite@8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(yaml@2.9.0)))(ofetch@1.5.1)(react@19.2.8)(vite@8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(yaml@2.9.0))
       nuxt:
         specifier: ^4.5.1
         version: 4.5.2(@babel/plugin-syntax-jsx@7.29.7(@babel/core@7.29.7(supports-color@10.2.2)))(@babel/plugin-syntax-typescript@7.29.7(@babel/core@7.29.7(supports-color@10.2.2)))(@electric-sql/pglite@0.4.3)(@oxc-project/types@0.143.0)(@parcel/watcher@2.6.0)(@types/node@26.1.2)(@vue/compiler-sfc@3.5.41)(db0@0.3.4(@electric-sql/pglite@0.4.3)(mysql2@3.15.3))(esbuild@0.28.1)(ioredis@5.11.1(supports-color@10.2.2))(lightningcss@1.33.0)(magicast@0.5.4)(mysql2@3.15.3)(oxlint@1.77.0)(pinia@4.0.2(@vue/devtools-api@8.2.1)(typescript@6.0.3)(vue@3.5.41(typescript@6.0.3)))(rolldown@1.2.3)(rollup-plugin-visualizer@7.0.1(rolldown@1.2.3)(rollup@4.62.4))(rollup@4.62.4)(sass@1.102.0)(srvx@0.11.22)(supports-color@10.2.2)(terser@5.49.2)(typescript@6.0.3)(vite@8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(yaml@2.9.0))(vue-tsc@3.3.9(typescript@6.0.3))(yaml@2.9.0)
@@ -3553,6 +3556,66 @@ packages:
   events@3.3.0:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
     engines: {node: '>=0.8.x'}
+
+  evlog@2.25.0:
+    resolution: {integrity: sha512-8rJkVB6k9jjHtl0u3ld8ciCbBUHM2LSyX9ea1fh8kIVx9pBpgW8BtLIIh2C9EQnmVvzAGBmW4nbiBUZCOEfbXA==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@nestjs/common': '>=11.1.28'
+      '@nuxt/kit': ^4.4.2
+      '@orpc/server': '>=1.14.8'
+      '@tanstack/start-client-core': ^1.170.14
+      ai: '>=6.0.168 <8.0.0'
+      elysia: '>=1.4.29'
+      eve: '>=0.30.0'
+      express: '>=5.2.1'
+      fastify: '>=5.10.0'
+      h3: ^1.15.11
+      hono: '>=4.12.30'
+      next: '>=16.2.10'
+      nitro: ^3.0.260311-beta
+      nitropack: ^2.13.4
+      ofetch: ^1.5.1
+      react: '>=19.2.7'
+      react-router: '>=7.18.1'
+      vite: ^7.0.0 || ^8.0.0
+    peerDependenciesMeta:
+      '@nestjs/common':
+        optional: true
+      '@nuxt/kit':
+        optional: true
+      '@orpc/server':
+        optional: true
+      '@tanstack/start-client-core':
+        optional: true
+      ai:
+        optional: true
+      elysia:
+        optional: true
+      eve:
+        optional: true
+      express:
+        optional: true
+      fastify:
+        optional: true
+      h3:
+        optional: true
+      hono:
+        optional: true
+      next:
+        optional: true
+      nitro:
+        optional: true
+      nitropack:
+        optional: true
+      ofetch:
+        optional: true
+      react:
+        optional: true
+      react-router:
+        optional: true
+      vite:
+        optional: true
 
   execa@8.0.1:
     resolution: {integrity: sha512-VyhnebXciFV2DESc+p6B+y0LjSm0krU4OgJN44qFAhBY0TJ+1V61tYD2+wHusZ6F9n5K+vl8k0sTy7PEfV4qpg==}
@@ -9599,6 +9662,15 @@ snapshots:
       - bare-abort-controller
 
   events@3.3.0: {}
+
+  evlog@2.25.0(@nuxt/kit@4.5.2(magic-string@1.1.0)(magicast@0.5.4)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(yaml@2.9.0))))(h3@1.15.11)(nitropack@2.13.4(@electric-sql/pglite@0.4.3)(@parcel/watcher@2.6.0)(mysql2@3.15.3)(rolldown@1.2.3)(srvx@0.11.22)(supports-color@10.2.2)(vite@8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(yaml@2.9.0)))(ofetch@1.5.1)(react@19.2.8)(vite@8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(yaml@2.9.0)):
+    optionalDependencies:
+      '@nuxt/kit': 4.5.2(magic-string@1.1.0)(magicast@0.5.4)(rolldown@1.2.3)(unplugin@3.3.0(esbuild@0.28.1)(rolldown@1.2.3)(rollup@4.62.4)(vite@8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(yaml@2.9.0)))
+      h3: 1.15.11
+      nitropack: 2.13.4(@electric-sql/pglite@0.4.3)(@parcel/watcher@2.6.0)(mysql2@3.15.3)(rolldown@1.2.3)(srvx@0.11.22)(supports-color@10.2.2)(vite@8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(yaml@2.9.0))
+      ofetch: 1.5.1
+      react: 19.2.8
+      vite: 8.2.1(@types/node@26.1.2)(esbuild@0.28.1)(jiti@2.7.0)(sass@1.102.0)(terser@5.49.2)(yaml@2.9.0)
 
   execa@8.0.1:
     dependencies:

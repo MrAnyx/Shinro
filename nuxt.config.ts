@@ -40,7 +40,17 @@ export default defineNuxtConfig({
 			},
 		},
 	},
-	modules: ["@nuxt/ui", "@pinia/nuxt", "@nuxt/image"],
+	modules: ["@nuxt/ui", "@pinia/nuxt", "@nuxt/image", "evlog/nuxt"],
+	evlog: {
+		console: true,
+		pretty: true,
+		transport: {
+			enabled: false,
+		},
+		env: {
+			service: "shinro-server",
+		},
+	},
 	ssr: false,
 	typescript: {
 		strict: true,

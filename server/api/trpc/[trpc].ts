@@ -3,18 +3,18 @@ import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { createContext } from "#server/trpc/context";
 import { appRouter } from "#server/trpc/router";
 
-const logger = useLogger("trpc:api");
+export default defineEventHandler((event) => {
+	const log = useLogger(event);
 
-export default defineEventHandler((event) =>
-	fetchRequestHandler({
+	return fetchRequestHandler({
 		endpoint: "/api/trpc",
 		allowBatching: true,
 		createContext: () => createContext(event),
 		maxBatchSize: 10,
 		onError({ error }) {
-			logger.error(error.message.trim());
+			log.error(error.message.trim(), { ...error });
 		},
 		req: toWebRequest(event),
 		router: appRouter,
-	}),
-);
+	});
+});
