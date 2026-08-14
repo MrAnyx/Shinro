@@ -9,7 +9,7 @@ export default defineNuxtConfig({
 	},
 	vite: {
 		optimizeDeps: {
-			include: ["@unovis/ts", "@unovis/vue", "@vueuse/core", "zod", "superjson"],
+			include: ["@unovis/ts", "@unovis/vue", "@vueuse/core", "zod"],
 		},
 	},
 	runtimeConfig: {

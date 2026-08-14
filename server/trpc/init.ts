@@ -1,6 +1,5 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import { addSeconds } from "date-fns";
-import superjson from "superjson";
 
 import { createContext } from "#server/trpc/context";
 
@@ -8,7 +7,7 @@ type Context = Awaited<ReturnType<typeof createContext>>;
 
 const trpc = initTRPC.context<Context>().create({
 	isDev: serverEnv.NODE_ENV !== "production",
-	transformer: superjson,
+	transformer,
 	errorFormatter({ shape, error }) {
 		const originalError = error.cause;
 		const timestamp = new Date().toISOString();

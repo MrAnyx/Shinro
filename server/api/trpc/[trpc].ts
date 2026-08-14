@@ -8,9 +8,10 @@ export default defineEventHandler((event) => {
 
 	return fetchRequestHandler({
 		endpoint: "/api/trpc",
-		allowBatching: true,
+		allowMethodOverride: true,
+		allowBatching: false,
 		createContext: () => createContext(event),
-		maxBatchSize: 10,
+		// maxBatchSize: 10,
 		onError({ error }) {
 			log.error(error.message.trim(), { ...error });
 		},
