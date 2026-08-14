@@ -16,8 +16,14 @@ export default router({
 		)
 		.output(UserDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
+			const log = useLogger(ctx.event);
+
+			log.set({ auth: { username: input.username } });
+
 			const totaluser = await prisma.user.count({ take: 1 });
 			const isFirstUser = totaluser === 0;
+
+			log.set({ auth: { isFirstUser } });
 
 			const userExist = await prisma.user.findUnique({
 				where: {
@@ -43,6 +49,15 @@ export default router({
 					username: input.username,
 					role: isFirstUser ? "ADMIN" : "USER",
 				},
+			});
+
+			log.set({ user: { id: user.id, role: user.role } });
+
+			log.audit({
+				action: "user.register",
+				actor: { type: "system", id: "registration-flow" },
+				target: { type: "user", id: user.id },
+				outcome: "success",
 			});
 
 			const sessionId = generateRandomString(255);
