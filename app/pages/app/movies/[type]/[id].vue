@@ -38,6 +38,14 @@
 							@click="removeMovie"
 						/>
 
+						<UButton
+							label="Edit movie"
+							block
+							leading-icon="i-lucide-square-pen"
+							variant="subtle"
+							color="info"
+						/>
+
 						<USelectMenu
 							:items="collections"
 							:model-value="selectedCollectionIds"
