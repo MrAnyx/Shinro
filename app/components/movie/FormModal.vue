@@ -9,11 +9,14 @@
 				:validate-on="['change']"
 				class="gap-4 flex flex-col"
 			>
-				<UFormField label="Title" name="title" required>
+				<UFormField label="Title" name="name" required>
 					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus />
 				</UFormField>
-				<UFormField label="Description" name="description">
+				<UFormField label="Overview" name="overview">
 					<UTextarea v-model="state.overview" class="w-full" autoresize :maxrows="10" />
+				</UFormField>
+				<UFormField label="Note" name="note">
+					<UTextarea v-model="state.note" class="w-full" autoresize :maxrows="4" :maxlength="1000" />
 				</UFormField>
 				<UFormField label="Rating" name="rating">
 					<ClearableRating v-model="state.rating" />
@@ -48,12 +51,14 @@ const schema = z.object({
 	name: ClientMediaValidation.name,
 	overview: ClientMovieValidation.overview,
 	rating: ClientMediaValidation.rating,
+	note: ClientMediaValidation.note,
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
 	name: movie?.media.name ?? "",
 	overview: movie?.overview ?? "",
 	rating: movie?.media.rating ?? undefined,
+	note: movie?.media.note ?? "",
 });
 
 const onCancel = () => {
@@ -74,6 +79,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				name: payload.data.name,
 				overview: payload.data.overview,
 				rating: payload.data.rating ?? null,
+				note: payload.data.note,
 			});
 			toast.add({
 				title: "Movie updated",
@@ -86,6 +92,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				name: payload.data.name,
 				overview: payload.data.overview,
 				rating: payload.data.rating ?? null,
+				note: payload.data.note,
 			});
 			toast.add({
 				title: "New movie created",

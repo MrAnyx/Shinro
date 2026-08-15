@@ -17,3 +17,5 @@ export const MediaRatingSchemaBase = z
 	.min(0, "Media rating must be greater or equal to 0")
 	.max(10, "Media rating must be less or equal to 10")
 	.multipleOf(0.5, "Media rating must be a multiple of 0.5");
+
+export const MediaNoteSchemaBase = z.string().trim().max(1000, "Media note must be less or equal to 1000");

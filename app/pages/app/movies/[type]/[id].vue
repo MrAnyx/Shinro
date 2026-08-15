@@ -191,6 +191,16 @@
 				</template>
 			</div>
 
+			<!-- Note -->
+			<UAlert
+				title="Personal note"
+				:description="note"
+				icon="i-lucide-notebook-pen"
+				color="neutral"
+				variant="subtle"
+				v-if="note && !isLoading"
+			/>
+
 			<USeparator v-if="isExternal" />
 
 			<!-- Credits -->
@@ -307,6 +317,7 @@ const collections = computed<SelectMenuItem[]>(
 const ratingButtonLabel = computed(() =>
 	rating.value ? `Edit my rating (${rating.value.toFixed(1)})` : `Set my rating`,
 );
+const note = computed(() => myMovie.value?.media.note ?? "");
 
 // State
 const readMore = ref(false);

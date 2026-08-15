@@ -45,7 +45,6 @@ export const protectedProcedure = publicProcedure
 		if (!sessionId) {
 			throw new TRPCError({
 				code: "UNAUTHORIZED",
-				cause: "User is not authenticated",
 				message: "You must login first before using this procedure",
 			});
 		}

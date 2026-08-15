@@ -12,6 +12,7 @@ export default router({
 				name: ServerMediaValidation.name,
 				overview: ServerMovieValidation.overview,
 				rating: ServerMediaValidation.rating,
+				note: ServerMediaValidation.note,
 			}),
 		)
 		.output(MovieWithMediaViewSchema)
@@ -24,6 +25,7 @@ export default router({
 							type: MediaType.MOVIE,
 							ownerId: ctx.user.id,
 							rating: input.rating,
+							note: input.note,
 						},
 					},
 					overview: input.overview,
@@ -93,6 +95,7 @@ export default router({
 				name: ServerMediaValidation.name.optional(),
 				overview: ServerMovieValidation.overview.optional(),
 				rating: ServerMediaValidation.rating.optional(),
+				note: ServerMediaValidation.note.optional(),
 			}),
 		)
 		.output(MovieWithMediaViewSchema)
@@ -121,7 +124,7 @@ export default router({
 				});
 			}
 
-			const { name = Prisma.skip, rating = Prisma.skip, overview = Prisma.skip } = input;
+			const { name = Prisma.skip, rating = Prisma.skip, overview = Prisma.skip, note = Prisma.skip } = input;
 
 			return await prisma.movie.update({
 				where: {
@@ -135,6 +138,7 @@ export default router({
 						update: {
 							name,
 							rating,
+							note,
 						},
 					},
 					overview,

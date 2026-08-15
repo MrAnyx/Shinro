@@ -4,6 +4,9 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 -- CreateEnum
 CREATE TYPE "MediaType" AS ENUM ('MOVIE', 'SERIES', 'BOOK', 'MUSIC', 'GAME');
 
+-- CreateEnum
+CREATE TYPE "ImageType" AS ENUM ('TMDB');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" UUID NOT NULL,
@@ -48,7 +51,9 @@ CREATE TABLE "Media" (
     "externalId" VARCHAR(255),
     "name" VARCHAR(255),
     "imagePath" VARCHAR(500),
+    "imageType" "ImageType",
     "rating" DOUBLE PRECISION,
+    "note" VARCHAR(1000),
     "ownerId" UUID NOT NULL,
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(6) NOT NULL,

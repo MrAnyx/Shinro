@@ -7,6 +7,7 @@ export const ServerMediaValidation = {
 	externalId: MediaExternalIdSchemaBase,
 	name: MediaNameSchemaBase,
 	rating: MediaRatingSchemaBase.nullable(),
+	note: MediaNoteSchemaBase.nullable().transform((val) => (val === "" ? null : val)),
 
 	sort: z.enum(Prisma.MediaScalarFieldEnum),
 };
