@@ -1,9 +1,16 @@
 import { fileURLToPath } from "node:url";
 
 import "./server/utils/serverEnv";
-import { tuple } from "zod";
 
 export default defineNuxtConfig({
+	nitro: {
+		experimental: {
+			tasks: true,
+		},
+		scheduledTasks: {
+			"* * * * *": ["hello"],
+		},
+	},
 	build: {
 		transpile: ["@trpc/client"],
 	},
