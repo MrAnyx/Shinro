@@ -35,7 +35,7 @@ import { z } from "zod";
 const { collection } = defineProps<{ collection?: CollectionDefaultView }>();
 
 const emit = defineEmits<{
-	close: [value?: boolean];
+	close: [value?: CollectionDefaultView];
 }>();
 
 const isLoading = ref(false);
@@ -68,8 +68,10 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
 		isLoading.value = true;
 
+		let updatedCollection;
+
 		if (collection) {
-			const updatedCollection = await trpc.collection.update.mutate({
+			updatedCollection = await trpc.collection.update.mutate({
 				id: collection.id,
 				name: payload.data.name,
 				description: payload.data.description,
@@ -82,16 +84,16 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				type: "foreground",
 			});
 		} else {
-			const newCollection = await collectionStore.createCollection(payload.data);
+			updatedCollection = await collectionStore.createCollection(payload.data);
 			toast.add({
 				title: "New collection created",
-				description: `Collection ${newCollection.name} has been created`,
+				description: `Collection ${updatedCollection.name} has been created`,
 				color: "success",
 				type: "foreground",
 			});
 		}
 
-		emit("close", true);
+		emit("close", updatedCollection);
 	} catch (err) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
 

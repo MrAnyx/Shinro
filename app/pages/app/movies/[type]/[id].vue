@@ -44,6 +44,7 @@
 							leading-icon="i-lucide-square-pen"
 							variant="subtle"
 							color="info"
+							@click="editMovie"
 						/>
 
 						<USelectMenu
@@ -92,7 +93,7 @@
 				</template>
 				<template v-else>
 					<h1 class="font-bold text-4xl">
-						{{ myMovie?.media.name ?? detailsData?.title ?? "No title available" }}
+						{{ movieData?.media.name ?? detailsData?.title ?? "No title available" }}
 					</h1>
 					<h3 class="italic text-muted text-sm" v-if="detailsData?.tagline">{{ detailsData?.tagline }}</h3>
 				</template>
@@ -164,7 +165,7 @@
 
 				<template v-else>
 					<p class="text-toned" :class="{ 'line-clamp-none': readMore, 'line-clamp-2': !readMore }">
-						{{ myMovie?.overview ?? detailsData?.overview ?? "No overview available" }}
+						{{ movieData?.overview ?? detailsData?.overview ?? "No overview available" }}
 					</p>
 					<UButton
 						label="Read more"
@@ -269,6 +270,8 @@
 <script setup lang="ts">
 import type { SelectMenuItem } from "@nuxt/ui";
 
+import { LazyMovieFormModal } from "#components";
+
 definePageMeta({
 	layout: "app",
 	middleware: ["auth"],
@@ -285,6 +288,7 @@ const route = useRoute();
 const trpc = useTrpc();
 const movieStore = useMovieStore();
 const toast = useToast();
+const overlay = useOverlay();
 
 // Computed
 const type = computed(() => route.params.type as MediaSourceType);
@@ -307,7 +311,7 @@ const isLoading = computed(
 		loadingCredits.value ||
 		loadingMovieCollections.value,
 );
-const isInMyList = computed(() => !!myMovie.value);
+const isInMyList = computed(() => !!movieData.value);
 const collections = computed<SelectMenuItem[]>(
 	() =>
 		collectionsData.value?.results.map(
@@ -325,14 +329,12 @@ const collections = computed<SelectMenuItem[]>(
 const ratingButtonLabel = computed(() =>
 	rating.value ? `Edit my rating (${rating.value.toFixed(1)})` : `Set my rating`,
 );
-const note = computed(() => myMovie.value?.media.note ?? "");
+const note = computed(() => movieData.value?.media.note ?? "");
 
 // State
 const readMore = ref(false);
 const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);
-
-const myMovie = ref<MovieWithMediaView | null | undefined>(null);
 
 // Async data
 const { data: detailsData, pending: loadingDetails } = useAsyncData("movie-details", async () =>
@@ -350,7 +352,6 @@ const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-ex
 });
 
 watch(movieData, (newValue) => {
-	myMovie.value = newValue;
 	rating.value = newValue?.media.rating ?? undefined;
 });
 
@@ -392,7 +393,7 @@ const removeMovie = async () => {
 			return;
 		}
 
-		await movieStore.deleteMovie({ id: myMovie.value!.id });
+		await movieStore.deleteMovie({ id: movieData.value!.id });
 		movieData.value = null;
 
 		if (isInternal.value) {
@@ -411,12 +412,12 @@ const removeMovie = async () => {
 
 const addMovie = async () => {
 	try {
-		if (myMovie.value || isInMyList.value) {
+		if (movieData.value || isInMyList.value) {
 			return;
 		}
 
 		const movie = await movieStore.createMovieFromExternal({ externalId: id.value });
-		myMovie.value = movie;
+		movieData.value = movie;
 	} catch (err: any) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
 		toast.add({
@@ -425,6 +426,21 @@ const addMovie = async () => {
 			color: "error",
 			type: "foreground",
 		});
+	}
+};
+
+const movieFormModal = overlay.create(LazyMovieFormModal);
+const editMovie = async () => {
+	if (!isInMyList.value) {
+		return;
+	}
+
+	const instance = movieFormModal.open({ movie: movieData.value! });
+
+	const result = await instance.result;
+
+	if (result) {
+		movieData.value = result;
 	}
 };
 
@@ -437,7 +453,7 @@ const updateMovieCollections = async (collectionIds: string[]) => {
 
 	try {
 		await trpc.movie.updateCollections.mutate({
-			id: myMovie.value!.id,
+			id: movieData.value!.id,
 			collectionIds,
 		});
 	} catch (err: any) {
@@ -466,7 +482,7 @@ const updateRating = async (newRating: number | null) => {
 		}
 
 		await trpc.movie.update.mutate({
-			id: myMovie.value!.id,
+			id: movieData.value!.id,
 			rating: newRating,
 		});
 	} catch (err: any) {
@@ -489,7 +505,7 @@ const clearRating = async () => {
 		rating.value = undefined;
 
 		await trpc.movie.update.mutate({
-			id: myMovie.value!.id,
+			id: movieData.value!.id,
 			rating: null,
 		});
 	} catch (err: any) {
@@ -503,7 +519,5 @@ const clearRating = async () => {
 	}
 };
 
-const toggleReadMore = () => {
-	readMore.value = !readMore.value;
-};
+const toggleReadMore = () => (readMore.value = !readMore.value);
 </script>

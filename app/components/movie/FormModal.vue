@@ -38,7 +38,7 @@ import { z } from "zod";
 const { movie } = defineProps<{ movie?: MovieWithMediaView }>();
 
 const emit = defineEmits<{
-	close: [value?: boolean];
+	close: [value?: MovieWithMediaView];
 }>();
 
 const isLoading = ref(false);
@@ -73,8 +73,10 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
 		isLoading.value = true;
 
+		let updatedMovie;
+
 		if (movie) {
-			const updatedMovie = await trpc.movie.update.mutate({
+			updatedMovie = await trpc.movie.update.mutate({
 				id: movie.id,
 				name: payload.data.name,
 				overview: payload.data.overview,
@@ -88,7 +90,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				type: "foreground",
 			});
 		} else {
-			const newMovie = await movieStore.createMovie({
+			updatedMovie = await movieStore.createMovie({
 				name: payload.data.name,
 				overview: payload.data.overview,
 				rating: payload.data.rating ?? null,
@@ -96,13 +98,13 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 			});
 			toast.add({
 				title: "New movie created",
-				description: `Movie ${newMovie.media.name} has been created`,
+				description: `Movie ${updatedMovie.media.name} has been created`,
 				color: "success",
 				type: "foreground",
 			});
 		}
 
-		emit("close", true);
+		emit("close", updatedMovie);
 	} catch (err) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
 
