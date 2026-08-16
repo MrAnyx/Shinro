@@ -158,6 +158,7 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 		id: "status",
 		meta: {
 			class: {
+				th: "w-0",
 				td: "w-0",
 			},
 		},
@@ -167,6 +168,7 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 		id: "createdAt",
 		meta: {
 			class: {
+				th: "w-0",
 				td: "w-0",
 			},
 		},
@@ -176,7 +178,7 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 		meta: {
 			class: {
 				th: "w-0",
-				td: "w-0 text-right",
+				td: "w-0",
 			},
 		},
 	},

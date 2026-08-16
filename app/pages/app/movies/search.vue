@@ -176,6 +176,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		header: "Category",
 		meta: {
 			class: {
+				th: "w-0",
 				td: "w-0",
 			},
 		},
@@ -185,6 +186,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		header: "Released At",
 		meta: {
 			class: {
+				th: "w-0",
 				td: "w-0",
 			},
 		},
@@ -194,6 +196,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		header: "Vote",
 		meta: {
 			class: {
+				th: "w-0",
 				td: "w-0",
 			},
 		},
@@ -203,7 +206,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		meta: {
 			class: {
 				th: "w-0",
-				td: "w-0 text-right",
+				td: "w-0",
 			},
 		},
 	},

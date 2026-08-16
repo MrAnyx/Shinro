@@ -187,6 +187,7 @@ const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 		id: "type",
 		meta: {
 			class: {
+				th: "w-0",
 				td: "w-0",
 			},
 		},
@@ -196,6 +197,7 @@ const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 		id: "date",
 		meta: {
 			class: {
+				th: "w-0",
 				td: "w-0",
 			},
 		},
@@ -225,6 +227,7 @@ const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 		id: "type",
 		meta: {
 			class: {
+				th: "w-0",
 				td: "w-0",
 			},
 		},
@@ -234,6 +237,7 @@ const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 		id: "createdAt",
 		meta: {
 			class: {
+				th: "w-0",
 				td: "w-0",
 			},
 		},
@@ -243,6 +247,7 @@ const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 		id: "addedAt",
 		meta: {
 			class: {
+				th: "w-0",
 				td: "w-0",
 			},
 		},

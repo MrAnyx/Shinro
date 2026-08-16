@@ -171,7 +171,7 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 		meta: {
 			class: {
 				th: "w-0",
-				td: "w-0 text-right",
+				td: "w-0",
 			},
 		},
 	},
