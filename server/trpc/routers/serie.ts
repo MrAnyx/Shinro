@@ -7,7 +7,7 @@ export default router({
 		.input(z.void())
 		.output(z.number())
 		.query(async ({ ctx }) => {
-			return await prisma.movie.count({
+			return await prisma.serie.count({
 				where: {
 					media: {
 						ownerId: ctx.user.id,

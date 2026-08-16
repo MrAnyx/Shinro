@@ -80,9 +80,9 @@ const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
 const serieStore = useSerieStore();
 const userStore = useUserStore();
+const mediaStore = useMediaStore();
 
 const username = computed(() => userStore.user?.username ?? "Unknown");
-const totalMedia = computed(() => movieStore.total + serieStore.total);
 
 onMounted(async () => {
 	await initializationStore.initialize();
@@ -126,7 +126,7 @@ const mediaItems = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Media",
 		type: "label",
-		badge: totalMedia.value,
+		badge: mediaStore.total,
 	},
 	{
 		label: "Movies",
@@ -135,24 +135,10 @@ const mediaItems = computed<NavigationMenuItem[]>(() => [
 		to: "/app/movies",
 	},
 	{
-		label: "TV",
+		label: "Series",
 		icon: "i-lucide-tv-minimal-play",
-		defaultOpen: true,
-		children: [
-			{
-				label: "Series",
-				badge: serieStore.total,
-				to: "/app/series",
-			},
-			{
-				label: "Seasons",
-				badge: serieStore.total,
-			},
-			{
-				label: "Episodes",
-				badge: serieStore.total,
-			},
-		],
+		badge: serieStore.total,
+		to: "/app/series",
 	},
 	{
 		label: "Music",

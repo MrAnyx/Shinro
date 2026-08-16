@@ -32,14 +32,14 @@ const links = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "My list",
 		icon: "i-lucide-user-star",
-		to: "/app/movies",
+		to: "/app/series",
 		exact: true,
 		badge: movieStore.total,
 	},
 	{
 		label: "Search",
 		icon: "i-lucide-search",
-		to: "/app/movies/search",
+		to: "/app/series/search",
 		exact: true,
 	},
 ]);

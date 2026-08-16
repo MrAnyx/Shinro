@@ -53,19 +53,14 @@ const trpc = useTrpc();
 const movieStore = useMovieStore();
 
 const statuses = computed(() => {
-	const STATUS_LABELS: Record<keyof typeof MediaStatus, string> = {
-		PLANNED: "Planned",
-		IN_PROGRESS: "In Progress",
-		DROPPED: "Dropped",
-		ON_HOLD: "On Hold",
-		COMPLETED: "Completed",
-	};
-
 	return Object.values(MediaStatus).map(
 		(status) =>
 			({
 				value: status,
-				label: STATUS_LABELS[status],
+				label: MOVIE_STATUS_LABELS[status],
+				chip: {
+					color: STATUS_COLORS[status],
+				},
 			}) as SelectMenuItem,
 	);
 });

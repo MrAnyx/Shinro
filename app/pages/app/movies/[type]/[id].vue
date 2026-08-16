@@ -56,9 +56,19 @@
 							placeholder="Select a status"
 							leading-icon="i-lucide-circle-dot-dashed"
 							clear
-							@clear="updateStatus()"
-							@update:model-value="(v: MediaStatus) => updateStatus(v)"
-						/>
+							@clear="updateStatus"
+							@update:model-value="updateStatus"
+						>
+							<template #leading="{ ui }">
+								<UChip
+									v-if="status"
+									v-bind="{ color: STATUS_COLORS[status] }"
+									inset
+									standalone
+									:class="ui.itemLeadingChip()"
+								/>
+							</template>
+						</USelectMenu>
 
 						<USelectMenu
 							:items="collections"
@@ -327,19 +337,14 @@ const isLoading = computed(
 );
 const isInMyList = computed(() => !!movieData.value);
 const statuses = computed(() => {
-	const STATUS_LABELS: Record<keyof typeof MediaStatus, string> = {
-		PLANNED: "Planned",
-		IN_PROGRESS: "In Progress",
-		DROPPED: "Dropped",
-		ON_HOLD: "On Hold",
-		COMPLETED: "Completed",
-	};
-
 	return Object.values(MediaStatus).map(
 		(status) =>
 			({
 				value: status,
-				label: STATUS_LABELS[status],
+				label: MOVIE_STATUS_LABELS[status],
+				chip: {
+					color: STATUS_COLORS[status],
+				},
 			}) as SelectMenuItem,
 	);
 });

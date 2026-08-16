@@ -5,7 +5,7 @@ CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 CREATE TYPE "MediaType" AS ENUM ('MOVIE', 'SERIE', 'SEASON', 'EPISODE', 'BOOK', 'MUSIC', 'GAME');
 
 -- CreateEnum
-CREATE TYPE "MediaStatus" AS ENUM ('PLANNED', 'IN_PROGRESS', 'DROPPED', 'ON_HOLD', 'COMPLETED');
+CREATE TYPE "MediaStatus" AS ENUM ('PLANNED', 'IN_PROGRESS', 'DROPPED', 'PAUSED', 'COMPLETED');
 
 -- CreateEnum
 CREATE TYPE "ImageType" AS ENUM ('TMDB');
@@ -93,7 +93,9 @@ CREATE TABLE "Serie" (
 -- CreateTable
 CREATE TABLE "Season" (
     "id" UUID NOT NULL,
+    "number" INTEGER NOT NULL,
     "overview" TEXT,
+    "serieId" UUID NOT NULL,
 
     CONSTRAINT "Season_pkey" PRIMARY KEY ("id")
 );
@@ -101,7 +103,9 @@ CREATE TABLE "Season" (
 -- CreateTable
 CREATE TABLE "Episode" (
     "id" UUID NOT NULL,
+    "number" INTEGER NOT NULL,
     "overview" TEXT,
+    "seasonId" UUID NOT NULL,
 
     CONSTRAINT "Episode_pkey" PRIMARY KEY ("id")
 );
@@ -140,4 +144,10 @@ ALTER TABLE "Serie" ADD CONSTRAINT "Serie_id_fkey" FOREIGN KEY ("id") REFERENCES
 ALTER TABLE "Season" ADD CONSTRAINT "Season_id_fkey" FOREIGN KEY ("id") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Season" ADD CONSTRAINT "Season_serieId_fkey" FOREIGN KEY ("serieId") REFERENCES "Serie"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Episode" ADD CONSTRAINT "Episode_id_fkey" FOREIGN KEY ("id") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Episode" ADD CONSTRAINT "Episode_seasonId_fkey" FOREIGN KEY ("seasonId") REFERENCES "Season"("id") ON DELETE CASCADE ON UPDATE CASCADE;
