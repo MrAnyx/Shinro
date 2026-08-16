@@ -75,6 +75,13 @@
 								minute="2-digit"
 							/>
 						</template>
+						<template #status-cell="{ row }">
+							<StatusBadge
+								v-if="row.original.status"
+								:type="row.original.type"
+								:status="row.original.status"
+							/>
+						</template>
 						<template #type-cell="{ row }">
 							<UBadge variant="subtle" color="neutral">{{ capitalize(row.original.type) }}</UBadge>
 						</template>
@@ -111,6 +118,13 @@
 								<UBadge variant="subtle" color="neutral">{{
 									capitalize(row.original.media.type)
 								}}</UBadge>
+							</template>
+							<template #status-cell="{ row }">
+								<StatusBadge
+									v-if="row.original.media.status"
+									:type="row.original.media.type"
+									:status="row.original.media.status"
+								/>
 							</template>
 							<template #createdAt-cell="{ row }">
 								<NuxtTime
@@ -193,6 +207,16 @@ const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 		},
 	},
 	{
+		header: "Status",
+		id: "status",
+		meta: {
+			class: {
+				th: "w-0",
+				td: "w-0",
+			},
+		},
+	},
+	{
 		header: "Created At",
 		id: "date",
 		meta: {
@@ -225,6 +249,16 @@ const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 	{
 		header: "Type",
 		id: "type",
+		meta: {
+			class: {
+				th: "w-0",
+				td: "w-0",
+			},
+		},
+	},
+	{
+		header: "Status",
+		id: "status",
 		meta: {
 			class: {
 				th: "w-0",
