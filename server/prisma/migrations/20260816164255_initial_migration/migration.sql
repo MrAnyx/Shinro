@@ -2,7 +2,10 @@
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 
 -- CreateEnum
-CREATE TYPE "MediaType" AS ENUM ('MOVIE', 'SERIES', 'BOOK', 'MUSIC', 'GAME');
+CREATE TYPE "MediaType" AS ENUM ('MOVIE', 'SERIE', 'SEASON', 'EPISODE', 'BOOK', 'MUSIC', 'GAME');
+
+-- CreateEnum
+CREATE TYPE "MediaStatus" AS ENUM ('PLANNED', 'IN_PROGRESS', 'DROPPED', 'ON_HOLD', 'COMPLETED');
 
 -- CreateEnum
 CREATE TYPE "ImageType" AS ENUM ('TMDB');
@@ -48,6 +51,7 @@ CREATE TABLE "Collection" (
 CREATE TABLE "Media" (
     "id" UUID NOT NULL,
     "type" "MediaType" NOT NULL,
+    "status" "MediaStatus",
     "externalId" VARCHAR(255),
     "name" VARCHAR(255),
     "imagePath" VARCHAR(500),
@@ -62,6 +66,15 @@ CREATE TABLE "Media" (
 );
 
 -- CreateTable
+CREATE TABLE "CollectionMedia" (
+    "collectionId" UUID NOT NULL,
+    "mediaId" UUID NOT NULL,
+    "addedAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "CollectionMedia_pkey" PRIMARY KEY ("collectionId","mediaId")
+);
+
+-- CreateTable
 CREATE TABLE "Movie" (
     "id" UUID NOT NULL,
     "overview" TEXT,
@@ -70,12 +83,27 @@ CREATE TABLE "Movie" (
 );
 
 -- CreateTable
-CREATE TABLE "CollectionMedia" (
-    "collectionId" UUID NOT NULL,
-    "mediaId" UUID NOT NULL,
-    "addedAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+CREATE TABLE "Serie" (
+    "id" UUID NOT NULL,
+    "overview" TEXT,
 
-    CONSTRAINT "CollectionMedia_pkey" PRIMARY KEY ("collectionId","mediaId")
+    CONSTRAINT "Serie_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Season" (
+    "id" UUID NOT NULL,
+    "overview" TEXT,
+
+    CONSTRAINT "Season_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Episode" (
+    "id" UUID NOT NULL,
+    "overview" TEXT,
+
+    CONSTRAINT "Episode_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -97,10 +125,19 @@ ALTER TABLE "Collection" ADD CONSTRAINT "Collection_ownerId_fkey" FOREIGN KEY ("
 ALTER TABLE "Media" ADD CONSTRAINT "Media_ownerId_fkey" FOREIGN KEY ("ownerId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Movie" ADD CONSTRAINT "Movie_id_fkey" FOREIGN KEY ("id") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "CollectionMedia" ADD CONSTRAINT "CollectionMedia_collectionId_fkey" FOREIGN KEY ("collectionId") REFERENCES "Collection"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "CollectionMedia" ADD CONSTRAINT "CollectionMedia_mediaId_fkey" FOREIGN KEY ("mediaId") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Movie" ADD CONSTRAINT "Movie_id_fkey" FOREIGN KEY ("id") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Serie" ADD CONSTRAINT "Serie_id_fkey" FOREIGN KEY ("id") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Season" ADD CONSTRAINT "Season_id_fkey" FOREIGN KEY ("id") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Episode" ADD CONSTRAINT "Episode_id_fkey" FOREIGN KEY ("id") REFERENCES "Media"("id") ON DELETE CASCADE ON UPDATE CASCADE;

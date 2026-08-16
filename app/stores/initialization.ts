@@ -15,8 +15,9 @@ export const useInitializationStore = defineStore("initialization", {
 			try {
 				const collectionStore = useCollectionStore();
 				const movieStore = useMovieStore();
+				const serieStore = useSerieStore();
 				this.isLoading = true;
-				await Promise.all([collectionStore.initialize(), movieStore.initialize()]);
+				await Promise.all([collectionStore.initialize(), movieStore.initialize(), serieStore.initialize()]);
 				this.isReady = true;
 			} finally {
 				this.isLoading = false;

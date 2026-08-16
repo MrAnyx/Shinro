@@ -15,9 +15,6 @@ export default defineTask({
 		try {
 			log.set({ payload });
 
-			// Your task logic here
-			console.log("Running hello task...");
-
 			log.set({ result: "Success" });
 		} catch (err) {
 			log.error(err instanceof Error ? err : new Error(String(err)));

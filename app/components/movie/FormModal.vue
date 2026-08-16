@@ -12,6 +12,9 @@
 				<UFormField label="Title" name="name" required>
 					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus />
 				</UFormField>
+				<UFormField label="Status" name="status">
+					<USelectMenu :items="statuses" v-model="state.status" class="w-full" value-key="value" />
+				</UFormField>
 				<UFormField label="Overview" name="overview">
 					<UTextarea v-model="state.overview" class="w-full" autoresize :maxrows="10" />
 				</UFormField>
@@ -32,8 +35,10 @@
 </template>
 
 <script setup lang="ts">
-import type { FormSubmitEvent } from "@nuxt/ui";
+import type { FormSubmitEvent, SelectMenuItem } from "@nuxt/ui";
 import { z } from "zod";
+
+import { MediaStatus } from "#prisma/enums";
 
 const { movie } = defineProps<{ movie?: MovieWithMediaView }>();
 
@@ -47,11 +52,30 @@ const toast = useToast();
 const trpc = useTrpc();
 const movieStore = useMovieStore();
 
+const statuses = computed(() => {
+	const STATUS_LABELS: Record<keyof typeof MediaStatus, string> = {
+		PLANNED: "Planned",
+		IN_PROGRESS: "In Progress",
+		DROPPED: "Dropped",
+		ON_HOLD: "On Hold",
+		COMPLETED: "Completed",
+	};
+
+	return Object.values(MediaStatus).map(
+		(status) =>
+			({
+				value: status,
+				label: STATUS_LABELS[status],
+			}) as SelectMenuItem,
+	);
+});
+
 const schema = z.object({
 	name: ClientMediaValidation.name,
 	overview: ClientMovieValidation.overview,
 	rating: ClientMediaValidation.rating,
 	note: ClientMediaValidation.note,
+	status: ClientMediaValidation.status,
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
@@ -59,6 +83,7 @@ const state = reactive<Schema>({
 	overview: movie?.overview ?? "",
 	rating: movie?.media.rating ?? undefined,
 	note: movie?.media.note ?? "",
+	status: movie?.media.status ?? undefined,
 });
 
 const onCancel = () => {
@@ -82,6 +107,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				overview: payload.data.overview,
 				rating: payload.data.rating ?? null,
 				note: payload.data.note,
+				status: payload.data.status ?? null,
 			});
 			toast.add({
 				title: "Movie updated",
@@ -95,6 +121,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				overview: payload.data.overview,
 				rating: payload.data.rating ?? null,
 				note: payload.data.note,
+				status: payload.data.status ?? null,
 			});
 			toast.add({
 				title: "New movie created",

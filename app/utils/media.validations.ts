@@ -4,4 +4,5 @@ export const ClientMediaValidation = {
 	name: MediaNameSchemaBase,
 	rating: MediaRatingSchemaBase.optional(),
 	note: MediaNoteSchemaBase,
+	status: MediaStatusSchemaBase.optional(),
 };

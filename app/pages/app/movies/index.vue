@@ -44,6 +44,11 @@
 					:src="row.original.media.imagePath"
 				/>
 			</template>
+			<template #status-cell="{ row }">
+				<UBadge variant="subtle" color="neutral" v-if="row.original.media.status">
+					{{ capitalize(row.original.media.status) }}
+				</UBadge>
+			</template>
 			<template #createdAt-cell="{ row }">
 				<NuxtTime
 					:datetime="row.original.media.createdAt"
@@ -145,6 +150,15 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 		meta: {
 			class: {
 				td: "max-w-[300px] truncate",
+			},
+		},
+	},
+	{
+		header: "Status",
+		id: "status",
+		meta: {
+			class: {
+				td: "w-0",
 			},
 		},
 	},

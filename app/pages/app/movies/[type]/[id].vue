@@ -48,8 +48,21 @@
 						/>
 
 						<USelectMenu
+							:items="statuses"
+							v-model="status"
+							:loading="isLoading"
+							variant="subtle"
+							value-key="value"
+							placeholder="Select a status"
+							leading-icon="i-lucide-circle-dot-dashed"
+							clear
+							@clear="updateStatus()"
+							@update:model-value="(v: MediaStatus) => updateStatus(v)"
+						/>
+
+						<USelectMenu
 							:items="collections"
-							:model-value="selectedCollectionIds"
+							v-model="selectedCollectionIds"
 							:loading="isLoading"
 							variant="subtle"
 							multiple
@@ -271,6 +284,7 @@
 import type { SelectMenuItem } from "@nuxt/ui";
 
 import { LazyMovieFormModal } from "#components";
+import { MediaStatus } from "#prisma/enums";
 
 definePageMeta({
 	layout: "app",
@@ -312,6 +326,23 @@ const isLoading = computed(
 		loadingMovieCollections.value,
 );
 const isInMyList = computed(() => !!movieData.value);
+const statuses = computed(() => {
+	const STATUS_LABELS: Record<keyof typeof MediaStatus, string> = {
+		PLANNED: "Planned",
+		IN_PROGRESS: "In Progress",
+		DROPPED: "Dropped",
+		ON_HOLD: "On Hold",
+		COMPLETED: "Completed",
+	};
+
+	return Object.values(MediaStatus).map(
+		(status) =>
+			({
+				value: status,
+				label: STATUS_LABELS[status],
+			}) as SelectMenuItem,
+	);
+});
 const collections = computed<SelectMenuItem[]>(
 	() =>
 		collectionsData.value?.results.map(
@@ -335,6 +366,7 @@ const note = computed(() => movieData.value?.media.note ?? "");
 const readMore = ref(false);
 const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);
+const status = ref<MediaStatus | undefined>(undefined);
 
 // Async data
 const { data: detailsData, pending: loadingDetails } = useAsyncData("movie-details", async () =>
@@ -353,6 +385,7 @@ const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-ex
 
 watch(movieData, (newValue) => {
 	rating.value = newValue?.media.rating ?? undefined;
+	status.value = newValue?.media.status ?? undefined;
 });
 
 const { data: movieCollections, pending: loadingMovieCollections } = useAsyncData("movie-collections", async () => {
@@ -441,6 +474,27 @@ const editMovie = async () => {
 
 	if (result) {
 		movieData.value = result;
+	}
+};
+
+const updateStatus = async (status?: MediaStatus) => {
+	if (!isInMyList.value) {
+		return;
+	}
+
+	try {
+		await trpc.movie.update.mutate({
+			id: movieData.value!.id,
+			status,
+		});
+	} catch (err: any) {
+		const message = isTRPCError(err) ? err.message : "Unknown error";
+		toast.add({
+			title: "Unable to update status",
+			description: message,
+			color: "error",
+			type: "foreground",
+		});
 	}
 };
 

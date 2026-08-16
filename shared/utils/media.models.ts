@@ -1,10 +1,11 @@
 import { z } from "zod";
 
-import { MediaType, ImageType } from "#prisma/enums";
+import { MediaType, ImageType, MediaStatus } from "#prisma/enums";
 
 export const MediaDefaultViewSchema = z.object({
 	id: z.uuid(),
 	type: z.enum(MediaType),
+	status: z.enum(MediaStatus).nullable(),
 	externalId: z.string().nullable(),
 	name: z.string().nullable(),
 	imagePath: z.string().nullable(),

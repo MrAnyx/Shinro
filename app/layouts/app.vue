@@ -78,10 +78,11 @@ import type { NavigationMenuItem, CommandPaletteItem, DropdownMenuItem } from "@
 const initializationStore = useInitializationStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
+const serieStore = useSerieStore();
 const userStore = useUserStore();
-const colorTheme = useColorMode();
 
 const username = computed(() => userStore.user?.username ?? "Unknown");
+const totalMedia = computed(() => movieStore.total + serieStore.total);
 
 onMounted(async () => {
 	await initializationStore.initialize();
@@ -125,7 +126,7 @@ const mediaItems = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Media",
 		type: "label",
-		badge: movieStore.total,
+		badge: totalMedia.value,
 	},
 	{
 		label: "Movies",
@@ -134,13 +135,24 @@ const mediaItems = computed<NavigationMenuItem[]>(() => [
 		to: "/app/movies",
 	},
 	{
-		label: "Series",
+		label: "TV",
 		icon: "i-lucide-tv-minimal-play",
-		badge: {
-			label: "Soon",
-			color: "info",
-		},
-		disabled: true,
+		defaultOpen: true,
+		children: [
+			{
+				label: "Series",
+				badge: serieStore.total,
+				to: "/app/series",
+			},
+			{
+				label: "Seasons",
+				badge: serieStore.total,
+			},
+			{
+				label: "Episodes",
+				badge: serieStore.total,
+			},
+		],
 	},
 	{
 		label: "Music",
