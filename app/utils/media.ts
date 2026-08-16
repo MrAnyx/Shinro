@@ -39,3 +39,11 @@ export const GAME_STATUS_LABELS: Record<keyof typeof MediaStatus, string> = {
 	PAUSED: "Paused",
 	COMPLETED: "Finished",
 };
+
+export const BOOK_STATUS_LABELS: Record<keyof typeof MediaStatus, string> = {
+	PLANNED: "To Read",
+	IN_PROGRESS: "Reading",
+	DROPPED: "Dropped",
+	PAUSED: "Paused",
+	COMPLETED: "Read",
+};

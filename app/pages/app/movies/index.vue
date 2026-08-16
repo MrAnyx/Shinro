@@ -45,9 +45,11 @@
 				/>
 			</template>
 			<template #status-cell="{ row }">
-				<UBadge variant="subtle" color="neutral" v-if="row.original.media.status">
-					{{ capitalize(row.original.media.status) }}
-				</UBadge>
+				<StatusBadge
+					v-if="row.original.media.status"
+					:type="row.original.media.type"
+					:status="row.original.media.status"
+				/>
 			</template>
 			<template #createdAt-cell="{ row }">
 				<NuxtTime
