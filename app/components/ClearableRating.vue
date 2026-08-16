@@ -13,22 +13,14 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{
-	modelValue?: number | null;
-}>();
+const rating = defineModel<number | undefined>();
 
 const emit = defineEmits<{
-	(event: "update:modelValue", value: number | null): void;
 	(event: "clear"): void;
 }>();
 
-const rating = computed<number | undefined>({
-	get: () => props.modelValue ?? undefined,
-	set: (value) => emit("update:modelValue", value ?? null),
-});
-
-const clearRating = () => {
-	emit("update:modelValue", null);
+function clearRating() {
+	rating.value = undefined;
 	emit("clear");
-};
+}
 </script>

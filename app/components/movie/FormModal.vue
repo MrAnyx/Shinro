@@ -13,7 +13,7 @@
 					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus />
 				</UFormField>
 				<UFormField label="Status" name="status">
-					<USelectMenu :items="statuses" v-model="state.status" class="w-full" value-key="value" />
+					<StatusSelectMenu class="w-full" v-model="state.status" />
 				</UFormField>
 				<UFormField label="Overview" name="overview">
 					<UTextarea v-model="state.overview" class="w-full" autoresize :maxrows="10" />
@@ -51,19 +51,6 @@ const form = useTemplateRef("form");
 const toast = useToast();
 const trpc = useTrpc();
 const movieStore = useMovieStore();
-
-const statuses = computed(() => {
-	return Object.values(MediaStatus).map(
-		(status) =>
-			({
-				value: status,
-				label: MOVIE_STATUS_LABELS[status],
-				chip: {
-					color: STATUS_COLORS[status],
-				},
-			}) as SelectMenuItem,
-	);
-});
 
 const schema = z.object({
 	name: ClientMediaValidation.name,

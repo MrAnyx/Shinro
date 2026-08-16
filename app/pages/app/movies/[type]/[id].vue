@@ -47,28 +47,12 @@
 							@click="editMovie"
 						/>
 
-						<USelectMenu
-							:items="statuses"
-							v-model="status"
+						<StatusSelectMenu
 							:loading="isLoading"
+							@update:modelValue="updateStatus"
 							variant="subtle"
-							value-key="value"
-							placeholder="Select a status"
-							leading-icon="i-lucide-circle-dot-dashed"
-							clear
-							@clear="updateStatus"
-							@update:model-value="updateStatus"
-						>
-							<template #leading="{ ui }">
-								<UChip
-									v-if="status"
-									v-bind="{ color: STATUS_COLORS[status] }"
-									inset
-									standalone
-									:class="ui.itemLeadingChip()"
-								/>
-							</template>
-						</USelectMenu>
+							v-model="status"
+						/>
 
 						<USelectMenu
 							:items="collections"
@@ -96,7 +80,7 @@
 							<template #content>
 								<ClearableRating
 									v-model="rating"
-									@update:model-value="updateRating"
+									@update:model-value="(v) => updateRating(v ?? null)"
 									@clear="clearRating"
 								/>
 							</template>
@@ -336,18 +320,6 @@ const isLoading = computed(
 		loadingMovieCollections.value,
 );
 const isInMyList = computed(() => !!movieData.value);
-const statuses = computed(() => {
-	return Object.values(MediaStatus).map(
-		(status) =>
-			({
-				value: status,
-				label: MOVIE_STATUS_LABELS[status],
-				chip: {
-					color: STATUS_COLORS[status],
-				},
-			}) as SelectMenuItem,
-	);
-});
 const collections = computed<SelectMenuItem[]>(
 	() =>
 		collectionsData.value?.results.map(
@@ -490,7 +462,7 @@ const updateStatus = async (status?: MediaStatus) => {
 	try {
 		await trpc.movie.update.mutate({
 			id: movieData.value!.id,
-			status,
+			status: status ?? null,
 		});
 	} catch (err: any) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
