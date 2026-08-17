@@ -14,7 +14,7 @@
 				color="neutral"
 				@click="refresh()"
 			/>
-			<UButton label="New movie" leading-icon="i-lucide-plus" @click="openMovieFormModal()" />
+			<UButton label="New serie" leading-icon="i-lucide-plus" @click="openSerieFormModal()" />
 		</div>
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
@@ -24,12 +24,12 @@
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="onMovieSelected"
+			@select="onSerieSelected"
 		>
 			<template #empty>
 				<UEmpty
-					title="No movie found"
-					description="Add your first movie to get started"
+					title="No serie found"
+					description="Add your first serie to get started"
 					variant="naked"
 					icon="i-lucide-ban"
 					:actions="emptyActions"
@@ -80,18 +80,18 @@
 import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
-import { LazyMovieFormModal } from "#components";
+import { LazySerieFormModal } from "#components";
 
 const overlay = useOverlay();
 const trpc = useTrpc();
-const movieStore = useMovieStore();
+const serieStore = useSerieStore();
 const toast = useToast();
 const { openConfirmationModal } = useConfirmation();
 const { search, page } = useSearchPagination();
 
-const movieFormModal = overlay.create(LazyMovieFormModal);
-const openMovieFormModal = async (movie?: MovieWithMediaView) => {
-	const instance = movieFormModal.open({ movie });
+const serieFormModal = overlay.create(LazySerieFormModal);
+const openSerieFormModal = async (serie?: SerieWithMediaView) => {
+	const instance = serieFormModal.open({ serie });
 
 	const result = await instance.result;
 
@@ -101,14 +101,14 @@ const openMovieFormModal = async (movie?: MovieWithMediaView) => {
 };
 
 const { data, pending, refresh } = useAsyncData(
-	"movies",
+	"series",
 	async () => {
 		try {
-			return await trpc.movie.getAll.query({ page: page.value, search: search.value });
+			return await trpc.serie.getAll.query({ page: page.value, search: search.value });
 		} catch {
 			toast.add({
 				title: "Oops!",
-				description: "Something went wrong while fetching the movies",
+				description: "Something went wrong while fetching the series",
 				color: "error",
 				type: "foreground",
 			});
@@ -123,7 +123,7 @@ watchDebounced([page, search], () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
 
-const columns: TableColumn<MovieWithMediaView>[] = [
+const columns: TableColumn<SerieWithMediaView>[] = [
 	{
 		header: "",
 		id: "image",
@@ -182,13 +182,13 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 	},
 ];
 
-const getRowActions = (row: TableRow<MovieWithMediaView>): DropdownMenuItem[][] => [
+const getRowActions = (row: TableRow<SerieWithMediaView>): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
 			icon: "i-lucide-square-pen",
 			onSelect() {
-				openMovieFormModal(row.original);
+				openSerieFormModal(row.original);
 			},
 		},
 		{
@@ -197,7 +197,7 @@ const getRowActions = (row: TableRow<MovieWithMediaView>): DropdownMenuItem[][] 
 			color: "error",
 			async onSelect() {
 				const result = await openConfirmationModal(
-					async () => await movieStore.deleteMovie({ id: row.original.id }),
+					async () => await serieStore.deleteSerie({ id: row.original.id }),
 				);
 
 				if (result) {
@@ -218,17 +218,17 @@ const emptyActions: ButtonProps[] = [
 		label: "Search",
 		async onClick() {
 			await navigateTo({
-				path: "/app/movies/search",
+				path: "/app/series/search",
 			});
 		},
 	},
 ];
 
-const onMovieSelected = async (e: Event, row: TableRow<MovieWithMediaView>) => {
+const onSerieSelected = async (e: Event, row: TableRow<SerieWithMediaView>) => {
 	if (row.original.media.externalId) {
-		await navigateTo(`/app/movies/external/${row.original.media.externalId}`);
+		await navigateTo(`/app/series/external/${row.original.media.externalId}`);
 	} else {
-		await navigateTo(`/app/movies/internal/${row.original.id}`);
+		await navigateTo(`/app/series/internal/${row.original.id}`);
 	}
 };
 </script>

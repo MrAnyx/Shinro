@@ -20,12 +20,12 @@
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="onMovieSelected"
+			@select="onSerieSelected"
 		>
 			<template #empty>
 				<UEmpty
-					title="No movie found"
-					description="No movie exist with this title"
+					title="No serie found"
+					description="No serie exist with this title"
 					variant="naked"
 					icon="i-lucide-ban"
 					:actions="emptyActions"
@@ -46,8 +46,8 @@
 			</template>
 			<template #release_date-cell="{ row }">
 				<NuxtTime
-					v-if="row.original.release_date"
-					:datetime="row.original.release_date"
+					v-if="row.original.first_air_date"
+					:datetime="row.original.first_air_date"
 					year="numeric"
 					month="short"
 					day="numeric"
@@ -70,18 +70,18 @@
 					variant="ghost"
 					icon="i-lucide-circle-plus"
 					color="neutral"
-					@click="addMovieToMyList(row)"
-					:loading="loadingMovieIds.has(row.original.id)"
-					:disabled="loadingMovieIds.has(row.original.id)"
+					@click="addSerieToMyList(row)"
+					:loading="loadingSerieIds.has(row.original.id)"
+					:disabled="loadingSerieIds.has(row.original.id)"
 				/>
 				<UButton
 					v-else
 					variant="ghost"
 					icon="i-lucide-circle-minus"
 					color="error"
-					@click="removeMovieFromMyList(row)"
-					:loading="loadingMovieIds.has(row.original.id)"
-					:disabled="loadingMovieIds.has(row.original.id)"
+					@click="removeSerieFromMyList(row)"
+					:loading="loadingSerieIds.has(row.original.id)"
+					:disabled="loadingSerieIds.has(row.original.id)"
 				/>
 			</template>
 		</UTable>
@@ -99,31 +99,31 @@ import type { TableColumn, ButtonProps, TableRow } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
 const trpc = useTrpc();
-const movieStore = useMovieStore();
+const serieStore = useSerieStore();
 const toast = useToast();
 const { search, page } = useSearchPagination();
 
 const searchInput = useTemplateRef("searchInput");
 
-const loadingMovieIds = reactive(new Set<string>());
+const loadingSerieIds = reactive(new Set<string>());
 
 onMounted(() => {
 	focusSearchField();
 });
 
 const { data, pending, refresh } = useAsyncData(
-	"movies-search",
+	"series-search",
 	async () => {
 		if (!search.value.trim()) {
 			return undefined;
 		}
 
 		try {
-			return await trpc.tmdbMovie.search.query({ page: page.value, search: search.value.trim() });
+			return await trpc.tmdbSerie.search.query({ page: page.value, search: search.value.trim() });
 		} catch {
 			toast.add({
 				title: "Oops!",
-				description: "Something went wrong while searching movies",
+				description: "Something went wrong while searching series",
 				color: "error",
 				type: "foreground",
 			});
@@ -138,7 +138,7 @@ watchDebounced([page, search], () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
 
-const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
+const columns: TableColumn<TmdbSerieSearchDefaultView>[] = [
 	{
 		accessorKey: "poster_path",
 		header: "",
@@ -149,7 +149,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "title",
+		accessorKey: "name",
 		header: "Title",
 		meta: {
 			class: {
@@ -177,7 +177,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "release_date",
+		accessorKey: "first_air_date",
 		header: "Released At",
 		meta: {
 			class: {
@@ -226,11 +226,11 @@ const resetSearchField = () => {
 	search.value = "";
 };
 
-const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
+const addSerieToMyList = async (row: TableRow<TmdbSerieSearchDefaultView>) => {
 	try {
-		loadingMovieIds.add(row.original.id);
+		loadingSerieIds.add(row.original.id);
 
-		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
+		const serie = await serieStore.createSerieFromExternal({ externalId: row.original.id });
 
 		if (!data.value) {
 			return;
@@ -239,37 +239,37 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 		data.value = {
 			...data.value,
 			results: data.value.results.map((m) =>
-				m.id === row.original.id ? Object.assign(m, { internalId: movie.id }) : m,
+				m.id === row.original.id ? Object.assign(m, { internalId: serie.id }) : m,
 			),
 		};
 
 		toast.add({
-			title: "New movie added",
-			description: `${movie.media.name} has been added to your list`,
+			title: "New serie added",
+			description: `${serie.media.name} has been added to your list`,
 			color: "success",
 			type: "foreground",
 		});
 	} catch (err: any) {
 		toast.add({
 			title: "Oops!",
-			description: "Something went wrong while adding a movie",
+			description: "Something went wrong while adding a serie",
 			color: "error",
 			type: "foreground",
 		});
 	} finally {
-		loadingMovieIds.delete(row.original.id);
+		loadingSerieIds.delete(row.original.id);
 	}
 };
 
-const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
+const removeSerieFromMyList = async (row: TableRow<TmdbSerieSearchDefaultView>) => {
 	try {
-		loadingMovieIds.add(row.original.id);
+		loadingSerieIds.add(row.original.id);
 
 		if (!row.original.internalId) {
 			return;
 		}
 
-		await movieStore.deleteMovie({ id: row.original.internalId });
+		await serieStore.deleteSerie({ id: row.original.internalId });
 
 		if (!data.value) {
 			return;
@@ -283,24 +283,24 @@ const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) 
 		};
 
 		toast.add({
-			title: "Movie removed",
-			description: `${row.original.title} has been removed from your list`,
+			title: "Serie removed",
+			description: `${row.original.name} has been removed from your list`,
 			color: "warning",
 			type: "foreground",
 		});
 	} catch (err: any) {
 		toast.add({
 			title: "Oops!",
-			description: "Something went wrong while removing a movie",
+			description: "Something went wrong while removing a serie",
 			color: "error",
 			type: "foreground",
 		});
 	} finally {
-		loadingMovieIds.delete(row.original.id);
+		loadingSerieIds.delete(row.original.id);
 	}
 };
 
-const onMovieSelected = async (e: Event, row: TableRow<TmdbMovieSearchDefaultView>) => {
-	await navigateTo({ path: `/app/movies/external/${row.original.id}` });
+const onSerieSelected = async (e: Event, row: TableRow<TmdbSerieSearchDefaultView>) => {
+	await navigateTo({ path: `/app/series/external/${row.original.id}` });
 };
 </script>

@@ -12,24 +12,24 @@ export const useSerieStore = defineStore("serie", {
 			this.total = count;
 		},
 
-		// async createMovie(payload: TRPCProcedureInput<"movie", "create">) {
-		// 	const trpc = useTrpc();
-		// 	const movie = await trpc.movie.create.mutate(payload);
-		// 	this.total += 1;
-		// 	return movie;
-		// },
+		async createSerie(payload: TRPCProcedureInput<"serie", "create">) {
+			const trpc = useTrpc();
+			const serie = await trpc.serie.create.mutate(payload);
+			this.total += 1;
+			return serie;
+		},
 
-		// async createMovieFromExternal(payload: TRPCProcedureInput<"movie", "createFromExternal">) {
-		// 	const trpc = useTrpc();
-		// 	const movie = await trpc.movie.createFromExternal.mutate(payload);
-		// 	this.total += 1;
-		// 	return movie;
-		// },
+		async createSerieFromExternal(payload: TRPCProcedureInput<"serie", "createFromExternal">) {
+			const trpc = useTrpc();
+			const serie = await trpc.serie.createFromExternal.mutate(payload);
+			this.total += 1;
+			return serie;
+		},
 
-		// async deleteMovie(payload: TRPCProcedureInput<"movie", "delete">) {
-		// 	const trpc = useTrpc();
-		// 	await trpc.movie.delete.mutate(payload);
-		// 	this.total -= 1;
-		// },
+		async deleteSerie(payload: TRPCProcedureInput<"serie", "delete">) {
+			const trpc = useTrpc();
+			await trpc.serie.delete.mutate(payload);
+			this.total -= 1;
+		},
 	},
 });

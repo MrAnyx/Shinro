@@ -1,5 +1,5 @@
 <template>
-	<UModal :title="`${movie ? 'Update' : 'Create'} a movie`" :dismissible="!isLoading" :close="!isLoading">
+	<UModal :title="`${serie ? 'Update' : 'Create'} a serie`" :dismissible="!isLoading" :close="!isLoading">
 		<template #body>
 			<UForm
 				ref="form"
@@ -29,7 +29,7 @@
 
 		<template #footer>
 			<UButton label="Cancel" variant="ghost" color="neutral" @click="onCancel" :disabled="isLoading" />
-			<UButton :label="movie ? 'Update' : 'Create'" @click="onSave" :loading="isLoading" />
+			<UButton :label="serie ? 'Update' : 'Create'" @click="onSave" :loading="isLoading" />
 		</template>
 	</UModal>
 </template>
@@ -38,32 +38,32 @@
 import type { FormSubmitEvent } from "@nuxt/ui";
 import { z } from "zod";
 
-const { movie } = defineProps<{ movie?: MovieWithMediaView }>();
+const { serie } = defineProps<{ serie?: SerieWithMediaView }>();
 
 const emit = defineEmits<{
-	close: [value?: MovieWithMediaView];
+	close: [value?: SerieWithMediaView];
 }>();
 
 const isLoading = ref(false);
 const form = useTemplateRef("form");
 const toast = useToast();
 const trpc = useTrpc();
-const movieStore = useMovieStore();
+const serieStore = useSerieStore();
 
 const schema = z.object({
 	name: ClientMediaValidation.name,
-	overview: ClientMovieValidation.overview,
+	overview: ClientSerieValidation.overview,
 	rating: ClientMediaValidation.rating,
 	note: ClientMediaValidation.note,
 	status: ClientMediaValidation.status,
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Schema>({
-	name: movie?.media.name ?? "",
-	overview: movie?.overview ?? "",
-	rating: movie?.media.rating ?? undefined,
-	note: movie?.media.note ?? "",
-	status: movie?.media.status ?? undefined,
+	name: serie?.media.name ?? "",
+	overview: serie?.overview ?? "",
+	rating: serie?.media.rating ?? undefined,
+	note: serie?.media.note ?? "",
+	status: serie?.media.status ?? undefined,
 });
 
 const onCancel = () => {
@@ -78,11 +78,11 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
 		isLoading.value = true;
 
-		let updatedMovie;
+		let updatedSerie;
 
-		if (movie) {
-			updatedMovie = await trpc.movie.update.mutate({
-				id: movie.id,
+		if (serie) {
+			updatedSerie = await trpc.serie.update.mutate({
+				id: serie.id,
 				name: payload.data.name,
 				overview: payload.data.overview,
 				rating: payload.data.rating ?? null,
@@ -90,13 +90,13 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				status: payload.data.status ?? null,
 			});
 			toast.add({
-				title: "Movie updated",
-				description: `Movie ${updatedMovie.media.name} has been updated`,
+				title: "Serie updated",
+				description: `Serie ${updatedSerie.media.name} has been updated`,
 				color: "success",
 				type: "foreground",
 			});
 		} else {
-			updatedMovie = await movieStore.createMovie({
+			updatedSerie = await serieStore.createSerie({
 				name: payload.data.name,
 				overview: payload.data.overview,
 				rating: payload.data.rating ?? null,
@@ -104,14 +104,14 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				status: payload.data.status ?? null,
 			});
 			toast.add({
-				title: "New movie created",
-				description: `Movie ${updatedMovie.media.name} has been created`,
+				title: "New serie created",
+				description: `Serie ${updatedSerie.media.name} has been created`,
 				color: "success",
 				type: "foreground",
 			});
 		}
 
-		emit("close", updatedMovie);
+		emit("close", updatedSerie);
 	} catch (err) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
 

@@ -281,8 +281,6 @@ import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
 
 definePageMeta({
-	layout: "app",
-	middleware: ["auth"],
 	validate(route) {
 		return (
 			typeof route.params.type === "string" &&
