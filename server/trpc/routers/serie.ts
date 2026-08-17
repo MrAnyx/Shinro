@@ -23,7 +23,7 @@ export default router({
 					media: {
 						create: {
 							name: input.name,
-							type: MediaType.MOVIE,
+							type: MediaType.SERIE,
 							status: input.status,
 							ownerId: ctx.user.id,
 							rating: input.rating,
@@ -75,7 +75,7 @@ export default router({
 						create: {
 							externalId: tmdbSerie.id,
 							name: tmdbSerie.name ?? null,
-							type: MediaType.MOVIE,
+							type: MediaType.SERIE,
 							ownerId: ctx.user.id,
 							imagePath: tmdbSerie.poster_path ?? null,
 							imageType: ImageType.TMDB,
@@ -225,9 +225,7 @@ export default router({
 		.output(PaginatedSchema(SerieWithMediaViewSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
-			const orderBy: Prisma.SerieOrderByWithRelationInput[] = input.orderBy.map(({ sort, order }) => ({
-				[sort]: order,
-			}));
+			const orderBy = buildPrismaOrderBy<Prisma.SerieOrderByWithRelationInput>(input.orderBy);
 
 			const where: Prisma.SerieWhereInput = {
 				media: {

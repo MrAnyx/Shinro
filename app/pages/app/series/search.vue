@@ -44,7 +44,7 @@
 				<UBadge color="error" variant="subtle" v-if="row.original.adult">18+</UBadge>
 				<UBadge color="success" variant="subtle" v-else>Safe</UBadge>
 			</template>
-			<template #release_date-cell="{ row }">
+			<template #first_air_date-cell="{ row }">
 				<NuxtTime
 					v-if="row.original.first_air_date"
 					:datetime="row.original.first_air_date"

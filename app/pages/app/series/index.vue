@@ -104,7 +104,14 @@ const { data, pending, refresh } = useAsyncData(
 	"series",
 	async () => {
 		try {
-			return await trpc.serie.getAll.query({ page: page.value, search: search.value });
+			return await trpc.serie.getAll.query({
+				page: page.value,
+				search: search.value,
+				orderBy: [
+					{ sort: "media.name", order: "asc" },
+					{ sort: "media.createdAt", order: "asc" },
+				],
+			});
 		} catch {
 			toast.add({
 				title: "Oops!",

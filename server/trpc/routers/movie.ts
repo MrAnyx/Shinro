@@ -225,9 +225,7 @@ export default router({
 		.output(PaginatedSchema(MovieWithMediaViewSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
-			const orderBy: Prisma.MovieOrderByWithRelationInput[] = input.orderBy.map(({ sort, order }) => ({
-				[sort]: order,
-			}));
+			const orderBy = buildPrismaOrderBy<Prisma.MovieOrderByWithRelationInput>(input.orderBy);
 
 			const where: Prisma.MovieWhereInput = {
 				media: {
