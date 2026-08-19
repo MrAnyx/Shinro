@@ -27,7 +27,7 @@ export default router({
 				},
 			});
 
-			const externalIds = tmdbSeries.results.map((x) => x.id);
+			const externalIds = tmdbSeries.results?.map((x) => x.id) ?? [];
 
 			const mySeries = await prisma.serie.findMany({
 				where: {
@@ -50,9 +50,9 @@ export default router({
 
 			const mySeriesMap = new Map(mySeries.map((m) => [m.media.externalId, m.id]));
 
-			const series = tmdbSeries.results.map((serie) =>
-				Object.assign(serie, { internalId: mySeriesMap.get(serie.id) }),
-			);
+			const series =
+				tmdbSeries.results?.map((serie) => Object.assign(serie, { internalId: mySeriesMap.get(serie.id) })) ??
+				[];
 
 			return {
 				total: tmdbSeries.total_results,

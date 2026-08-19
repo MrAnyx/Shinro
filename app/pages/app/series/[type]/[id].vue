@@ -25,7 +25,7 @@
 						variant="subtle"
 						color="success"
 						v-if="!isInMyList && isExternal"
-						@click="addMovie"
+						@click="addSerie"
 					/>
 
 					<template v-else-if="isInMyList">
@@ -35,16 +35,16 @@
 							leading-icon="i-lucide-trash"
 							variant="subtle"
 							color="error"
-							@click="removeMovie"
+							@click="removeSerie"
 						/>
 
 						<UButton
-							label="Edit movie"
+							label="Edit serie"
 							block
 							leading-icon="i-lucide-square-pen"
 							variant="subtle"
 							color="info"
-							@click="editMovie"
+							@click="editSerie"
 						/>
 
 						<StatusSelectMenu
@@ -65,7 +65,7 @@
 							leading-icon="i-lucide-folder"
 							clear
 							@clear="clearCollections"
-							@update:model-value="updateMovieCollections"
+							@update:model-value="updateSerieCollections"
 						/>
 
 						<UPopover :ui="{ content: 'p-3!' }">
@@ -100,7 +100,7 @@
 				</template>
 				<template v-else>
 					<h1 class="font-bold text-4xl">
-						{{ movieData?.media.name ?? detailsData?.title ?? "No title available" }}
+						{{ serieData?.media.name ?? detailsData?.name ?? "No title available" }}
 					</h1>
 					<h3 class="italic text-muted text-sm" v-if="detailsData?.tagline">{{ detailsData?.tagline }}</h3>
 				</template>
@@ -120,24 +120,12 @@
 						color="neutral"
 						variant="subtle"
 						leading-icon="i-lucide-calendar"
-						v-if="detailsData?.release_date"
+						v-if="detailsData?.first_air_date"
 					>
-						<NuxtTime :datetime="detailsData?.release_date" year="numeric" month="short" day="numeric" />
+						<NuxtTime :datetime="detailsData?.first_air_date" year="numeric" month="short" day="numeric" />
 					</UBadge>
 
-					<UBadge
-						:color="isReleased ? 'success' : 'warning'"
-						variant="subtle"
-						:leading-icon="isReleased ? 'i-lucide-check' : 'i-lucide-clock'"
-					>
-						{{ isReleased ? "Released" : "Upcoming" }}
-					</UBadge>
-
-					<UBadge color="neutral" variant="subtle" leading-icon="i-lucide-clock" v-if="detailsData?.runtime">
-						{{ Math.floor(detailsData?.runtime / 60) }}:{{
-							(detailsData?.runtime % 60).toString().padStart(2, "0")
-						}}
-					</UBadge>
+					<UBadge v-bind="airStatus" variant="subtle" />
 
 					<UBadge
 						:color="getRatingColor(detailsData?.vote_average)"
@@ -147,15 +135,6 @@
 					>
 						{{ detailsData?.vote_average?.toFixed(1) }} ({{ detailsData?.vote_count.toLocaleString() }}
 						votes)
-					</UBadge>
-
-					<UBadge
-						color="neutral"
-						variant="subtle"
-						leading-icon="i-lucide-list-video"
-						v-if="detailsData?.belongs_to_collection?.name"
-					>
-						{{ detailsData?.belongs_to_collection?.name }}
 					</UBadge>
 				</template>
 			</div>
@@ -172,7 +151,7 @@
 
 				<template v-else>
 					<p class="text-toned" :class="{ 'line-clamp-none': readMore, 'line-clamp-2': !readMore }">
-						{{ movieData?.overview ?? detailsData?.overview ?? "No overview available" }}
+						{{ serieData?.overview ?? detailsData?.overview ?? "No overview available" }}
 					</p>
 					<UButton
 						label="Read more"
@@ -256,7 +235,7 @@
 						>
 							<NuxtLink
 								class="flex flex-col gap-y-2 items-center justify-center h-full"
-								:to="`https://www.themoviedb.org/movie/${id}/cast`"
+								:to="`https://www.themoviedb.org/serie/${id}/cast`"
 								target="_blank"
 							>
 								<UAvatar icon="i-lucide-external-link" size="xl" color="primary" />
@@ -275,9 +254,11 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type { SelectMenuItem } from "@nuxt/ui";
+import { info } from "node:console";
 
-import { LazyMovieFormModal } from "#components";
+import type { BadgeProps, SelectMenuItem } from "@nuxt/ui";
+
+import { LazySerieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
 
 definePageMeta({
@@ -292,7 +273,7 @@ definePageMeta({
 // Composables
 const route = useRoute();
 const trpc = useTrpc();
-const movieStore = useMovieStore();
+const serieStore = useSerieStore();
 const toast = useToast();
 const overlay = useOverlay();
 
@@ -301,15 +282,44 @@ const type = computed(() => route.params.type as MediaSourceType);
 const id = computed(() => route.params.id as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
-const isReleased = computed(() => {
-	if (!detailsData.value?.release_date) {
-		return false;
+const airStatus = computed<BadgeProps | null>(() => {
+	const firstAir = detailsData.value?.first_air_date;
+	const lastAir = detailsData.value?.next_episode_to_air?.air_date ?? detailsData.value?.last_air_date;
+
+	if (!firstAir) {
+		return null;
 	}
 
 	try {
-		return new Date(detailsData.value.release_date) <= new Date();
+		const now = new Date();
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const start = new Date(firstAir);
+		const end = lastAir ? new Date(lastAir) : null;
+
+		if (start > today) {
+			// hasn't aired yet
+			return {
+				label: "Incoming",
+				color: "warning",
+				leadingIcon: "i-lucide-clock",
+			};
+		}
+		if (!end || end >= today) {
+			// started but not ended
+			return {
+				label: "Ongoing",
+				color: "info",
+				leadingIcon: "i-lucide-play",
+			};
+		}
+		// fully aired
+		return {
+			label: "Released",
+			color: "success",
+			leadingIcon: "i-lucide-check",
+		};
 	} catch {
-		return false;
+		return null;
 	}
 });
 const genres = computed(() => detailsData.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()) ?? []);
@@ -317,12 +327,12 @@ const actors = computed(() => creditsData.value?.cast?.slice(0, MAX_CREDITS) ?? 
 const isLoading = computed(
 	() =>
 		loadingDetails.value ||
-		loadingMyMovie.value ||
+		loadingMySerie.value ||
 		loadingCollections.value ||
 		loadingCredits.value ||
-		loadingMovieCollections.value,
+		loadingSerieCollections.value,
 );
-const isInMyList = computed(() => !!movieData.value);
+const isInMyList = computed(() => !!serieData.value);
 const collections = computed<SelectMenuItem[]>(
 	() =>
 		collectionsData.value?.results.map(
@@ -340,7 +350,7 @@ const collections = computed<SelectMenuItem[]>(
 const ratingButtonLabel = computed(() =>
 	rating.value ? `Edit my rating (${rating.value.toFixed(1)})` : `Set my rating`,
 );
-const note = computed(() => movieData.value?.media.note ?? "");
+const note = computed(() => serieData.value?.media.note ?? "");
 
 // State
 const readMore = ref(false);
@@ -349,36 +359,39 @@ const selectedCollectionIds = ref<string[]>([]);
 const status = ref<MediaStatus | undefined>(undefined);
 
 // Async data
-const { data: detailsData, pending: loadingDetails } = useAsyncData("movie-details", async () =>
-	isExternal.value ? await trpc.tmdbMovie.details.query({ id: id.value }) : null,
+const { data: detailsData, pending: loadingDetails } = useAsyncData("serie-details", async () =>
+	isExternal.value ? await trpc.tmdbSerie.details.query({ id: id.value }) : null,
 );
+watch(detailsData, (newValue) => {
+	log.info(newValue ?? {});
+});
 
-const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-external", async () => {
+const { data: serieData, pending: loadingMySerie } = useAsyncData("serie-from-external", async () => {
 	if (isInternal.value) {
-		return await trpc.movie.getById.query({ id: id.value });
+		return await trpc.serie.getById.query({ id: id.value });
 	} else if (isExternal.value) {
-		return await trpc.movie.getById.query({ externalId: id.value });
+		return await trpc.serie.getById.query({ externalId: id.value });
 	} else {
 		return null;
 	}
 });
 
-watch(movieData, (newValue) => {
+watch(serieData, (newValue) => {
 	rating.value = newValue?.media.rating ?? undefined;
 	status.value = newValue?.media.status ?? undefined;
 });
 
-const { data: movieCollections, pending: loadingMovieCollections } = useAsyncData("movie-collections", async () => {
+const { data: serieCollections, pending: loadingSerieCollections } = useAsyncData("serie-collections", async () => {
 	if (isInternal.value) {
-		return await trpc.movie.getCollections.query({ id: id.value });
+		return await trpc.serie.getCollections.query({ id: id.value });
 	} else if (isExternal.value) {
-		return await trpc.movie.getCollections.query({ externalId: id.value });
+		return await trpc.serie.getCollections.query({ externalId: id.value });
 	} else {
 		return null;
 	}
 });
 
-watch(movieCollections, (newValue) => {
+watch(serieCollections, (newValue) => {
 	selectedCollectionIds.value = newValue?.map((x) => x.id) ?? [];
 });
 
@@ -396,26 +409,26 @@ const { data: collectionsData, pending: loadingCollections } = useAsyncData(
 
 const { data: creditsData, pending: loadingCredits } = useAsyncData(
 	"credits",
-	async () => await trpc.tmdbMovie.credits.query({ id: id.value }),
+	async () => await trpc.tmdbSerie.credits.query({ id: id.value }),
 );
 
 // Methods
-const removeMovie = async () => {
+const removeSerie = async () => {
 	try {
 		if (!isInMyList.value) {
 			return;
 		}
 
-		await movieStore.deleteMovie({ id: movieData.value!.id });
-		movieData.value = null;
+		await serieStore.deleteSerie({ id: serieData.value!.id });
+		serieData.value = null;
 
 		if (isInternal.value) {
-			await navigateTo("/app/movies");
+			await navigateTo("/app/series");
 		}
 	} catch (err: any) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
 		toast.add({
-			title: "Unable to remove a movie",
+			title: "Unable to remove a serie",
 			description: message,
 			color: "error",
 			type: "foreground",
@@ -423,18 +436,18 @@ const removeMovie = async () => {
 	}
 };
 
-const addMovie = async () => {
+const addSerie = async () => {
 	try {
-		if (movieData.value || isInMyList.value) {
+		if (serieData.value || isInMyList.value) {
 			return;
 		}
 
-		const movie = await movieStore.createMovieFromExternal({ externalId: id.value });
-		movieData.value = movie;
+		const serie = await serieStore.createSerieFromExternal({ externalId: id.value });
+		serieData.value = serie;
 	} catch (err: any) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
 		toast.add({
-			title: "Unable to add a movie",
+			title: "Unable to add a serie",
 			description: message,
 			color: "error",
 			type: "foreground",
@@ -442,18 +455,18 @@ const addMovie = async () => {
 	}
 };
 
-const movieFormModal = overlay.create(LazyMovieFormModal);
-const editMovie = async () => {
+const serieFormModal = overlay.create(LazySerieFormModal);
+const editSerie = async () => {
 	if (!isInMyList.value) {
 		return;
 	}
 
-	const instance = movieFormModal.open({ movie: movieData.value! });
+	const instance = serieFormModal.open({ serie: serieData.value! });
 
 	const result = await instance.result;
 
 	if (result) {
-		movieData.value = result;
+		serieData.value = result;
 	}
 };
 
@@ -463,8 +476,8 @@ const updateStatus = async (status?: MediaStatus) => {
 	}
 
 	try {
-		await trpc.movie.update.mutate({
-			id: movieData.value!.id,
+		await trpc.serie.update.mutate({
+			id: serieData.value!.id,
 			status: status ?? null,
 		});
 	} catch (err: any) {
@@ -478,7 +491,7 @@ const updateStatus = async (status?: MediaStatus) => {
 	}
 };
 
-const updateMovieCollections = async (collectionIds: string[]) => {
+const updateSerieCollections = async (collectionIds: string[]) => {
 	if (!isInMyList.value) {
 		return;
 	}
@@ -486,8 +499,8 @@ const updateMovieCollections = async (collectionIds: string[]) => {
 	selectedCollectionIds.value = collectionIds;
 
 	try {
-		await trpc.movie.updateCollections.mutate({
-			id: movieData.value!.id,
+		await trpc.serie.updateCollections.mutate({
+			id: serieData.value!.id,
 			collectionIds,
 		});
 	} catch (err: any) {
@@ -506,7 +519,7 @@ const clearCollections = async () => {
 		return;
 	}
 
-	await updateMovieCollections([]);
+	await updateSerieCollections([]);
 };
 
 const updateRating = async (newRating: number | null) => {
@@ -515,8 +528,8 @@ const updateRating = async (newRating: number | null) => {
 			return;
 		}
 
-		await trpc.movie.update.mutate({
-			id: movieData.value!.id,
+		await trpc.serie.update.mutate({
+			id: serieData.value!.id,
 			rating: newRating,
 		});
 	} catch (err: any) {
@@ -538,8 +551,8 @@ const clearRating = async () => {
 
 		rating.value = undefined;
 
-		await trpc.movie.update.mutate({
-			id: movieData.value!.id,
+		await trpc.serie.update.mutate({
+			id: serieData.value!.id,
 			rating: null,
 		});
 	} catch (err: any) {
