@@ -17,15 +17,18 @@ export const MediaDefaultViewSchema = z.object({
 	updatedAt: z.date(),
 });
 
-export const MediaWithMediaTypesViewSchema = MediaDefaultViewSchema.extend({
-	movie: z.lazy(() => MovieDefaultViewSchema).nullable(),
-	serie: z.lazy(() => SerieDefaultViewSchema).nullable(),
-});
-
-export const MediaWithMovieViewSchema = MediaDefaultViewSchema.extend({
+export const MovieMediaViewSchema = MediaDefaultViewSchema.extend({
+	type: z.literal(MediaType.MOVIE),
 	movie: z.lazy(() => MovieDefaultViewSchema),
 });
 
-export const MediaWithSerieViewSchema = MediaDefaultViewSchema.extend({
+export const SerieMediaViewSchema = MediaDefaultViewSchema.extend({
+	type: z.literal(MediaType.SERIE),
 	serie: z.lazy(() => SerieDefaultViewSchema),
 });
+
+export const AnyMediaViewSchema = z.discriminatedUnion("type", [
+	MediaWithMovieViewSchema,
+	MediaWithSerieViewSchema,
+	// other types
+]);
