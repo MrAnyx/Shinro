@@ -383,9 +383,9 @@ watch(serieData, (newValue) => {
 
 const { data: serieCollections, pending: loadingSerieCollections } = useAsyncData("serie-collections", async () => {
 	if (isInternal.value) {
-		return await trpc.serie.getCollections.query({ id: id.value });
+		return await trpc.media.getCollections.query({ id: id.value });
 	} else if (isExternal.value) {
-		return await trpc.serie.getCollections.query({ externalId: id.value });
+		return await trpc.media.getCollections.query({ externalId: id.value });
 	} else {
 		return null;
 	}
@@ -499,7 +499,7 @@ const updateSerieCollections = async (collectionIds: string[]) => {
 	selectedCollectionIds.value = collectionIds;
 
 	try {
-		await trpc.serie.updateCollections.mutate({
+		await trpc.media.updateCollections.mutate({
 			id: serieData.value!.id,
 			collectionIds,
 		});

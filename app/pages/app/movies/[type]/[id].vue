@@ -370,9 +370,9 @@ watch(movieData, (newValue) => {
 
 const { data: movieCollections, pending: loadingMovieCollections } = useAsyncData("movie-collections", async () => {
 	if (isInternal.value) {
-		return await trpc.movie.getCollections.query({ id: id.value });
+		return await trpc.media.getCollections.query({ id: id.value });
 	} else if (isExternal.value) {
-		return await trpc.movie.getCollections.query({ externalId: id.value });
+		return await trpc.media.getCollections.query({ externalId: id.value });
 	} else {
 		return null;
 	}
@@ -486,7 +486,7 @@ const updateMovieCollections = async (collectionIds: string[]) => {
 	selectedCollectionIds.value = collectionIds;
 
 	try {
-		await trpc.movie.updateCollections.mutate({
+		await trpc.media.updateCollections.mutate({
 			id: movieData.value!.id,
 			collectionIds,
 		});

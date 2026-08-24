@@ -28,7 +28,7 @@ export const SerieMediaViewSchema = MediaDefaultViewSchema.extend({
 });
 
 export const AnyMediaViewSchema = z.discriminatedUnion("type", [
-	MediaWithMovieViewSchema,
-	MediaWithSerieViewSchema,
+	MovieMediaViewSchema,
+	SerieMediaViewSchema,
 	// other types
 ]);
