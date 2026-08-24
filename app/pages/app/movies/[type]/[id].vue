@@ -172,20 +172,7 @@ const isLoading = computed(
 		loadingMovieCollections.value,
 );
 const isInMyList = computed(() => !!movieData.value);
-const collections = computed<SelectMenuItem[]>(
-	() =>
-		collectionsData.value?.results.map(
-			(x) =>
-				({
-					label: x.name,
-					value: x.id,
-					icon: x.favorite ? "i-ph-star-fill" : undefined,
-					ui: {
-						itemLeadingIcon: x.favorite ? "text-warning" : undefined,
-					},
-				}) as SelectMenuItem,
-		) ?? [],
-);
+
 const note = computed(() => movieData.value?.media.note ?? "");
 
 // State
