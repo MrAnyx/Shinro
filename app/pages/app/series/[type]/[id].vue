@@ -127,15 +127,11 @@
 
 					<UBadge v-bind="airStatus" variant="subtle" />
 
-					<UBadge
-						:color="getRatingColor(detailsData?.vote_average)"
-						variant="subtle"
-						leading-icon="i-lucide-star"
+					<VoteBadge
 						v-if="detailsData?.vote_average && detailsData?.vote_count"
-					>
-						{{ detailsData?.vote_average?.toFixed(1) }} ({{ detailsData?.vote_count.toLocaleString() }}
-						votes)
-					</UBadge>
+						:average="detailsData.vote_average"
+						:count="detailsData.vote_count"
+					/>
 				</template>
 			</div>
 
@@ -254,8 +250,6 @@
 	</div>
 </template>
 <script setup lang="ts">
-import { info } from "node:console";
-
 import type { BadgeProps, SelectMenuItem } from "@nuxt/ui";
 
 import { LazySerieFormModal } from "#components";

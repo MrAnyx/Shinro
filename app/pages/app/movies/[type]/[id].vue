@@ -93,18 +93,11 @@
 		<!-- Main section -->
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
 			<!-- Title and tagline -->
-			<div class="flex flex-col gap-y-1">
-				<template v-if="isLoading">
-					<USkeleton class="w-1/2 h-[32px] rounded-sm" />
-					<USkeleton class="w-1/3 h-[24px] rounded-sm" />
-				</template>
-				<template v-else>
-					<h1 class="font-bold text-4xl">
-						{{ movieData?.media.name ?? detailsData?.title ?? "No title available" }}
-					</h1>
-					<h3 class="italic text-muted text-sm" v-if="detailsData?.tagline">{{ detailsData?.tagline }}</h3>
-				</template>
-			</div>
+			<DetailsTitleHeader
+				:loading="isLoading"
+				:title="movieData?.media.name ?? detailsData?.title"
+				:subtitle="detailsData?.tagline"
+			/>
 
 			<!-- Details badges -->
 			<div class="flex gap-x-2" v-if="isExternal">
@@ -112,9 +105,7 @@
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
 				<template v-else>
-					<UBadge color="error" variant="subtle" leading-icon="i-lucide-user-x" v-if="detailsData?.adult">
-						18+
-					</UBadge>
+					<AdultBadge :adult="detailsData?.adult" />
 
 					<UBadge
 						color="neutral"
@@ -139,83 +130,22 @@
 						}}
 					</UBadge>
 
-					<UBadge
-						:color="getRatingColor(detailsData?.vote_average)"
-						variant="subtle"
-						leading-icon="i-lucide-star"
+					<VoteBadge
 						v-if="detailsData?.vote_average && detailsData?.vote_count"
-					>
-						{{ detailsData?.vote_average?.toFixed(1) }} ({{ detailsData?.vote_count.toLocaleString() }}
-						votes)
-					</UBadge>
-
-					<UBadge
-						color="neutral"
-						variant="subtle"
-						leading-icon="i-lucide-list-video"
-						v-if="detailsData?.belongs_to_collection?.name"
-					>
-						{{ detailsData?.belongs_to_collection?.name }}
-					</UBadge>
-				</template>
-			</div>
-
-			<!-- Synopsis -->
-			<div class="flex flex-col gap-y-2">
-				<template v-if="isLoading">
-					<div class="flex flex-col gap-y-2">
-						<USkeleton class="h-4 w-full rounded-sm" />
-						<USkeleton class="h-4 w-full rounded-sm" />
-						<USkeleton class="h-4 w-3/4 rounded-sm" />
-					</div>
-				</template>
-
-				<template v-else>
-					<p class="text-toned" :class="{ 'line-clamp-none': readMore, 'line-clamp-2': !readMore }">
-						{{ movieData?.overview ?? detailsData?.overview ?? "No overview available" }}
-					</p>
-					<UButton
-						label="Read more"
-						variant="link"
-						class="p-0 self-start"
-						@click="toggleReadMore"
-						v-show="!readMore"
+						:average="detailsData.vote_average"
+						:count="detailsData.vote_count"
 					/>
 				</template>
 			</div>
 
+			<!-- Synopsis -->
+			<DetailsOverview :loading="isLoading" :overview="movieData?.overview ?? detailsData?.overview" />
+
 			<!-- Genres -->
-			<div class="flex gap-2 flex-wrap" v-if="isExternal">
-				<template v-if="isLoading">
-					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
-				</template>
-				<template v-else>
-					<template v-if="genres.length > 0">
-						<UBadge
-							v-for="genre in genres"
-							:key="genre.name"
-							color="primary"
-							variant="subtle"
-							leading-icon="i-lucide-tag"
-						>
-							{{ genre.name }}
-						</UBadge>
-					</template>
-					<UBadge v-else color="error" variant="subtle" leading-icon="i-lucide-tag-x">
-						No genres available
-					</UBadge>
-				</template>
-			</div>
+			<DetailsGenreBadges :loading="isLoading" v-if="isExternal" :genres="genres" />
 
 			<!-- Note -->
-			<UAlert
-				title="Personal note"
-				:description="note"
-				icon="i-lucide-notebook-pen"
-				color="neutral"
-				variant="subtle"
-				v-if="note && !isLoading"
-			/>
+			<DetailsPersonalNote :description="note" v-if="note && !isLoading" />
 
 			<USeparator v-if="isExternal" />
 
@@ -229,24 +159,13 @@
 					</template>
 					<template v-else-if="actors.length > 0">
 						<template v-for="(actor, index) in actors" :key="index">
-							<UCard class="w-[170px] shrink-0" :ui="{ body: 'p-0!' }" variant="subtle">
-								<NuxtLink
-									class="flex flex-col"
-									:to="`https://www.themoviedb.org/person/${actor.id}`"
-									target="_blank"
-								>
-									<ImageFallback provider="tmdb" :src="actor.profile_path" :height="210" />
-
-									<div class="p-2">
-										<p class="font-semibold text-center line-clamp-1">
-											{{ actor.name ?? "No name" }}
-										</p>
-										<p class="text-sm text-muted text-center line-clamp-1">
-											{{ actor.character ?? "No character" }}
-										</p>
-									</div>
-								</NuxtLink>
-							</UCard>
+							<DetailsCreditCard
+								:to="`https://www.themoviedb.org/person/${actor.id}`"
+								:image="actor.profile_path"
+								:name="actor.name"
+								:character="actor.character"
+								image-provider="tmdb"
+							/>
 						</template>
 						<UCard
 							class="w-[170px] shrink-0"
@@ -312,7 +231,9 @@ const isReleased = computed(() => {
 		return false;
 	}
 });
-const genres = computed(() => detailsData.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()) ?? []);
+const genres = computed(
+	() => detailsData.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()).map((g) => g.name) ?? [],
+);
 const actors = computed(() => creditsData.value?.cast?.slice(0, MAX_CREDITS) ?? []);
 const isLoading = computed(
 	() =>
@@ -343,7 +264,6 @@ const ratingButtonLabel = computed(() =>
 const note = computed(() => movieData.value?.media.note ?? "");
 
 // State
-const readMore = ref(false);
 const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);
 const status = ref<MediaStatus | undefined>(undefined);
@@ -552,6 +472,4 @@ const clearRating = async () => {
 		});
 	}
 };
-
-const toggleReadMore = () => (readMore.value = !readMore.value);
 </script>

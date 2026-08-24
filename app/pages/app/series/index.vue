@@ -49,7 +49,6 @@
 					v-if="row.original.media.status"
 					:type="row.original.media.type"
 					:status="row.original.media.status"
-					variant="subtle"
 				/>
 			</template>
 			<template #createdAt-cell="{ row }">

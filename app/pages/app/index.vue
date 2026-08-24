@@ -86,7 +86,6 @@
 								v-if="row.original.status"
 								:type="row.original.type"
 								:status="row.original.status"
-								variant="subtle"
 							/>
 						</template>
 						<template #type-cell="{ row }">
@@ -131,7 +130,6 @@
 									v-if="row.original.media.status"
 									:type="row.original.media.type"
 									:status="row.original.media.status"
-									variant="subtle"
 								/>
 							</template>
 							<template #createdAt-cell="{ row }">

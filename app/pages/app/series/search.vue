@@ -55,14 +55,7 @@
 				/>
 			</template>
 			<template #vote_average-cell="{ row }">
-				<UBadge
-					:color="getRatingColor(row.original.vote_average)"
-					variant="subtle"
-					v-if="row.original.vote_count > 0"
-				>
-					{{ row.original.vote_average.toFixed(1) }} ({{ row.original.vote_count.toLocaleString() }})
-				</UBadge>
-				<span v-else />
+				<VoteBadge :average="row.original.vote_average" :count="row.original.vote_count" />
 			</template>
 			<template #actions-cell="{ row }">
 				<UButton
