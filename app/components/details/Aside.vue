@@ -1,17 +1,17 @@
 <template>
-	<aside class="w-80">
+	<aside>
 		<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle">
 			<!-- Image -->
 			<ImageFallback
-				provider="tmdb"
-				:src="detailsData?.poster_path"
+				:provider="props.imageProvider"
+				:src="props.image"
 				:height="400"
 				class="rounded-md"
-				:loading="loading"
+				:loading="props.loading"
 			/>
 
 			<!-- Actions -->
-			<template v-if="loading">
+			<template v-if="props.loading">
 				<USkeleton class="w-full h-[32px] rounded-sm" />
 				<USkeleton class="w-full h-[32px] rounded-sm" />
 			</template>
@@ -22,18 +22,18 @@
 					leading-icon="i-lucide-plus"
 					variant="subtle"
 					color="success"
-					v-if="!inMyList && external"
-					@click="addMovie"
+					v-if="!props.inMyList && props.external"
+					@click="emit('add')"
 				/>
 
-				<template v-else-if="inMyList">
+				<template v-else-if="props.inMyList">
 					<UButton
 						label="Remove from My List"
 						block
 						leading-icon="i-lucide-trash"
 						variant="subtle"
 						color="error"
-						@click="removeMovie"
+						@click="emit('remove')"
 					/>
 
 					<UButton
@@ -42,19 +42,14 @@
 						leading-icon="i-lucide-square-pen"
 						variant="subtle"
 						color="info"
-						@click="editMovie"
+						@click="emit('edit')"
 					/>
 
-					<StatusSelectMenu
-						:loading="loading"
-						@update:modelValue="updateStatus"
-						variant="subtle"
-						v-model="status"
-					/>
+					<StatusSelectMenu :loading="loading" variant="subtle" v-model="status" />
 
 					<USelectMenu
-						:items="collections"
-						v-model="selectedCollectionIds"
+						:items="internalCollectionsAvailable"
+						v-model="collections"
 						:loading="loading"
 						variant="subtle"
 						multiple
@@ -62,11 +57,9 @@
 						placeholder="Select some collections"
 						leading-icon="i-lucide-folder"
 						clear
-						@clear="clearCollections"
-						@update:model-value="updateMovieCollections"
 					/>
 
-					<DetailsRatingPopover v-model="rating" @update:model-value="updateRating" />
+					<DetailsRatingPopover v-model="rating" />
 				</template>
 			</template>
 		</UCard>
@@ -74,7 +67,42 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import type { ConfiguredImageProviders } from "@nuxt/image";
+import type { SelectMenuItem } from "@nuxt/ui";
+
+import type { MediaStatus } from "#prisma/enums";
+
+const rating = defineModel<number>("rating");
+const status = defineModel<MediaStatus>("status");
+const collections = defineModel<string[]>("collections");
+
+const props = defineProps<{
 	loading?: boolean;
+	external: boolean;
+	inMyList: boolean;
+	image?: string | null;
+	imageProvider?: keyof ConfiguredImageProviders;
+	collectionsAvailable?: { id: string; name: string; favorite: boolean }[];
 }>();
+
+const emit = defineEmits<{
+	(e: "add"): void;
+	(e: "remove"): void;
+	(e: "edit"): void;
+}>();
+
+const internalCollectionsAvailable = computed(
+	() =>
+		props.collectionsAvailable?.map(
+			(x) =>
+				({
+					label: x.name,
+					value: x.id,
+					icon: x.favorite ? "i-ph-star-fill" : undefined,
+					ui: {
+						itemLeadingIcon: x.favorite ? "text-warning" : undefined,
+					},
+				}) as SelectMenuItem,
+		) ?? [],
+);
 </script>

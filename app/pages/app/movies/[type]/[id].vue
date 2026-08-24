@@ -1,78 +1,24 @@
 <template>
-	<div class="flex gap-x-8 w-full">
+	<div class="flex gap-8 w-full">
 		<!-- Side bar with image and actions -->
-		<aside class="w-80">
-			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle">
-				<!-- Image -->
-				<ImageFallback
-					provider="tmdb"
-					:src="detailsData?.poster_path"
-					:height="400"
-					class="rounded-md"
-					:loading="isLoading"
-				/>
-
-				<!-- Actions -->
-				<template v-if="isLoading">
-					<USkeleton class="w-full h-[32px] rounded-sm" />
-					<USkeleton class="w-full h-[32px] rounded-sm" />
-				</template>
-				<template v-else>
-					<UButton
-						label="Add to My List"
-						block
-						leading-icon="i-lucide-plus"
-						variant="subtle"
-						color="success"
-						v-if="!isInMyList && isExternal"
-						@click="addMovie"
-					/>
-
-					<template v-else-if="isInMyList">
-						<UButton
-							label="Remove from My List"
-							block
-							leading-icon="i-lucide-trash"
-							variant="subtle"
-							color="error"
-							@click="removeMovie"
-						/>
-
-						<UButton
-							label="Edit movie"
-							block
-							leading-icon="i-lucide-square-pen"
-							variant="subtle"
-							color="info"
-							@click="editMovie"
-						/>
-
-						<StatusSelectMenu
-							:loading="isLoading"
-							@update:modelValue="updateStatus"
-							variant="subtle"
-							v-model="status"
-						/>
-
-						<USelectMenu
-							:items="collections"
-							v-model="selectedCollectionIds"
-							:loading="isLoading"
-							variant="subtle"
-							multiple
-							value-key="value"
-							placeholder="Select some collections"
-							leading-icon="i-lucide-folder"
-							clear
-							@clear="clearCollections"
-							@update:model-value="updateMovieCollections"
-						/>
-
-						<DetailsRatingPopover v-model="rating" @update:model-value="updateRating" />
-					</template>
-				</template>
-			</UCard>
-		</aside>
+		<DetailsAside
+			class="w-80"
+			:loading="isLoading"
+			:collections-available="collectionsData?.results"
+			:external="isExternal"
+			:in-my-list="isInMyList"
+			image-provider="tmdb"
+			:image="detailsData?.poster_path"
+			v-model:rating="rating"
+			v-model:status="status"
+			v-model:collections="selectedCollectionIds"
+			@add="addMovie"
+			@remove="removeMovie"
+			@edit="editMovie"
+			@update:status="updateStatus"
+			@update:collections="updateMovieCollections"
+			@update:rating="updateRating"
+		/>
 
 		<!-- Main section -->
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
@@ -240,9 +186,6 @@ const collections = computed<SelectMenuItem[]>(
 				}) as SelectMenuItem,
 		) ?? [],
 );
-const ratingButtonLabel = computed(() =>
-	rating.value ? `Edit my rating (${rating.value.toFixed(1)})` : `Set my rating`,
-);
 const note = computed(() => movieData.value?.media.note ?? "");
 
 // State
@@ -380,17 +323,15 @@ const updateStatus = async (status?: MediaStatus) => {
 	}
 };
 
-const updateMovieCollections = async (collectionIds: string[]) => {
+const updateMovieCollections = async () => {
 	if (!isInMyList.value) {
 		return;
 	}
 
-	selectedCollectionIds.value = collectionIds;
-
 	try {
 		await trpc.media.updateCollections.mutate({
 			id: movieData.value!.id,
-			collectionIds,
+			collectionIds: selectedCollectionIds.value,
 		});
 	} catch (err: any) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
@@ -401,14 +342,6 @@ const updateMovieCollections = async (collectionIds: string[]) => {
 			type: "foreground",
 		});
 	}
-};
-
-const clearCollections = async () => {
-	if (!isInMyList.value) {
-		return;
-	}
-
-	await updateMovieCollections([]);
 };
 
 const updateRating = async () => {
