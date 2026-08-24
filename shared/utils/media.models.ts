@@ -1,6 +1,8 @@
 import { z } from "zod";
 
 import { MediaType, ImageType, MediaStatus } from "#prisma/enums";
+import { MovieDefaultViewSchema, MovieWithMediaViewSchema } from "./movie.models";
+import { SerieDefaultViewSchema, SerieWithMediaViewSchema } from "./serie.models";
 
 export const MediaDefaultViewSchema = z.object({
 	id: z.uuid(),
@@ -28,7 +30,7 @@ export const SerieMediaViewSchema = MediaDefaultViewSchema.extend({
 });
 
 export const AnyMediaViewSchema = z.discriminatedUnion("type", [
-	MediaWithMovieViewSchema,
-	MediaWithSerieViewSchema,
+	MovieWithMediaViewSchema,
+	SerieWithMediaViewSchema,
 	// other types
 ]);

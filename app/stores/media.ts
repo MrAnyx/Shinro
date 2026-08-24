@@ -4,8 +4,11 @@ export const useMediaStore = defineStore("media", {
 		total() {
 			const movieStore = useMovieStore();
 			const serieStore = useSerieStore();
+			const bookStore = useBookStore();
+			const musicStore = useMusicStore();
+			const gameStore = useGameStore();
 
-			return movieStore.total + serieStore.total;
+			return movieStore.total + serieStore.total + bookStore.total + musicStore.total + gameStore.total;
 		},
 	},
 	actions: {},
