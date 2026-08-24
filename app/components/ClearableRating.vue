@@ -15,12 +15,7 @@
 <script setup lang="ts">
 const rating = defineModel<number | undefined>();
 
-const emit = defineEmits<{
-	(event: "clear"): void;
-}>();
-
 function clearRating() {
 	rating.value = undefined;
-	emit("clear");
 }
 </script>

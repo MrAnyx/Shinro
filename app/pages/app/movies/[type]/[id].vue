@@ -68,23 +68,7 @@
 							@update:model-value="updateMovieCollections"
 						/>
 
-						<UPopover :ui="{ content: 'p-3!' }">
-							<UButton
-								color="neutral"
-								variant="subtle"
-								block
-								:label="ratingButtonLabel"
-								leading-icon="i-lucide-user-star"
-							/>
-
-							<template #content>
-								<ClearableRating
-									v-model="rating"
-									@update:model-value="(v) => updateRating(v ?? null)"
-									@clear="clearRating"
-								/>
-							</template>
-						</UPopover>
+						<DetailsRatingPopover v-model="rating" @update:model-value="updateRating" />
 					</template>
 				</template>
 			</UCard>
@@ -100,7 +84,7 @@
 			/>
 
 			<!-- Details badges -->
-			<div class="flex gap-x-2" v-if="isExternal">
+			<div class="flex gap-2 flex-wrap" v-if="isExternal">
 				<template v-if="isLoading">
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
@@ -146,8 +130,6 @@
 
 			<!-- Note -->
 			<DetailsPersonalNote :description="note" v-if="note && !isLoading" />
-
-			<USeparator v-if="isExternal" />
 
 			<!-- Credits -->
 			<div v-if="isExternal">
@@ -429,7 +411,7 @@ const clearCollections = async () => {
 	await updateMovieCollections([]);
 };
 
-const updateRating = async (newRating: number | null) => {
+const updateRating = async () => {
 	try {
 		if (!isInMyList.value) {
 			return;
@@ -437,35 +419,12 @@ const updateRating = async (newRating: number | null) => {
 
 		await trpc.movie.update.mutate({
 			id: movieData.value!.id,
-			rating: newRating,
+			rating: rating.value ?? null,
 		});
 	} catch (err: any) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
 		toast.add({
 			title: "Unable to set the rating",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
-	}
-};
-
-const clearRating = async () => {
-	try {
-		if (!isInMyList.value) {
-			return;
-		}
-
-		rating.value = undefined;
-
-		await trpc.movie.update.mutate({
-			id: movieData.value!.id,
-			rating: null,
-		});
-	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to reset the rating",
 			description: message,
 			color: "error",
 			type: "foreground",
