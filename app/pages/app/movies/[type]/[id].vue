@@ -170,7 +170,7 @@ const isLoading = computed(
 		loadingMovieCollections.value,
 );
 const isInMyList = computed(() => !!movieData.value);
-const note = computed(() => movieData.value?.media.note ?? "");
+const note = computed(() => movieData.value?.media.note);
 
 const mediaQueryParams = computed(() =>
 	isInternal.value ? { id: id.value } : isExternal.value ? { externalId: id.value } : null,
