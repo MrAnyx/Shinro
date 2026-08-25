@@ -122,8 +122,6 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type { SelectMenuItem } from "@nuxt/ui";
-
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
 
@@ -172,8 +170,11 @@ const isLoading = computed(
 		loadingMovieCollections.value,
 );
 const isInMyList = computed(() => !!movieData.value);
-
 const note = computed(() => movieData.value?.media.note ?? "");
+
+const mediaQueryParams = computed(() =>
+	isInternal.value ? { id: id.value } : isExternal.value ? { externalId: id.value } : null,
+);
 
 // State
 const rating = ref<number | undefined>(undefined);
@@ -182,17 +183,12 @@ const status = ref<MediaStatus | undefined>(undefined);
 
 // Async data
 const { data: detailsData, pending: loadingDetails } = useAsyncData("movie-details", async () =>
-	isExternal.value ? await trpc.tmdbMovie.details.query({ id: id.value }) : null,
+	isExternal.value ? trpc.tmdbMovie.details.query({ id: id.value }) : null,
 );
 
 const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-external", async () => {
-	if (isInternal.value) {
-		return await trpc.movie.getById.query({ id: id.value });
-	} else if (isExternal.value) {
-		return await trpc.movie.getById.query({ externalId: id.value });
-	} else {
-		return null;
-	}
+	const params = mediaQueryParams.value;
+	return params ? trpc.movie.getById.query(params) : null;
 });
 
 watch(movieData, (newValue) => {
@@ -201,34 +197,26 @@ watch(movieData, (newValue) => {
 });
 
 const { data: movieCollections, pending: loadingMovieCollections } = useAsyncData("movie-collections", async () => {
-	if (isInternal.value) {
-		return await trpc.media.getCollections.query({ id: id.value });
-	} else if (isExternal.value) {
-		return await trpc.media.getCollections.query({ externalId: id.value });
-	} else {
-		return null;
-	}
+	const params = mediaQueryParams.value;
+	return params ? trpc.media.getCollections.query(params) : null;
 });
 
 watch(movieCollections, (newValue) => {
 	selectedCollectionIds.value = newValue?.map((x) => x.id) ?? [];
 });
 
-const { data: collectionsData, pending: loadingCollections } = useAsyncData(
-	"collections",
-	async () =>
-		await trpc.collection.getAll.query({
-			force: true,
-			orderBy: [
-				{ sort: "favorite", order: "desc" },
-				{ sort: "name", order: "asc" },
-			],
-		}),
+const { data: collectionsData, pending: loadingCollections } = useAsyncData("collections", () =>
+	trpc.collection.getAll.query({
+		force: true,
+		orderBy: [
+			{ sort: "favorite", order: "desc" },
+			{ sort: "name", order: "asc" },
+		],
+	}),
 );
 
-const { data: creditsData, pending: loadingCredits } = useAsyncData(
-	"credits",
-	async () => await trpc.tmdbMovie.credits.query({ id: id.value }),
+const { data: creditsData, pending: loadingCredits } = useAsyncData("credits", () =>
+	trpc.tmdbMovie.credits.query({ id: id.value }),
 );
 
 // Methods
