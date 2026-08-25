@@ -60,11 +60,7 @@
 						}}
 					</UBadge>
 
-					<VoteBadge
-						v-if="detailsData?.vote_average && detailsData?.vote_count"
-						:average="detailsData.vote_average"
-						:count="detailsData.vote_count"
-					/>
+					<VoteBadge :average="detailsData?.vote_average ?? 0" :count="detailsData?.vote_count ?? 0" />
 				</template>
 			</div>
 
