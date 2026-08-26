@@ -107,7 +107,6 @@ const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 };
 
 const { data, pending, refresh } = useAsyncData(
-	"collections",
 	async () => {
 		try {
 			return await trpc.collection.getAll.query({ page: page.value, search: search.value });

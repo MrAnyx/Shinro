@@ -141,11 +141,11 @@ const selectedCollectionIds = ref<string[]>([]);
 const status = ref<MediaStatus | undefined>(undefined);
 
 // Async data
-const { data: detailsData, pending: loadingDetails } = useAsyncData("movie-details", async () =>
+const { data: detailsData, pending: loadingDetails } = useAsyncData(async () =>
 	isExternal.value ? trpc.tmdbMovie.details.query({ id: id.value }) : null,
 );
 
-const { data: movieData, pending: loadingMyMovie } = useAsyncData("movie-from-external", async () => {
+const { data: movieData, pending: loadingMyMovie } = useAsyncData(async () => {
 	const params = mediaQueryParams.value;
 	return params ? trpc.movie.getById.query(params) : null;
 });
@@ -155,7 +155,7 @@ watch(movieData, (newValue) => {
 	status.value = newValue?.media.status ?? undefined;
 });
 
-const { data: movieCollections, pending: loadingMovieCollections } = useAsyncData("movie-collections", async () => {
+const { data: movieCollections, pending: loadingMovieCollections } = useAsyncData(async () => {
 	const params = mediaQueryParams.value;
 	return params ? trpc.media.getCollections.query(params) : null;
 });
@@ -164,7 +164,7 @@ watch(movieCollections, (newValue) => {
 	selectedCollectionIds.value = newValue?.map((x) => x.id) ?? [];
 });
 
-const { data: collectionsData, pending: loadingCollections } = useAsyncData("collections", () =>
+const { data: collectionsData, pending: loadingCollections } = useAsyncData(() =>
 	trpc.collection.getAll.query({
 		force: true,
 		orderBy: [
@@ -174,7 +174,7 @@ const { data: collectionsData, pending: loadingCollections } = useAsyncData("col
 	}),
 );
 
-const { data: creditsData, pending: loadingCredits } = useAsyncData("credits", () =>
+const { data: creditsData, pending: loadingCredits } = useAsyncData(() =>
 	trpc.tmdbMovie.credits.query({ id: id.value }),
 );
 

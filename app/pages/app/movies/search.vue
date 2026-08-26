@@ -104,7 +104,6 @@ onMounted(() => {
 });
 
 const { data, pending, refresh } = useAsyncData(
-	"movies-search",
 	async () => {
 		if (!search.value.trim()) {
 			return undefined;

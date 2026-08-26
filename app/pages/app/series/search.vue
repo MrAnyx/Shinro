@@ -105,7 +105,6 @@ onMounted(() => {
 });
 
 const { data, pending, refresh } = useAsyncData(
-	"series-search",
 	async () => {
 		if (!search.value.trim()) {
 			return undefined;

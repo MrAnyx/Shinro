@@ -175,11 +175,11 @@ const trpc = useTrpc();
 
 const recentMedias = computed(() => recentData.value?.results.slice(0, 5) ?? []);
 
-const { data: recentData, pending: loadingRecent } = useAsyncData("recent-media", async () => {
+const { data: recentData, pending: loadingRecent } = useAsyncData(async () => {
 	return await trpc.media.getAll.query({ orderBy: [{ sort: "createdAt", order: "desc" }] });
 });
 
-const { data: favoriteCollections, pending: loadingCollections } = useAsyncData("favorite-collections", async () => {
+const { data: favoriteCollections, pending: loadingCollections } = useAsyncData(async () => {
 	return await trpc.collection.getFavoritesWithMedias.query();
 });
 

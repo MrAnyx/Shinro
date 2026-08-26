@@ -100,7 +100,6 @@ const openSerieFormModal = async (serie?: SerieWithMediaView) => {
 };
 
 const { data, pending, refresh } = useAsyncData(
-	"series",
 	async () => {
 		try {
 			return await trpc.serie.getAll.query({
