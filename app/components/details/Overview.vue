@@ -17,6 +17,7 @@
 				variant="link"
 				class="p-0 self-start"
 				@click="toggleReadMore"
+				v-if="props.overview"
 				v-show="!readMore"
 			/>
 		</template>
@@ -26,7 +27,7 @@
 <script setup lang="ts">
 const props = defineProps<{
 	loading?: boolean;
-	overview?: string | null;
+	overview?: string;
 }>();
 
 const readMore = ref(false);

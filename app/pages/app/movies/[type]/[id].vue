@@ -8,7 +8,7 @@
 			:external="isExternal"
 			:in-my-list="isInMyList"
 			image-provider="tmdb"
-			:image="detailsData?.poster_path"
+			:image="detailsData?.poster_path ?? undefined"
 			v-model:rating="rating"
 			v-model:status="status"
 			v-model:collections="selectedCollectionIds"
@@ -25,8 +25,8 @@
 			<!-- Title and tagline -->
 			<DetailsTitleHeader
 				:loading="isLoading"
-				:title="movieData?.media.name ?? detailsData?.title"
-				:subtitle="detailsData?.tagline"
+				:title="movieData?.media.name ?? detailsData?.title ?? undefined"
+				:subtitle="detailsData?.tagline ?? undefined"
 			/>
 
 			<!-- Details badges -->
@@ -36,36 +36,18 @@
 				</template>
 				<template v-else>
 					<AdultBadge :adult="detailsData?.adult" />
-
-					<UBadge
-						color="neutral"
-						variant="subtle"
-						leading-icon="i-lucide-calendar"
-						v-if="detailsData?.release_date"
-					>
-						<NuxtTime :datetime="detailsData?.release_date" year="numeric" month="short" day="numeric" />
-					</UBadge>
-
-					<UBadge
-						:color="isReleased ? 'success' : 'warning'"
-						variant="subtle"
-						:leading-icon="isReleased ? 'i-lucide-check' : 'i-lucide-clock'"
-					>
-						{{ isReleased ? "Released" : "Upcoming" }}
-					</UBadge>
-
-					<UBadge color="neutral" variant="subtle" leading-icon="i-lucide-clock" v-if="detailsData?.runtime">
-						{{ Math.floor(detailsData?.runtime / 60) }}:{{
-							(detailsData?.runtime % 60).toString().padStart(2, "0")
-						}}
-					</UBadge>
-
+					<DetailsDateBadge :date="detailsData?.release_date ?? undefined" />
+					<DetailsReleaseBadge :start-date="detailsData?.release_date ?? undefined" />
+					<DetailsDurationBadge :duration="detailsData?.runtime" />
 					<VoteBadge :average="detailsData?.vote_average ?? 0" :count="detailsData?.vote_count ?? 0" />
 				</template>
 			</div>
 
 			<!-- Synopsis -->
-			<DetailsOverview :loading="isLoading" :overview="movieData?.overview ?? detailsData?.overview" />
+			<DetailsOverview
+				:loading="isLoading"
+				:overview="movieData?.overview ?? detailsData?.overview ?? undefined"
+			/>
 
 			<!-- Genres -->
 			<DetailsGenreBadges :loading="isLoading" v-if="isExternal" :genres="genres" />
@@ -77,31 +59,13 @@
 			<div v-if="isExternal">
 				<h2 class="font-bold text-xl mb-3">Credits</h2>
 
-				<div class="flex gap-x-3 overflow-x-auto pb-2">
-					<template v-if="isLoading">
-						<USkeleton v-for="i in 4" :key="i" class="w-[170px] h-[300px] rounded-sm shrink-0" />
-					</template>
-					<template v-else-if="actors.length > 0">
-						<template v-for="(actor, index) in actors" :key="index">
-							<DetailsCreditCard
-								:to="`https://www.themoviedb.org/person/${actor.id}`"
-								:image="actor.profile_path"
-								:name="actor.name"
-								:character="actor.character"
-								image-provider="tmdb"
-								class="w-[170px] h-[300px] shrink-0"
-							/>
-						</template>
-						<DetailsShowMoreCreditCard
-							:to="`https://www.themoviedb.org/movie/${id}/cast`"
-							title="View all"
-							:subtitle="`${creditsData?.cast?.length ?? 0} cast members`"
-							class="w-[170px] h-[300px] shrink-0"
-						/>
-					</template>
-
-					<p class="text-sm text-muted" v-else>No credits available</p>
-				</div>
+				<DetailsCreditCards
+					:credits="creditsData?.cast ?? undefined"
+					image-provider="tmdb"
+					:loading="isLoading"
+					:show-more-to="`https://www.themoviedb.org/movie/${id}/cast`"
+					:credit-card-to-fn="(credit) => `https://www.themoviedb.org/person/${credit.id}`"
+				/>
 			</div>
 		</main>
 	</div>
@@ -131,21 +95,9 @@ const type = computed(() => route.params.type as MediaSourceType);
 const id = computed(() => route.params.id as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
-const isReleased = computed(() => {
-	if (!detailsData.value?.release_date) {
-		return false;
-	}
-
-	try {
-		return new Date(detailsData.value.release_date) <= new Date();
-	} catch {
-		return false;
-	}
-});
 const genres = computed(
 	() => detailsData.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()).map((g) => g.name) ?? [],
 );
-const actors = computed(() => creditsData.value?.cast?.slice(0, MAX_CREDITS) ?? []);
 const isLoading = computed(
 	() =>
 		loadingDetails.value ||

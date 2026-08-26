@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-const rating = defineModel<number | undefined>();
+const rating = defineModel<number>();
 
 const ratingButtonLabel = computed(() =>
 	rating.value

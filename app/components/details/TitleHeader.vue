@@ -16,7 +16,7 @@
 <script setup lang="ts">
 const props = defineProps<{
 	loading?: boolean;
-	title?: string | null;
-	subtitle?: string | null;
+	title?: string;
+	subtitle?: string;
 }>();
 </script>

@@ -4,9 +4,9 @@
 			<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 		</template>
 		<template v-else>
-			<template v-if="genres.length > 0">
+			<template v-if="internalGenres.length > 0">
 				<UBadge
-					v-for="genre in genres"
+					v-for="genre in internalGenres"
 					:key="genre"
 					color="primary"
 					variant="subtle"
@@ -22,6 +22,8 @@
 <script setup lang="ts">
 const props = defineProps<{
 	loading?: boolean;
-	genres: string[];
+	genres?: string[];
 }>();
+
+const internalGenres = computed(() => props.genres ?? []);
 </script>

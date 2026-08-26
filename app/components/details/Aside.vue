@@ -80,7 +80,7 @@ const props = defineProps<{
 	loading?: boolean;
 	external: boolean;
 	inMyList: boolean;
-	image?: string | null;
+	image?: string;
 	imageProvider?: keyof ConfiguredImageProviders;
 	collectionsAvailable?: { id: string; name: string; favorite: boolean }[];
 }>();

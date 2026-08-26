@@ -21,10 +21,10 @@ import type { ConfiguredImageProviders } from "@nuxt/image";
 import type { RouteLocationAsRelativeGeneric, RouteLocationAsPathGeneric } from "#vue-router";
 
 const props = defineProps<{
-	name?: string | null;
-	character?: string | null;
-	image?: string | null;
-	imageProvider: keyof ConfiguredImageProviders | undefined;
+	name?: string;
+	character?: string;
+	image?: string;
+	imageProvider?: keyof ConfiguredImageProviders;
 	to?: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric;
 }>();
 </script>
