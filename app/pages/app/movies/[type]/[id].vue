@@ -56,21 +56,23 @@
 			<DetailsPersonalNote :description="note" v-if="note && !isLoading" />
 
 			<!-- Credits -->
-			<div v-if="isExternal">
-				<h2 class="font-bold text-xl mb-3">Credits</h2>
-
-				<DetailsCreditCards
-					:credits="creditsData?.cast ?? undefined"
-					image-provider="tmdb"
-					:loading="isLoading"
-					:show-more-to="`https://www.themoviedb.org/movie/${id}/cast`"
-					:credit-card-to-fn="(credit) => `https://www.themoviedb.org/person/${credit.id}`"
-				/>
-			</div>
+			<UTabs :items="tabs" variant="link">
+				<template #credits>
+					<DetailsCreditCards
+						:credits="creditsData?.cast ?? undefined"
+						image-provider="tmdb"
+						:loading="isLoading"
+						:show-more-to="`https://www.themoviedb.org/movie/${id}/cast`"
+						:credit-card-to-fn="(credit) => `https://www.themoviedb.org/person/${credit.id}`"
+					/>
+				</template>
+			</UTabs>
 		</main>
 	</div>
 </template>
 <script setup lang="ts">
+import type { TabsItem } from "@nuxt/ui";
+
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
 
@@ -113,6 +115,26 @@ const mediaQueryParams = computed(() =>
 	isInternal.value ? { id: id.value } : isExternal.value ? { externalId: id.value } : null,
 );
 
+const tabs = computed<TabsItem[]>(() => [
+	...(isExternal.value
+		? [
+				{
+					icon: "i-lucide-users",
+					label: "Credits",
+					slot: "credits",
+				},
+			]
+		: []),
+	...(isExternal.value
+		? [
+				{
+					icon: "i-lucide-list-video",
+					label: "Saga",
+					slot: "saga",
+				},
+			]
+		: []),
+]);
 // State
 const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);

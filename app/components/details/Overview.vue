@@ -10,7 +10,8 @@
 
 		<template v-else>
 			<p class="text-toned" :class="{ 'line-clamp-none': readMore, 'line-clamp-2': !readMore }">
-				{{ props.overview ?? "No overview available" }}
+				<span v-if="internalOverview">{{ internalOverview }}</span>
+				<span v-else class="italic text-muted text-sm">No overview available</span>
 			</p>
 			<UButton
 				label="Read more"
@@ -33,4 +34,6 @@ const props = defineProps<{
 const readMore = ref(false);
 
 const toggleReadMore = () => (readMore.value = !readMore.value);
+
+const internalOverview = computed(() => (props.overview?.trim() === "" ? undefined : props.overview));
 </script>

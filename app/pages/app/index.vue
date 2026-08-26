@@ -121,9 +121,7 @@
 								/>
 							</template>
 							<template #type-cell="{ row }">
-								<UBadge variant="subtle" color="neutral">{{
-									capitalize(row.original.media.type)
-								}}</UBadge>
+								<UBadge variant="subtle" color="neutral" :label="capitalize(row.original.media.type)" />
 							</template>
 							<template #status-cell="{ row }">
 								<StatusBadge
