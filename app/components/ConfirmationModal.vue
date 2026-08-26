@@ -32,7 +32,6 @@ const onConfirm = async () => {
 		emit("close", true);
 	} catch (err) {
 		const message = isTRPCError(err) ? err.message : "Unknown error";
-
 		toast.add({
 			title: "Confirmation failed",
 			description: message,

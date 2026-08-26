@@ -8,7 +8,7 @@
 			<h1 class="font-bold text-4xl">
 				{{ props.title ?? "No title available" }}
 			</h1>
-			<h3 class="italic text-muted text-sm" v-if="props.subtitle">{{ props.title }}</h3>
+			<h3 class="italic text-muted text-sm" v-if="props.subtitle">{{ props.subtitle }}</h3>
 		</template>
 	</div>
 </template>

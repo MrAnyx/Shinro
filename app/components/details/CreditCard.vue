@@ -1,9 +1,9 @@
 <template>
-	<UCard class="w-[170px] shrink-0" :ui="{ body: 'p-0!' }" variant="subtle">
-		<NuxtLink class="flex flex-col" :to="props.to" target="_blank">
-			<ImageFallback :provider="props.imageProvider" :src="props.image" :height="210" />
+	<UCard :ui="{ body: 'p-0! h-full' }" variant="subtle">
+		<NuxtLink class="flex flex-col h-full" :to="props.to" target="_blank">
+			<ImageFallback :provider="props.imageProvider" :src="props.image" />
 
-			<div class="p-2">
+			<div class="p-2 flex-1 flex flex-col items-center justify-center">
 				<p class="font-semibold text-center line-clamp-1">
 					{{ props.name ?? "No name" }}
 				</p>

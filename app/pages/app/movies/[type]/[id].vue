@@ -79,7 +79,7 @@
 
 				<div class="flex gap-x-3 overflow-x-auto pb-2">
 					<template v-if="isLoading">
-						<USkeleton v-for="i in 4" :key="i" class="w-[170px] h-[270px] rounded-sm shrink-0" />
+						<USkeleton v-for="i in 4" :key="i" class="w-[170px] h-[300px] rounded-sm shrink-0" />
 					</template>
 					<template v-else-if="actors.length > 0">
 						<template v-for="(actor, index) in actors" :key="index">
@@ -89,26 +89,15 @@
 								:name="actor.name"
 								:character="actor.character"
 								image-provider="tmdb"
+								class="w-[170px] h-[300px] shrink-0"
 							/>
 						</template>
-						<UCard
-							class="w-[170px] shrink-0"
-							:ui="{ body: 'p-0! flex justify-center items-center h-full' }"
-							variant="subtle"
-							v-if="(creditsData?.cast?.length ?? 0) > MAX_CREDITS"
-						>
-							<NuxtLink
-								class="flex flex-col gap-y-2 items-center justify-center h-full"
-								:to="`https://www.themoviedb.org/movie/${id}/cast`"
-								target="_blank"
-							>
-								<UAvatar icon="i-lucide-external-link" size="xl" color="primary" />
-								<span class="text-toned">View all</span>
-								<span class="text-muted text-xs"
-									>{{ creditsData?.cast?.length ?? 0 }} cast members</span
-								>
-							</NuxtLink>
-						</UCard>
+						<DetailsShowMoreCreditCard
+							:to="`https://www.themoviedb.org/movie/${id}/cast`"
+							title="View all"
+							:subtitle="`${creditsData?.cast?.length ?? 0} cast members`"
+							class="w-[170px] h-[300px] shrink-0"
+						/>
 					</template>
 
 					<p class="text-sm text-muted" v-else>No credits available</p>
