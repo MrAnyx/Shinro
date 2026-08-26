@@ -1,10 +1,6 @@
 <template>
 	<div class="flex justify-between">
-		<UInput ref="searchInput" v-model="search" placeholder="Search..." leading-icon="i-lucide-search">
-			<template v-if="search?.length > 0" #trailing>
-				<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" @click="resetSearchField" />
-			</template>
-		</UInput>
+		<SearchInput v-model="search" ref="searchInput" />
 		<UButton
 			label="Refresh"
 			leading-icon="i-lucide-rotate-cw"
