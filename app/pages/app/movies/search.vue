@@ -88,7 +88,7 @@ import { watchDebounced } from "@vueuse/core";
 
 const trpc = useTrpc();
 const movieStore = useMovieStore();
-const toast = useToast();
+const toast = useStatusToast();
 const { search, page } = useSearchPagination();
 
 const searchInput = useTemplateRef("searchInput");
@@ -107,13 +107,8 @@ const { data, pending, refresh } = useAsyncData(
 
 		try {
 			return await trpc.tmdbMovie.search.query({ page: page.value, search: search.value.trim() });
-		} catch {
-			toast.add({
-				title: "Oops!",
-				description: "Something went wrong while searching movies",
-				color: "error",
-				type: "foreground",
-			});
+		} catch (err) {
+			toast.error(err);
 		}
 	},
 	{
@@ -230,19 +225,9 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 			),
 		};
 
-		toast.add({
-			title: "New movie added",
-			description: `${movie.media.name} has been added to your list`,
-			color: "success",
-			type: "foreground",
-		});
+		toast.success({ description: `${movie.media.name} has been added to your list` });
 	} catch (err: any) {
-		toast.add({
-			title: "Oops!",
-			description: "Something went wrong while adding a movie",
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		loadingMovieIds.delete(row.original.id);
 	}
@@ -269,19 +254,9 @@ const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) 
 			),
 		};
 
-		toast.add({
-			title: "Movie removed",
-			description: `${row.original.title} has been removed from your list`,
-			color: "warning",
-			type: "foreground",
-		});
+		toast.success({ description: `${row.original.title} has been removed from your list` });
 	} catch (err: any) {
-		toast.add({
-			title: "Oops!",
-			description: "Something went wrong while removing a movie",
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		loadingMovieIds.delete(row.original.id);
 	}

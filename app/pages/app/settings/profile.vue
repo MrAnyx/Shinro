@@ -124,7 +124,7 @@ import { z } from "zod";
 
 const { openConfirmationModal } = useConfirmation();
 const userStore = useUserStore();
-const toast = useToast();
+const toast = useStatusToast();
 
 // Username
 const isLoadingUsername = ref(false);
@@ -144,21 +144,9 @@ const onSaveUsername = async (payload: FormSubmitEvent<UsernameSchema>) => {
 		isLoadingUsername.value = true;
 
 		await userStore.updateMe(payload.data);
-		toast.add({
-			title: "Profile updated",
-			description: `Your username has been updated`,
-			color: "success",
-			type: "foreground",
-		});
+		toast.success({ description: `Your username has been updated` });
 	} catch (err) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-
-		toast.add({
-			title: "Request failed",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		isLoadingUsername.value = false;
 	}
@@ -195,21 +183,9 @@ const onSavePassword = async (payload: FormSubmitEvent<PasswordSchema>) => {
 		passwordState.password = "";
 		passwordState.password_confirmation = "";
 
-		toast.add({
-			title: "Profile updated",
-			description: `Your password has been updated`,
-			color: "success",
-			type: "foreground",
-		});
+		toast.success({ description: `Your password has been updated` });
 	} catch (err) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-
-		toast.add({
-			title: "Request failed",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		isLoadingPassword.value = false;
 	}

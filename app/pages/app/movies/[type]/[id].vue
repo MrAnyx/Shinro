@@ -89,7 +89,7 @@ definePageMeta({
 const route = useRoute();
 const trpc = useTrpc();
 const movieStore = useMovieStore();
-const toast = useToast();
+const toast = useStatusToast();
 const overlay = useOverlay();
 
 // Computed
@@ -192,13 +192,7 @@ const removeMovie = async () => {
 			await navigateTo("/app/movies");
 		}
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to remove a movie",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 
@@ -211,13 +205,7 @@ const addMovie = async () => {
 		const movie = await movieStore.createMovieFromExternal({ externalId: id.value });
 		movieData.value = movie;
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to add a movie",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 
@@ -247,13 +235,7 @@ const updateStatus = async (status?: MediaStatus) => {
 			status: status ?? null,
 		});
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to update status",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 
@@ -268,13 +250,7 @@ const updateMovieCollections = async () => {
 			collectionIds: selectedCollectionIds.value,
 		});
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to update collections",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 
@@ -289,13 +265,7 @@ const updateRating = async () => {
 			rating: rating.value ?? null,
 		});
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to set the rating",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 </script>

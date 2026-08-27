@@ -19,7 +19,7 @@ const emit = defineEmits<{
 }>();
 
 const isLoading = ref(false);
-const toast = useToast();
+const toast = useStatusToast();
 
 const onCancel = () => {
 	emit("close");
@@ -31,13 +31,7 @@ const onConfirm = async () => {
 		await callback();
 		emit("close", true);
 	} catch (err) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Confirmation failed",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		isLoading.value = false;
 	}

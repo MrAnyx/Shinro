@@ -5,9 +5,9 @@
 	"type": "module",
 	"scripts": {
 		"build": "nuxi build",
-		"dev": "nuxi prepare && nuxi dev",
+		"dev": "nuxi dev",
 		"clean": "nuxi cleanup",
-		"debug": "nuxi prepare && nuxi dev --inspect",
+		"debug": "nuxi dev --inspect",
 		"generate": "nuxi generate",
 		"preview": "nuxi preview",
 		"prepare": "nuxi prepare",

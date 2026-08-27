@@ -15,7 +15,7 @@ const trpc = initTRPC.context<Context>().create({
 		// Override message for INTERNAL_SERVER_ERROR on production
 		const message =
 			error.code === "INTERNAL_SERVER_ERROR" && serverEnv.NODE_ENV === "production"
-				? "Unexpected error"
+				? "Something went wrong, please try again later"
 				: error.message;
 
 		return {

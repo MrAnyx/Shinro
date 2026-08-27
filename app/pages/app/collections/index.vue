@@ -89,7 +89,7 @@ const loadingCollectionIds = reactive(new Set<string>());
 const overlay = useOverlay();
 const trpc = useTrpc();
 const collectionStore = useCollectionStore();
-const toast = useToast();
+const toast = useStatusToast();
 const { openConfirmationModal } = useConfirmation();
 const { search, page } = useSearchPagination();
 
@@ -110,13 +110,8 @@ const { data, pending, refresh } = useAsyncData(
 	async () => {
 		try {
 			return await trpc.collection.getAll.query({ page: page.value, search: search.value });
-		} catch {
-			toast.add({
-				title: "Oops!",
-				description: "Something went wrong while fetching the collections",
-				color: "error",
-				type: "foreground",
-			});
+		} catch (err) {
+			toast.error(err);
 		}
 	},
 	{
@@ -234,21 +229,13 @@ const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) =>
 			results: data.value.results.map((m) => (m.id === row.original.id ? collection : m)),
 		};
 
-		toast.add({
-			title: "Collection updated",
+		toast.success({
 			description: row.original.favorite
 				? "Collection removed from your favorites"
 				: "Collection added to your favorites",
-			color: "success",
-			type: "foreground",
 		});
 	} catch (err: any) {
-		toast.add({
-			title: "Oops!",
-			description: "Something went wrong while updating a collection",
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		loadingCollectionIds.delete(row.original.id);
 	}

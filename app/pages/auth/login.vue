@@ -30,7 +30,7 @@ definePageMeta({
 });
 
 const userStore = useUserStore();
-const toast = useToast();
+const toast = useStatusToast();
 
 const isLoading = ref(false);
 
@@ -64,14 +64,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		await userStore.login(payload.data);
 		await navigateTo({ path: "/app" });
 	} catch (err) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-
-		toast.add({
-			title: "Authentication failed",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		isLoading.value = false;
 	}

@@ -1,12 +1,10 @@
 export default defineNuxtRouteMiddleware((to) => {
-	const toast = useToast();
+	const toast = useStatusToast();
 
 	if (!clientEnv.allowRegistration && to.path === "/auth/register") {
-		toast.add({
+		toast.warning({
 			title: "Registration not allowed",
 			description: "Registration as been disabled by the administrator",
-			color: "warning",
-			type: "foreground",
 		});
 
 		return navigateTo("/");

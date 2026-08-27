@@ -40,7 +40,7 @@ const emit = defineEmits<{
 
 const isLoading = ref(false);
 const form = useTemplateRef("form");
-const toast = useToast();
+const toast = useStatusToast();
 const trpc = useTrpc();
 const collectionStore = useCollectionStore();
 
@@ -77,32 +77,15 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				description: payload.data.description,
 				favorite: payload.data.favorite,
 			});
-			toast.add({
-				title: "Collection updated",
-				description: `Collection ${updatedCollection.name} has been updated`,
-				color: "success",
-				type: "foreground",
-			});
+			toast.success({ description: `Collection ${updatedCollection.name} has been updated` });
 		} else {
 			updatedCollection = await collectionStore.createCollection(payload.data);
-			toast.add({
-				title: "New collection created",
-				description: `Collection ${updatedCollection.name} has been created`,
-				color: "success",
-				type: "foreground",
-			});
+			toast.success({ description: `Collection ${updatedCollection.name} has been created` });
 		}
 
 		emit("close", updatedCollection);
 	} catch (err) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-
-		toast.add({
-			title: "Request failed",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(ErrorEvent);
 	} finally {
 		isLoading.value = false;
 	}

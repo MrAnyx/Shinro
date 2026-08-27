@@ -1,6 +1,6 @@
 export default defineNuxtRouteMiddleware(async () => {
 	const userStore = useUserStore();
-	const toast = useToast();
+	const toast = useStatusToast();
 
 	if (userStore.isAuthenticated) {
 		return;
@@ -12,19 +12,15 @@ export default defineNuxtRouteMiddleware(async () => {
 		const code = getTRPCErrorCode(err);
 
 		if (code === "UNAUTHORIZED") {
-			toast.add({
+			toast.warning({
 				title: "Almost there!",
 				description: "Log in to unlock the full application",
-				color: "warning",
-				type: "foreground",
 			});
 			return navigateTo("/auth/login");
 		} else {
-			toast.add({
+			toast.error(null, {
 				title: "Oops!",
 				description: "Something went wrong during login. Please retry.",
-				color: "error",
-				type: "foreground",
 			});
 
 			return navigateTo("/");

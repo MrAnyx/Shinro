@@ -268,7 +268,7 @@ definePageMeta({
 const route = useRoute();
 const trpc = useTrpc();
 const serieStore = useSerieStore();
-const toast = useToast();
+const toast = useStatusToast();
 const overlay = useOverlay();
 
 // Computed
@@ -418,13 +418,7 @@ const removeSerie = async () => {
 			await navigateTo("/app/series");
 		}
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to remove a serie",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 
@@ -437,13 +431,7 @@ const addSerie = async () => {
 		const serie = await serieStore.createSerieFromExternal({ externalId: id.value });
 		serieData.value = serie;
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to add a serie",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 
@@ -473,13 +461,7 @@ const updateStatus = async (status?: MediaStatus) => {
 			status: status ?? null,
 		});
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to update status",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 
@@ -496,13 +478,7 @@ const updateSerieCollections = async (collectionIds: string[]) => {
 			collectionIds,
 		});
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to update collections",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 
@@ -525,13 +501,7 @@ const updateRating = async (newRating: number | null) => {
 			rating: newRating,
 		});
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to set the rating",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 
@@ -548,13 +518,7 @@ const clearRating = async () => {
 			rating: null,
 		});
 	} catch (err: any) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-		toast.add({
-			title: "Unable to reset the rating",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	}
 };
 

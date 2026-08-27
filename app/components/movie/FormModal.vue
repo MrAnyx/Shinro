@@ -46,7 +46,7 @@ const emit = defineEmits<{
 
 const isLoading = ref(false);
 const form = useTemplateRef("form");
-const toast = useToast();
+const toast = useStatusToast();
 const trpc = useTrpc();
 const movieStore = useMovieStore();
 
@@ -89,12 +89,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				note: payload.data.note,
 				status: payload.data.status ?? null,
 			});
-			toast.add({
-				title: "Movie updated",
-				description: `Movie ${updatedMovie.media.name} has been updated`,
-				color: "success",
-				type: "foreground",
-			});
+			toast.success({ description: `Movie ${updatedMovie.media.name} has been updated` });
 		} else {
 			updatedMovie = await movieStore.createMovie({
 				name: payload.data.name,
@@ -103,24 +98,12 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 				note: payload.data.note,
 				status: payload.data.status ?? null,
 			});
-			toast.add({
-				title: "New movie created",
-				description: `Movie ${updatedMovie.media.name} has been created`,
-				color: "success",
-				type: "foreground",
-			});
+			toast.success({ description: `Movie ${updatedMovie.media.name} has been created` });
 		}
 
 		emit("close", updatedMovie);
 	} catch (err) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-
-		toast.add({
-			title: "Request failed",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		isLoading.value = false;
 	}

@@ -89,7 +89,7 @@ import { watchDebounced } from "@vueuse/core";
 
 const trpc = useTrpc();
 const serieStore = useSerieStore();
-const toast = useToast();
+const toast = useStatusToast();
 const { search, page } = useSearchPagination();
 
 const searchInput = useTemplateRef("searchInput");
@@ -108,13 +108,8 @@ const { data, pending, refresh } = useAsyncData(
 
 		try {
 			return await trpc.tmdbSerie.search.query({ page: page.value, search: search.value.trim() });
-		} catch {
-			toast.add({
-				title: "Oops!",
-				description: "Something went wrong while searching series",
-				color: "error",
-				type: "foreground",
-			});
+		} catch (err) {
+			toast.error(err);
 		}
 	},
 	{
@@ -231,19 +226,9 @@ const addSerieToMyList = async (row: TableRow<TmdbSerieSearchDefaultView>) => {
 			),
 		};
 
-		toast.add({
-			title: "New serie added",
-			description: `${serie.media.name} has been added to your list`,
-			color: "success",
-			type: "foreground",
-		});
+		toast.success({ description: `${serie.media.name} has been added to your list` });
 	} catch (err: any) {
-		toast.add({
-			title: "Oops!",
-			description: "Something went wrong while adding a serie",
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		loadingSerieIds.delete(row.original.id);
 	}
@@ -270,19 +255,9 @@ const removeSerieFromMyList = async (row: TableRow<TmdbSerieSearchDefaultView>) 
 			),
 		};
 
-		toast.add({
-			title: "Serie removed",
-			description: `${row.original.name} has been removed from your list`,
-			color: "warning",
-			type: "foreground",
-		});
+		toast.success({ description: `${row.original.name} has been removed from your list` });
 	} catch (err: any) {
-		toast.add({
-			title: "Oops!",
-			description: "Something went wrong while removing a serie",
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		loadingSerieIds.delete(row.original.id);
 	}

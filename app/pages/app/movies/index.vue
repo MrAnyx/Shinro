@@ -80,7 +80,7 @@ import { LazyMovieFormModal } from "#components";
 const overlay = useOverlay();
 const trpc = useTrpc();
 const movieStore = useMovieStore();
-const toast = useToast();
+const toast = useStatusToast();
 const { openConfirmationModal } = useConfirmation();
 const { search, page } = useSearchPagination();
 
@@ -106,13 +106,8 @@ const { data, pending, refresh } = useAsyncData(
 					{ sort: "media.createdAt", order: "asc" },
 				],
 			});
-		} catch {
-			toast.add({
-				title: "Oops!",
-				description: "Something went wrong while fetching the movies",
-				color: "error",
-				type: "foreground",
-			});
+		} catch (err) {
+			toast.error(err);
 		}
 	},
 	{

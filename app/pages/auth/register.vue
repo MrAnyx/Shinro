@@ -29,7 +29,7 @@ definePageMeta({
 	middleware: ["registration", "guest-only"],
 });
 
-const toast = useToast();
+const toast = useStatusToast();
 const userStore = useUserStore();
 
 const isLoading = ref(false);
@@ -81,14 +81,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		await userStore.register(payload.data);
 		await navigateTo({ path: "/app" });
 	} catch (err) {
-		const message = isTRPCError(err) ? err.message : "Unknown error";
-
-		toast.add({
-			title: "Registration failed",
-			description: message,
-			color: "error",
-			type: "foreground",
-		});
+		toast.error(err);
 	} finally {
 		isLoading.value = false;
 	}
