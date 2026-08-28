@@ -89,7 +89,7 @@ import { watchDebounced } from "@vueuse/core";
 const trpc = useTrpc();
 const movieStore = useMovieStore();
 const toast = useStatusToast();
-const { search, page } = useSearchPagination();
+const { search, page, trimmedSearch } = useSearchPagination();
 
 const searchInput = useTemplateRef("searchInput");
 
@@ -99,26 +99,29 @@ onMounted(() => {
 	focusSearchField();
 });
 
-const { data, pending, refresh } = useAsyncData(
-	async () => {
-		if (!search.value.trim()) {
-			return undefined;
-		}
-
-		try {
-			return await trpc.tmdbMovie.search.query({ page: page.value, search: search.value.trim() });
-		} catch (err) {
-			toast.error(err);
-		}
-	},
+const { data, pending, refresh, clear } = useAsyncData(
+	() => trpc.tmdbMovie.search.query({ page: page.value, search: search.value.trim() }),
 	{
-		dedupe: "cancel",
+		immediate: false,
+		default: () => undefined,
+		enabled: !!trimmedSearch.value,
+		watch: [page],
 	},
 );
 
-watchDebounced([page, search], () => refresh(), {
-	debounce: DEBOUNCE_TIMER,
-});
+watchDebounced(
+	[search],
+	() => {
+		if (!trimmedSearch.value) {
+			clear();
+		} else {
+			refresh();
+		}
+	},
+	{
+		debounce: DEBOUNCE_TIMER,
+	},
+);
 
 const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 	{

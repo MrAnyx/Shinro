@@ -12,8 +12,11 @@ export const useSearchPagination = () => {
 		set: (val) => router.replace({ query: { ...route.query, page: val } }),
 	});
 
+	const trimmedSearch = computed(() => search.value.trim());
+
 	return {
 		search,
 		page,
+		trimmedSearch,
 	};
 };

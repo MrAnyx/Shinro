@@ -35,6 +35,7 @@ export const useUserStore = defineStore("user", {
 				await trpc.user.logout.mutate();
 			} finally {
 				this.user = null;
+				clearNuxtData();
 			}
 		},
 
