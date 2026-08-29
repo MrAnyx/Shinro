@@ -113,7 +113,7 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 		accessorKey: "name",
 		meta: {
 			class: {
-				td: "max-w-[120px] truncate font-bold",
+				td: "max-w-[120px] truncate font-bold text-default",
 			},
 		},
 	},
