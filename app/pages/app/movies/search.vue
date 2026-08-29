@@ -1,13 +1,7 @@
 <template>
 	<div class="flex justify-between">
 		<SearchInput v-model="search" ref="searchInput" />
-		<UButton
-			label="Refresh"
-			leading-icon="i-lucide-rotate-cw"
-			variant="subtle"
-			color="neutral"
-			@click="refresh()"
-		/>
+		<RefreshButton @click="refresh()" />
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 		<UTable
@@ -153,8 +147,8 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		header: "Category",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -163,8 +157,8 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		header: "Released At",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -173,8 +167,8 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		header: "Vote",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -182,8 +176,8 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		id: "actions",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},

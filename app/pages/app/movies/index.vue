@@ -3,13 +3,7 @@
 		<SearchInput v-model="search" />
 
 		<div class="flex gap-2">
-			<UButton
-				label="Refresh"
-				leading-icon="i-lucide-rotate-cw"
-				variant="subtle"
-				color="neutral"
-				@click="refresh()"
-			/>
+			<RefreshButton @click="refresh()" />
 			<UButton label="New movie" leading-icon="i-lucide-plus" @click="openMovieFormModal()" />
 		</div>
 	</div>
@@ -143,8 +137,8 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 		id: "status",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -153,8 +147,8 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 		id: "createdAt",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -162,8 +156,8 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 		id: "actions",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},

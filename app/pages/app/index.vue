@@ -206,8 +206,8 @@ const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 		id: "type",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -216,8 +216,8 @@ const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 		id: "status",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -226,8 +226,8 @@ const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 		id: "date",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -256,8 +256,8 @@ const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 		id: "type",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -266,8 +266,8 @@ const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 		id: "status",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -276,8 +276,8 @@ const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 		id: "createdAt",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -286,8 +286,8 @@ const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 		id: "addedAt",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},

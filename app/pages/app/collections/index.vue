@@ -1,18 +1,8 @@
 <template>
 	<div class="flex justify-between">
-		<UInput v-model="search" placeholder="Search..." leading-icon="i-lucide-search">
-			<template v-if="search?.length > 0" #trailing>
-				<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" @click="resetSearchField" />
-			</template>
-		</UInput>
+		<SearchInput v-model="search" />
 		<div class="flex gap-2">
-			<UButton
-				label="Refresh"
-				leading-icon="i-lucide-rotate-cw"
-				variant="subtle"
-				color="neutral"
-				@click="refresh()"
-			/>
+			<RefreshButton @click="refresh()" />
 			<UButton label="New collection" leading-icon="i-lucide-plus" @click="openCollectionFormModal()" />
 		</div>
 	</div>
@@ -136,18 +126,30 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 	{
 		header: "Created At",
 		id: "createdAt",
+		meta: {
+			class: {
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
+			},
+		},
 	},
 	{
 		header: "Updated At",
 		id: "updatedAt",
+		meta: {
+			class: {
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
+			},
+		},
 	},
 	{
 		header: "Favorite",
 		id: "favorite",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
@@ -155,8 +157,8 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 		id: "actions",
 		meta: {
 			class: {
-				th: "w-0",
-				td: "w-0",
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
 			},
 		},
 	},
