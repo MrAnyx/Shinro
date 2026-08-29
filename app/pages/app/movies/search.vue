@@ -21,7 +21,7 @@
 					:actions="emptyActions"
 				></UEmpty>
 			</template>
-			<template #poster_path-cell="{ row }">
+			<template #image-cell="{ row }">
 				<ImageFallback
 					:width="60"
 					:height="90"
@@ -96,12 +96,12 @@ onMounted(() => {
 const { data, pending, refresh, clear } = useSafeAsyncData(
 	() => trpc.tmdbMovie.search.query({ page: page.value, search: trimmedSearch.value }),
 	{
-		enabled: !!trimmedSearch.value,
+		enabled: () => !!trimmedSearch.value,
 	},
 );
 
 watchDebounced(
-	[search, page],
+	[trimmedSearch, page],
 	() => {
 		if (!trimmedSearch.value) {
 			clear();
@@ -116,8 +116,7 @@ watchDebounced(
 
 const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 	{
-		accessorKey: "poster_path",
-		header: "",
+		id: "image",
 		meta: {
 			class: {
 				td: "w-[60px]",

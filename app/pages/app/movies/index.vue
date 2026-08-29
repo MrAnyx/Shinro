@@ -74,7 +74,6 @@ import { LazyMovieFormModal } from "#components";
 const overlay = useOverlay();
 const trpc = useTrpc();
 const movieStore = useMovieStore();
-const toast = useStatusToast();
 const { openConfirmationModal } = useConfirmation();
 const { search, page } = useSearchPagination();
 
@@ -106,7 +105,6 @@ watchDebounced([page, search], () => refresh(), {
 
 const columns: TableColumn<MovieWithMediaView>[] = [
 	{
-		header: "",
 		id: "image",
 		meta: {
 			class: {

@@ -106,7 +106,6 @@ watchDebounced([page, search], () => refresh(), {
 
 const columns: TableColumn<SerieWithMediaView>[] = [
 	{
-		header: "",
 		id: "image",
 		meta: {
 			class: {
