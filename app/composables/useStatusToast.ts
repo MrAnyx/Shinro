@@ -33,7 +33,9 @@ export const useStatusToast = () => {
 		error: (error: unknown, opts: StatusToastOptions = {}) => {
 			let description = "An error occurred";
 
-			if (isTRPCError(error)) {
+			if (typeof error === "string") {
+				description = error;
+			} else if (isTRPCError(error)) {
 				description = error.message;
 			} else if (error instanceof Error) {
 				description = error.message;

@@ -47,17 +47,7 @@
 
 					<StatusSelectMenu :loading="loading" variant="subtle" v-model="status" />
 
-					<USelectMenu
-						:items="internalCollectionsAvailable"
-						v-model="collections"
-						:loading="loading"
-						variant="subtle"
-						multiple
-						value-key="value"
-						placeholder="Select some collections"
-						leading-icon="i-lucide-folder"
-						clear
-					/>
+					<CollectionSelectMenu v-model="collections" :loading="loading" variant="subtle" />
 
 					<DetailsRatingPopover v-model="rating" />
 				</template>
@@ -68,7 +58,6 @@
 
 <script setup lang="ts">
 import type { ConfiguredImageProviders } from "@nuxt/image";
-import type { SelectMenuItem } from "@nuxt/ui";
 
 import type { MediaStatus } from "#prisma/enums";
 
@@ -82,7 +71,6 @@ const props = defineProps<{
 	inMyList: boolean;
 	image?: string;
 	imageProvider?: keyof ConfiguredImageProviders;
-	collectionsAvailable?: { id: string; name: string; favorite: boolean }[];
 }>();
 
 const emit = defineEmits<{
@@ -90,19 +78,4 @@ const emit = defineEmits<{
 	(e: "remove"): void;
 	(e: "edit"): void;
 }>();
-
-const internalCollectionsAvailable = computed(
-	() =>
-		props.collectionsAvailable?.map(
-			(x) =>
-				({
-					label: x.name,
-					value: x.id,
-					icon: x.favorite ? "i-ph-star-fill" : undefined,
-					ui: {
-						itemLeadingIcon: x.favorite ? "text-warning" : undefined,
-					},
-				}) as SelectMenuItem,
-		) ?? [],
-);
 </script>

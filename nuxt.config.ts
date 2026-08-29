@@ -54,6 +54,7 @@ export default defineNuxtConfig({
 		enabled: true,
 		console: true,
 		pretty: true,
+		exclude: ["/_ipx/**", "/api/**"],
 		env: {
 			service: "shinro-server",
 		},

@@ -7,13 +7,25 @@
 			empty-icon="i-ph-star"
 			icon="i-ph-star-fill"
 			color="success"
+			:disabled="props.loading"
 		/>
-		<UButton label="Clear" color="error" variant="link" class="p-0!" @click="clearRating" />
+		<UButton
+			label="Clear"
+			color="error"
+			variant="link"
+			class="p-0!"
+			@click="clearRating"
+			:loading="props.loading"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
 const rating = defineModel<number | undefined>();
+
+const props = defineProps<{
+	loading?: boolean;
+}>();
 
 function clearRating() {
 	rating.value = undefined;

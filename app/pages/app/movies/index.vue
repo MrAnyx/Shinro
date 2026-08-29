@@ -79,7 +79,7 @@ const { search, page, trimmedSearch } = useSearchPagination();
 
 const movieFormModal = overlay.create(LazyMovieFormModal);
 const openMovieFormModal = async (movie?: MovieWithMediaView) => {
-	const instance = movieFormModal.open({ movie });
+	const instance = movieFormModal.open({ id: movie?.id });
 
 	const result = await instance.result;
 
@@ -100,6 +100,7 @@ const { data, pending, refresh } = useSafeAsyncData(
 		}),
 	{
 		watch: [page],
+		defaultErrorMessage: "Failed to fetch movies",
 	},
 );
 

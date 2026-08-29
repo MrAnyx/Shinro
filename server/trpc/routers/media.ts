@@ -104,7 +104,7 @@ export default router({
 				collectionIds: z.array(ServerCollectionValidation.id),
 			}),
 		)
-		.output(z.void())
+		.output(z.array(CollectionDefaultViewSchema))
 		.mutation(async ({ input, ctx }) => {
 			const media = await prisma.media.findFirst({
 				where: {
@@ -144,24 +144,37 @@ export default router({
 				}
 			}
 
-			await prisma.$transaction(async (tx) => {
-				await tx.collectionMedia.deleteMany({
-					where: { mediaId: input.id },
-				});
+			const collectionsToCreate = input.collectionIds.map(
+				(collectionId) =>
+					({
+						mediaId: input.id,
+						collectionId,
+					}) as CollectionMediaCreateManyInput,
+			);
 
-				if (input.collectionIds.length > 0) {
-					const collectionsToCreate = input.collectionIds.map(
-						(collectionId) =>
-							({
-								mediaId: input.id,
-								collectionId,
-							}) as CollectionMediaCreateManyInput,
-					);
-
-					await tx.collectionMedia.createMany({
-						data: collectionsToCreate,
-					});
-				}
+			const collections = await prisma.media.update({
+				where: { id: input.id },
+				data: {
+					collections: {
+						deleteMany: {
+							mediaId: input.id,
+						},
+						...(input.collectionIds.length > 0 && {
+							createMany: {
+								data: collectionsToCreate,
+							},
+						}),
+					},
+				},
+				include: {
+					collections: {
+						include: {
+							collection: true,
+						},
+					},
+				},
 			});
+
+			return collections.collections.map((c) => c.collection);
 		}),
 });

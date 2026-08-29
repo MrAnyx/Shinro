@@ -4,11 +4,10 @@
 		<DetailsAside
 			class="w-80"
 			:loading="isLoading"
-			:collections-available="collectionsData?.results"
 			:external="isExternal"
 			:in-my-list="isInMyList"
 			image-provider="tmdb"
-			:image="detailsData?.poster_path ?? undefined"
+			:image="tmdbMovieDetails?.poster_path ?? undefined"
 			v-model:rating="rating"
 			v-model:status="status"
 			v-model:collections="selectedCollectionIds"
@@ -25,8 +24,8 @@
 			<!-- Title and tagline -->
 			<DetailsTitleHeader
 				:loading="isLoading"
-				:title="movieData?.media.name ?? detailsData?.title ?? undefined"
-				:subtitle="detailsData?.tagline ?? undefined"
+				:title="myMovieDetails?.media.name ?? tmdbMovieDetails?.title ?? undefined"
+				:subtitle="tmdbMovieDetails?.tagline ?? undefined"
 			/>
 
 			<!-- Details badges -->
@@ -35,18 +34,21 @@
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
 				<template v-else>
-					<AdultBadge :adult="detailsData?.adult" />
-					<DetailsDateBadge :date="detailsData?.release_date ?? undefined" />
-					<DetailsReleaseBadge :start-date="detailsData?.release_date ?? undefined" />
-					<DetailsDurationBadge :duration="detailsData?.runtime" />
-					<VoteBadge :average="detailsData?.vote_average ?? 0" :count="detailsData?.vote_count ?? 0" />
+					<AdultBadge :adult="tmdbMovieDetails?.adult" />
+					<DetailsDateBadge :date="tmdbMovieDetails?.release_date ?? undefined" />
+					<DetailsReleaseBadge :start-date="tmdbMovieDetails?.release_date ?? undefined" />
+					<DetailsDurationBadge :duration="tmdbMovieDetails?.runtime" />
+					<VoteBadge
+						:average="tmdbMovieDetails?.vote_average ?? 0"
+						:count="tmdbMovieDetails?.vote_count ?? 0"
+					/>
 				</template>
 			</div>
 
 			<!-- Synopsis -->
 			<DetailsOverview
 				:loading="isLoading"
-				:overview="movieData?.overview ?? detailsData?.overview ?? undefined"
+				:overview="myMovieDetails?.overview ?? tmdbMovieDetails?.overview ?? undefined"
 			/>
 
 			<!-- Genres -->
@@ -59,7 +61,7 @@
 			<UTabs :items="tabs" variant="link">
 				<template #credits>
 					<DetailsCreditCards
-						:credits="creditsData?.cast ?? undefined"
+						:credits="tmdbMovieCredits?.cast ?? undefined"
 						image-provider="tmdb"
 						:loading="isLoading"
 						:show-more-to="`https://www.themoviedb.org/movie/${id}/cast`"
@@ -98,18 +100,14 @@ const id = computed(() => route.params.id as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
 const genres = computed(
-	() => detailsData.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()).map((g) => g.name) ?? [],
+	() =>
+		tmdbMovieDetails.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()).map((g) => g.name) ?? [],
 );
 const isLoading = computed(
-	() =>
-		loadingDetails.value ||
-		loadingMyMovie.value ||
-		loadingCollections.value ||
-		loadingCredits.value ||
-		loadingMovieCollections.value,
+	() => loadingDetails.value || loadingMyMovie.value || loadingCredits.value || loadingMovieCollections.value,
 );
-const isInMyList = computed(() => !!movieData.value);
-const note = computed(() => movieData.value?.media.note);
+const isInMyList = computed(() => !!myMovieDetails.value);
+const note = computed(() => myMovieDetails.value?.media.note);
 
 const mediaQueryParams = computed(() =>
 	isInternal.value ? { id: id.value } : isExternal.value ? { externalId: id.value } : null,
@@ -135,48 +133,55 @@ const tabs = computed<TabsItem[]>(() => [
 			]
 		: []),
 ]);
+
 // State
 const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);
 const status = ref<MediaStatus | undefined>(undefined);
 
 // Async data
-const { data: detailsData, pending: loadingDetails } = useSafeAsyncData(async () =>
-	isExternal.value ? trpc.tmdbMovie.details.query({ id: id.value }) : null,
+const { data: myMovieDetails, pending: loadingMyMovie } = useSafeAsyncData(
+	async () => {
+		const params = mediaQueryParams.value;
+		return params ? trpc.movie.getById.query(params) : undefined;
+	},
+	{
+		onError: (err) => getTRPCErrorCode(err) !== "NOT_FOUND", // Hide toast in 404
+	},
 );
 
-const { data: movieData, pending: loadingMyMovie } = useSafeAsyncData(async () => {
-	const params = mediaQueryParams.value;
-	return params ? trpc.movie.getById.query(params) : null;
-});
-
-watch(movieData, (newValue) => {
+watch(myMovieDetails, (newValue) => {
 	rating.value = newValue?.media.rating ?? undefined;
 	status.value = newValue?.media.status ?? undefined;
+
+	if (!newValue) {
+		selectedCollectionIds.value = [];
+	}
 });
 
-const { data: movieCollections, pending: loadingMovieCollections } = useSafeAsyncData(async () => {
-	const params = mediaQueryParams.value;
-	return params ? trpc.media.getCollections.query(params) : null;
-});
+const { data: tmdbMovieDetails, pending: loadingDetails } = useSafeAsyncData(
+	() => trpc.tmdbMovie.details.query({ id: id.value }),
+	{ enabled: () => isExternal.value },
+);
 
-watch(movieCollections, (newValue) => {
+const { data: tmdbMovieCredits, pending: loadingCredits } = useSafeAsyncData(
+	() => trpc.tmdbMovie.credits.query({ id: id.value }),
+	{ enabled: () => isExternal.value },
+);
+
+const { data: myMovieCollections, pending: loadingMovieCollections } = useSafeAsyncData(
+	async () => {
+		const params = mediaQueryParams.value;
+		return params ? trpc.media.getCollections.query(params) : undefined;
+	},
+	{
+		onError: (err) => getTRPCErrorCode(err) !== "NOT_FOUND", // Hide toast in 404
+	},
+);
+
+watch(myMovieCollections, (newValue) => {
 	selectedCollectionIds.value = newValue?.map((x) => x.id) ?? [];
 });
-
-const { data: collectionsData, pending: loadingCollections } = useSafeAsyncData(() =>
-	trpc.collection.getAll.query({
-		force: true,
-		orderBy: [
-			{ sort: "favorite", order: "desc" },
-			{ sort: "name", order: "asc" },
-		],
-	}),
-);
-
-const { data: creditsData, pending: loadingCredits } = useSafeAsyncData(() =>
-	trpc.tmdbMovie.credits.query({ id: id.value }),
-);
 
 // Methods
 const removeMovie = async () => {
@@ -185,8 +190,8 @@ const removeMovie = async () => {
 			return;
 		}
 
-		await movieStore.deleteMovie({ id: movieData.value!.id });
-		movieData.value = null;
+		await movieStore.deleteMovie({ id: myMovieDetails.value!.id });
+		myMovieDetails.value = undefined;
 
 		if (isInternal.value) {
 			await navigateTo("/app/movies");
@@ -198,12 +203,12 @@ const removeMovie = async () => {
 
 const addMovie = async () => {
 	try {
-		if (movieData.value || isInMyList.value) {
+		if (myMovieDetails.value || isInMyList.value) {
 			return;
 		}
 
 		const movie = await movieStore.createMovieFromExternal({ externalId: id.value });
-		movieData.value = movie;
+		myMovieDetails.value = movie;
 	} catch (err: any) {
 		toast.error(err);
 	}
@@ -215,12 +220,12 @@ const editMovie = async () => {
 		return;
 	}
 
-	const instance = movieFormModal.open({ movie: movieData.value! });
+	const instance = movieFormModal.open({ id: myMovieDetails.value!.id });
 
 	const result = await instance.result;
 
 	if (result) {
-		movieData.value = result;
+		myMovieDetails.value = result.movie;
 	}
 };
 
@@ -231,7 +236,7 @@ const updateStatus = async (status?: MediaStatus) => {
 
 	try {
 		await trpc.movie.update.mutate({
-			id: movieData.value!.id,
+			id: myMovieDetails.value!.id,
 			status: status ?? null,
 		});
 	} catch (err: any) {
@@ -246,7 +251,7 @@ const updateMovieCollections = async () => {
 
 	try {
 		await trpc.media.updateCollections.mutate({
-			id: movieData.value!.id,
+			id: myMovieDetails.value!.id,
 			collectionIds: selectedCollectionIds.value,
 		});
 	} catch (err: any) {
@@ -261,7 +266,7 @@ const updateRating = async () => {
 		}
 
 		await trpc.movie.update.mutate({
-			id: movieData.value!.id,
+			id: myMovieDetails.value!.id,
 			rating: rating.value ?? null,
 		});
 	} catch (err: any) {

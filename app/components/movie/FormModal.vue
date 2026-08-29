@@ -1,5 +1,5 @@
 <template>
-	<UModal :title="`${movie ? 'Update' : 'Create'} a movie`" :dismissible="!isLoading" :close="!isLoading">
+	<UModal :title="`${movie ? 'Update' : 'Create'} a movie`" :dismissible="!internalLoading" :close="!internalLoading">
 		<template #body>
 			<UForm
 				ref="form"
@@ -10,19 +10,35 @@
 				class="gap-4 flex flex-col"
 			>
 				<UFormField label="Title" name="name" required>
-					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus />
+					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus :loading="loadingMovie" />
 				</UFormField>
 				<UFormField label="Status" name="status">
-					<StatusSelectMenu class="w-full" v-model="state.status" />
+					<StatusSelectMenu class="w-full" v-model="state.status" :loading="loadingMovie" />
+				</UFormField>
+				<UFormField label="Collections" name="collections">
+					<CollectionSelectMenu class="w-full" v-model="state.collections" :loading="loadingCollections" />
 				</UFormField>
 				<UFormField label="Overview" name="overview">
-					<UTextarea v-model="state.overview" class="w-full" autoresize :maxrows="10" />
+					<UTextarea
+						v-model="state.overview"
+						class="w-full"
+						autoresize
+						:maxrows="10"
+						:loading="loadingMovie"
+					/>
 				</UFormField>
 				<UFormField label="Note" name="note">
-					<UTextarea v-model="state.note" class="w-full" autoresize :maxrows="4" :maxlength="1000" />
+					<UTextarea
+						v-model="state.note"
+						class="w-full"
+						autoresize
+						:maxrows="4"
+						:maxlength="1000"
+						:loading="loadingMovie"
+					/>
 				</UFormField>
 				<UFormField label="Rating" name="rating">
-					<ClearableRating v-model="state.rating" />
+					<ClearableRating v-model="state.rating" :loading="loadingMovie" />
 				</UFormField>
 			</UForm>
 		</template>
@@ -38,10 +54,10 @@
 import type { FormSubmitEvent } from "@nuxt/ui";
 import { z } from "zod";
 
-const { movie } = defineProps<{ movie?: MovieWithMediaView }>();
+const props = defineProps<{ id?: string }>();
 
 const emit = defineEmits<{
-	close: [value?: MovieWithMediaView];
+	close: [value?: { movie: MovieWithMediaView; collections: CollectionDefaultView[] }];
 }>();
 
 const isLoading = ref(false);
@@ -50,20 +66,60 @@ const toast = useStatusToast();
 const trpc = useTrpc();
 const movieStore = useMovieStore();
 
+const internalLoading = computed(() => isLoading.value || loadingMovie.value || loadingCollections.value);
+
 const schema = z.object({
 	name: ClientMediaValidation.name,
-	overview: ClientMovieValidation.overview,
-	rating: ClientMediaValidation.rating,
-	note: ClientMediaValidation.note,
 	status: ClientMediaValidation.status,
+	collections: z.array(ClientCollectionValidation.id),
+	overview: ClientMovieValidation.overview,
+	note: ClientMediaValidation.note,
+	rating: ClientMediaValidation.rating,
 });
 type Schema = z.infer<typeof schema>;
+
+const { data: movie, pending: loadingMovie } = useSafeAsyncData(() => trpc.movie.getById.query({ id: props.id }), {
+	enabled: () => !!props.id,
+});
+
+watch(
+	movie,
+	(m) => {
+		if (!m) {
+			return;
+		}
+		state.name = m.media.name ?? "";
+		state.status = m.media.status ?? undefined;
+		state.note = m.media.note ?? "";
+		state.overview = m.overview ?? "";
+		state.rating = m.media.rating ?? undefined;
+	},
+	{ immediate: true },
+);
+
+const { data: collections, pending: loadingCollections } = useSafeAsyncData(
+	() => trpc.media.getCollections.query({ id: props.id }),
+	{ enabled: () => !!props.id },
+);
+
+watch(
+	collections,
+	(c) => {
+		if (!c) {
+			return;
+		}
+		state.collections = c.map((col) => col.id);
+	},
+	{ immediate: true },
+);
+
 const state = reactive<Schema>({
-	name: movie?.media.name ?? "",
-	overview: movie?.overview ?? "",
-	rating: movie?.media.rating ?? undefined,
-	note: movie?.media.note ?? "",
-	status: movie?.media.status ?? undefined,
+	name: "",
+	status: undefined,
+	collections: [],
+	note: "",
+	overview: "",
+	rating: undefined,
 });
 
 const onCancel = () => {
@@ -80,9 +136,9 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 
 		let updatedMovie;
 
-		if (movie) {
+		if (props.id) {
 			updatedMovie = await trpc.movie.update.mutate({
-				id: movie.id,
+				id: props.id,
 				name: payload.data.name,
 				overview: payload.data.overview,
 				rating: payload.data.rating ?? null,
@@ -101,7 +157,12 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 			toast.success({ description: `Movie ${updatedMovie.media.name} has been created` });
 		}
 
-		emit("close", updatedMovie);
+		const updatedCollections = await trpc.media.updateCollections.mutate({
+			id: updatedMovie.id,
+			collectionIds: payload.data.collections,
+		});
+
+		emit("close", { movie: updatedMovie, collections: updatedCollections });
 	} catch (err) {
 		toast.error(err);
 	} finally {

@@ -1,15 +1,15 @@
-import { createTRPCClient, httpLink } from "@trpc/client";
+import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import type { AppRouter } from "~~/server/trpc/router";
 
 export default defineNuxtPlugin(() => {
 	const client = createTRPCClient<AppRouter>({
 		links: [
-			httpLink({
-				// maxItems: 10,
-				// maxURLLength: 2048,
+			httpBatchLink({
+				maxItems: 10,
+				maxURLLength: 2048,
 				url: "/api/trpc",
 				transformer,
-				methodOverride: "POST",
+				// methodOverride: "POST",
 			}),
 		],
 	});
