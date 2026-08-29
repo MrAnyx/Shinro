@@ -180,10 +180,10 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		} else {
 			updatedMovie = await movieStore.createMovie({
 				name: payload.data.name,
-				overview: payload.data.overview,
-				rating: payload.data.rating ?? null,
-				note: payload.data.note,
 				status: payload.data.status ?? null,
+				overview: payload.data.overview,
+				note: payload.data.note,
+				rating: payload.data.rating ?? null,
 			});
 			toast.success({ description: `Movie ${updatedMovie.media.name} has been created` });
 		}

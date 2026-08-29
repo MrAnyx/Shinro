@@ -2,13 +2,15 @@
 	<USelectMenu
 		v-model="status"
 		:items="statuses"
-		:loading="props.loading"
 		:variant="props.variant"
+		:loading="props.loading"
 		:disabled="props.disabled"
 		value-key="value"
 		placeholder="Select a status"
 		leading-icon="i-lucide-circle-dot-dashed"
 		clear
+		:reset-model-value-on-clear="false"
+		@clear="status = undefined"
 	>
 		<template #leading="{ ui }">
 			<UChip
@@ -27,7 +29,7 @@ import type { SelectMenuItem, SelectMenuProps } from "@nuxt/ui";
 
 import { MediaStatus } from "#prisma/enums";
 
-const status = defineModel<MediaStatus | undefined>();
+const status = defineModel<MediaStatus>();
 
 const props = defineProps<{} & Pick<SelectMenuProps, "variant" | "loading" | "disabled">>();
 
