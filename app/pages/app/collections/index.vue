@@ -81,7 +81,7 @@ const trpc = useTrpc();
 const collectionStore = useCollectionStore();
 const toast = useStatusToast();
 const { openConfirmationModal } = useConfirmation();
-const { search, page } = useSearchPagination();
+const { search, page, trimmedSearch } = useSearchPagination();
 
 const collectionFormModal = overlay.create(LazyCollectionFormModal);
 const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
@@ -96,11 +96,14 @@ const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 	}
 };
 
-const { data, pending, refresh } = useSafeAsyncData(() =>
-	trpc.collection.getAll.query({ page: page.value, search: search.value }),
+const { data, pending, refresh } = useSafeAsyncData(
+	() => trpc.collection.getAll.query({ page: page.value, search: trimmedSearch.value }),
+	{
+		watch: [page],
+	},
 );
 
-watchDebounced([page, search], () => refresh(), {
+watchDebounced(trimmedSearch, () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
 

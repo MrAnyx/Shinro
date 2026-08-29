@@ -97,11 +97,12 @@ const { data, pending, refresh, clear } = useSafeAsyncData(
 	() => trpc.tmdbSerie.search.query({ page: page.value, search: trimmedSearch.value }),
 	{
 		enabled: () => !!trimmedSearch.value,
+		watch: [page],
 	},
 );
 
 watchDebounced(
-	[search, page],
+	trimmedSearch,
 	() => {
 		if (!trimmedSearch.value) {
 			clear();

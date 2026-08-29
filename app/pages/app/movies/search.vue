@@ -97,11 +97,12 @@ const { data, pending, refresh, clear } = useSafeAsyncData(
 	() => trpc.tmdbMovie.search.query({ page: page.value, search: trimmedSearch.value }),
 	{
 		enabled: () => !!trimmedSearch.value,
+		watch: [page],
 	},
 );
 
 watchDebounced(
-	[trimmedSearch, page],
+	trimmedSearch,
 	() => {
 		if (!trimmedSearch.value) {
 			clear();

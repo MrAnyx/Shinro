@@ -74,9 +74,8 @@ import { LazySerieFormModal } from "#components";
 const overlay = useOverlay();
 const trpc = useTrpc();
 const serieStore = useSerieStore();
-const toast = useStatusToast();
 const { openConfirmationModal } = useConfirmation();
-const { search, page } = useSearchPagination();
+const { search, page, trimmedSearch } = useSearchPagination();
 
 const serieFormModal = overlay.create(LazySerieFormModal);
 const openSerieFormModal = async (serie?: SerieWithMediaView) => {
@@ -89,18 +88,22 @@ const openSerieFormModal = async (serie?: SerieWithMediaView) => {
 	}
 };
 
-const { data, pending, refresh } = useSafeAsyncData(() =>
-	trpc.serie.getAll.query({
-		page: page.value,
-		search: search.value,
-		orderBy: [
-			{ sort: "media.name", order: "asc" },
-			{ sort: "media.createdAt", order: "asc" },
-		],
-	}),
+const { data, pending, refresh, clear } = useSafeAsyncData(
+	() =>
+		trpc.serie.getAll.query({
+			page: page.value,
+			search: search.value,
+			orderBy: [
+				{ sort: "media.name", order: "asc" },
+				{ sort: "media.createdAt", order: "asc" },
+			],
+		}),
+	{
+		watch: [page],
+	},
 );
 
-watchDebounced([page, search], () => refresh(), {
+watchDebounced(trimmedSearch, () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
 
