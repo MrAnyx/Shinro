@@ -99,18 +99,15 @@ onMounted(() => {
 	focusSearchField();
 });
 
-const { data, pending, refresh, clear } = useAsyncData(
-	() => trpc.tmdbMovie.search.query({ page: page.value, search: search.value.trim() }),
+const { data, pending, refresh, clear } = useSafeAsyncData(
+	() => trpc.tmdbMovie.search.query({ page: page.value, search: trimmedSearch.value }),
 	{
-		immediate: false,
-		default: () => undefined,
 		enabled: !!trimmedSearch.value,
-		watch: [page],
 	},
 );
 
 watchDebounced(
-	[search],
+	[search, page],
 	() => {
 		if (!trimmedSearch.value) {
 			clear();

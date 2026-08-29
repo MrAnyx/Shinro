@@ -90,7 +90,7 @@ import { watchDebounced } from "@vueuse/core";
 const trpc = useTrpc();
 const serieStore = useSerieStore();
 const toast = useStatusToast();
-const { search, page } = useSearchPagination();
+const { search, page, trimmedSearch } = useSearchPagination();
 
 const searchInput = useTemplateRef("searchInput");
 
@@ -100,26 +100,26 @@ onMounted(() => {
 	focusSearchField();
 });
 
-const { data, pending, refresh } = useAsyncData(
-	async () => {
-		if (!search.value.trim()) {
-			return undefined;
-		}
-
-		try {
-			return await trpc.tmdbSerie.search.query({ page: page.value, search: search.value.trim() });
-		} catch (err) {
-			toast.error(err);
-		}
-	},
+const { data, pending, refresh, clear } = useSafeAsyncData(
+	() => trpc.tmdbSerie.search.query({ page: page.value, search: trimmedSearch.value }),
 	{
-		dedupe: "cancel",
+		enabled: !!trimmedSearch.value,
 	},
 );
 
-watchDebounced([page, search], () => refresh(), {
-	debounce: DEBOUNCE_TIMER,
-});
+watchDebounced(
+	[search, page],
+	() => {
+		if (!trimmedSearch.value) {
+			clear();
+		} else {
+			refresh();
+		}
+	},
+	{
+		debounce: DEBOUNCE_TIMER,
+	},
+);
 
 const columns: TableColumn<TmdbSerieSearchDefaultView>[] = [
 	{

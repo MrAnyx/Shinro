@@ -95,24 +95,15 @@ const openSerieFormModal = async (serie?: SerieWithMediaView) => {
 	}
 };
 
-const { data, pending, refresh } = useAsyncData(
-	async () => {
-		try {
-			return await trpc.serie.getAll.query({
-				page: page.value,
-				search: search.value,
-				orderBy: [
-					{ sort: "media.name", order: "asc" },
-					{ sort: "media.createdAt", order: "asc" },
-				],
-			});
-		} catch (err) {
-			toast.error(err);
-		}
-	},
-	{
-		dedupe: "cancel",
-	},
+const { data, pending, refresh } = useSafeAsyncData(() =>
+	trpc.serie.getAll.query({
+		page: page.value,
+		search: search.value,
+		orderBy: [
+			{ sort: "media.name", order: "asc" },
+			{ sort: "media.createdAt", order: "asc" },
+		],
+	}),
 );
 
 watchDebounced([page, search], () => refresh(), {

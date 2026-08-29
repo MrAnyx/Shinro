@@ -106,17 +106,8 @@ const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 	}
 };
 
-const { data, pending, refresh } = useAsyncData(
-	async () => {
-		try {
-			return await trpc.collection.getAll.query({ page: page.value, search: search.value });
-		} catch (err) {
-			toast.error(err);
-		}
-	},
-	{
-		dedupe: "cancel",
-	},
+const { data, pending, refresh } = useSafeAsyncData(() =>
+	trpc.collection.getAll.query({ page: page.value, search: search.value }),
 );
 
 watchDebounced([page, search], () => refresh(), {

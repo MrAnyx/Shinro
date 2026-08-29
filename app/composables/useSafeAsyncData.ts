@@ -7,13 +7,18 @@ export const useSafeAsyncData = <T>(
 ) => {
 	const toast = useStatusToast();
 	const { onError = (err: unknown) => toast.error(err), ...asyncDataOptions } = options ?? {};
+	const key = uuid();
 
-	return useAsyncData<T>(async () => {
-		try {
-			return await fetcher();
-		} catch (err) {
-			onError?.(err);
-			throw err;
-		}
-	}, asyncDataOptions);
+	return useAsyncData<T>(
+		key,
+		async () => {
+			try {
+				return await fetcher();
+			} catch (err) {
+				onError?.(err);
+				throw err;
+			}
+		},
+		asyncDataOptions,
+	);
 };

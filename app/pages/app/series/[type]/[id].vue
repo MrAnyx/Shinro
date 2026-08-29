@@ -353,18 +353,15 @@ const selectedCollectionIds = ref<string[]>([]);
 const status = ref<MediaStatus | undefined>(undefined);
 
 // Async data
-const { data: detailsData, pending: loadingDetails } = useAsyncData(async () =>
-	isExternal.value ? await trpc.tmdbSerie.details.query({ id: id.value }) : null,
+const { data: detailsData, pending: loadingDetails } = useSafeAsyncData(async () =>
+	isExternal.value ? trpc.tmdbSerie.details.query({ id: id.value }) : null,
 );
-watch(detailsData, (newValue) => {
-	log.info(newValue ?? {});
-});
 
-const { data: serieData, pending: loadingMySerie } = useAsyncData(async () => {
+const { data: serieData, pending: loadingMySerie } = useSafeAsyncData(async () => {
 	if (isInternal.value) {
-		return await trpc.serie.getById.query({ id: id.value });
+		return trpc.serie.getById.query({ id: id.value });
 	} else if (isExternal.value) {
-		return await trpc.serie.getById.query({ externalId: id.value });
+		return trpc.serie.getById.query({ externalId: id.value });
 	} else {
 		return null;
 	}
@@ -375,11 +372,11 @@ watch(serieData, (newValue) => {
 	status.value = newValue?.media.status ?? undefined;
 });
 
-const { data: serieCollections, pending: loadingSerieCollections } = useAsyncData(async () => {
+const { data: serieCollections, pending: loadingSerieCollections } = useSafeAsyncData(async () => {
 	if (isInternal.value) {
-		return await trpc.media.getCollections.query({ id: id.value });
+		return trpc.media.getCollections.query({ id: id.value });
 	} else if (isExternal.value) {
-		return await trpc.media.getCollections.query({ externalId: id.value });
+		return trpc.media.getCollections.query({ externalId: id.value });
 	} else {
 		return null;
 	}
@@ -389,19 +386,18 @@ watch(serieCollections, (newValue) => {
 	selectedCollectionIds.value = newValue?.map((x) => x.id) ?? [];
 });
 
-const { data: collectionsData, pending: loadingCollections } = useAsyncData(
-	async () =>
-		await trpc.collection.getAll.query({
-			force: true,
-			orderBy: [
-				{ sort: "favorite", order: "desc" },
-				{ sort: "name", order: "asc" },
-			],
-		}),
+const { data: collectionsData, pending: loadingCollections } = useSafeAsyncData(() =>
+	trpc.collection.getAll.query({
+		force: true,
+		orderBy: [
+			{ sort: "favorite", order: "desc" },
+			{ sort: "name", order: "asc" },
+		],
+	}),
 );
 
-const { data: creditsData, pending: loadingCredits } = useAsyncData(
-	async () => await trpc.tmdbSerie.credits.query({ id: id.value }),
+const { data: creditsData, pending: loadingCredits } = useSafeAsyncData(() =>
+	trpc.tmdbSerie.credits.query({ id: id.value }),
 );
 
 // Methods
