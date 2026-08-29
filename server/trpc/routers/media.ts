@@ -2,7 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { Prisma } from "#prisma/client";
-import type { CollectionMediaCreateManyInput } from "#prisma/models";
+import type { CollectionMediaCreateManyInput, CollectionMediaCreateManyMediaInput } from "#prisma/models";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -144,14 +144,6 @@ export default router({
 				}
 			}
 
-			const collectionsToCreate = input.collectionIds.map(
-				(collectionId) =>
-					({
-						mediaId: input.id,
-						collectionId,
-					}) as CollectionMediaCreateManyInput,
-			);
-
 			const collections = await prisma.media.update({
 				where: { id: input.id },
 				data: {
@@ -161,7 +153,9 @@ export default router({
 						},
 						...(input.collectionIds.length > 0 && {
 							createMany: {
-								data: collectionsToCreate,
+								data: input.collectionIds.map((collectionId) => ({
+									collectionId,
+								})),
 							},
 						}),
 					},

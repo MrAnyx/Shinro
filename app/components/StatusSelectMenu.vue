@@ -4,7 +4,6 @@
 		:items="statuses"
 		:loading="props.loading"
 		:variant="props.variant"
-		:color="props.color"
 		:disabled="props.disabled"
 		value-key="value"
 		placeholder="Select a status"
@@ -30,7 +29,7 @@ import { MediaStatus } from "#prisma/enums";
 
 const status = defineModel<MediaStatus | undefined>();
 
-const props = defineProps<{} & Pick<SelectMenuProps, "variant" | "color" | "disabled" | "loading">>();
+const props = defineProps<{} & Pick<SelectMenuProps, "variant" | "loading" | "disabled">>();
 
 const statuses = computed<SelectMenuItem[]>(() => {
 	return Object.values(MediaStatus).map((status) => ({

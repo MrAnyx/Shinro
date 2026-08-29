@@ -1,5 +1,11 @@
 <template>
-	<UModal :title="`${movie ? 'Update' : 'Create'} a movie`" :dismissible="!internalLoading" :close="!internalLoading">
+	<UModal :dismissible="!isLoading" :close="!isLoading">
+		<template #title>
+			<div class="flex items-center gap-x-2">
+				<UIcon name="i-lucide-loader-circle" class="animate-spin size-5" v-if="isInitializing" />
+				<span>{{ movie ? "Update" : "Create" }} a movie</span>
+			</div>
+		</template>
 		<template #body>
 			<UForm
 				ref="form"
@@ -10,13 +16,30 @@
 				class="gap-4 flex flex-col"
 			>
 				<UFormField label="Title" name="name" required>
-					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus :loading="loadingMovie" />
+					<UInput
+						v-model="state.name"
+						class="w-full"
+						:maxlength="255"
+						autofocus
+						:disabled="isLoading"
+						:loading="loadingMovie"
+					/>
 				</UFormField>
 				<UFormField label="Status" name="status">
-					<StatusSelectMenu class="w-full" v-model="state.status" :loading="loadingMovie" />
+					<StatusSelectMenu
+						class="w-full"
+						v-model="state.status"
+						:disabled="isLoading"
+						:loading="loadingMovie"
+					/>
 				</UFormField>
 				<UFormField label="Collections" name="collections">
-					<CollectionSelectMenu class="w-full" v-model="state.collections" :loading="loadingCollections" />
+					<CollectionSelectMenu
+						class="w-full"
+						v-model="state.collections"
+						:disabled="isLoading"
+						:loading="loadingCollections"
+					/>
 				</UFormField>
 				<UFormField label="Overview" name="overview">
 					<UTextarea
@@ -24,6 +47,7 @@
 						class="w-full"
 						autoresize
 						:maxrows="10"
+						:disabled="isLoading"
 						:loading="loadingMovie"
 					/>
 				</UFormField>
@@ -34,18 +58,24 @@
 						autoresize
 						:maxrows="4"
 						:maxlength="1000"
+						:disabled="isLoading"
 						:loading="loadingMovie"
 					/>
 				</UFormField>
 				<UFormField label="Rating" name="rating">
-					<ClearableRating v-model="state.rating" :loading="loadingMovie" />
+					<ClearableRating v-model="state.rating" :disabled="isLoading" :loading="loadingMovie" />
 				</UFormField>
 			</UForm>
 		</template>
 
 		<template #footer>
 			<UButton label="Cancel" variant="ghost" color="neutral" @click="onCancel" :disabled="isLoading" />
-			<UButton :label="movie ? 'Update' : 'Create'" @click="onSave" :loading="isLoading" />
+			<UButton
+				:label="props.id ? 'Update' : 'Create'"
+				@click="onSave"
+				:loading="isSubmitting"
+				:disabled="isInitializing"
+			/>
 		</template>
 	</UModal>
 </template>
@@ -60,13 +90,14 @@ const emit = defineEmits<{
 	close: [value?: { movie: MovieWithMediaView; collections: CollectionDefaultView[] }];
 }>();
 
-const isLoading = ref(false);
+const isSubmitting = ref(false);
 const form = useTemplateRef("form");
 const toast = useStatusToast();
 const trpc = useTrpc();
 const movieStore = useMovieStore();
 
-const internalLoading = computed(() => isLoading.value || loadingMovie.value || loadingCollections.value);
+const isInitializing = computed(() => loadingMovie.value || loadingCollections.value);
+const isLoading = computed(() => isInitializing.value || isSubmitting.value);
 
 const schema = z.object({
 	name: ClientMediaValidation.name,
@@ -132,7 +163,7 @@ const onSave = async () => {
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
-		isLoading.value = true;
+		isSubmitting.value = true;
 
 		let updatedMovie;
 
@@ -166,7 +197,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	} catch (err) {
 		toast.error(err);
 	} finally {
-		isLoading.value = false;
+		isSubmitting.value = false;
 	}
 };
 </script>

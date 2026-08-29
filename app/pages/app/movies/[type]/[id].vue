@@ -226,6 +226,7 @@ const editMovie = async () => {
 
 	if (result) {
 		myMovieDetails.value = result.movie;
+		selectedCollectionIds.value = result.collections.map((c) => c.id);
 	}
 };
 
