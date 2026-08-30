@@ -16,57 +16,44 @@ export default router({
 		)
 		.output(UserDefaultViewSchema)
 		.mutation(async ({ input, ctx }) => {
-			const log = useLogger(ctx.event);
-
-			log.set({ auth: { username: input.username } });
-
-			const totaluser = await prisma.user.count({ take: 1 });
-			const isFirstUser = totaluser === 0;
-
-			log.set({ auth: { isFirstUser } });
-
-			const userExist = await prisma.user.findUnique({
-				where: {
-					username: input.username,
-				},
-				select: {
-					id: true,
-				},
-			});
+			// Combine count and existence check in parallel
+			const [totalUsers, userExist] = await Promise.all([
+				prisma.user.count({ take: 1 }),
+				prisma.user.findUnique({
+					where: { username: input.username },
+					select: { id: true },
+				}),
+			]);
 
 			if (userExist) {
 				throw new TRPCError({
 					code: "CONFLICT",
-					message: "Choose a different username to create a new user",
+					message: "Choose a different username to create your account",
 				});
 			}
 
-			const password = await bcrypt.hash(input.password, 10);
-
-			const user = await prisma.user.create({
-				data: {
-					passwordHash: password,
-					username: input.username,
-					role: isFirstUser ? "ADMIN" : "USER",
-				},
-			});
-
-			log.set({ user: { id: user.id, role: user.role } });
-
-			log.audit({
-				action: "user.register",
-				actor: { type: "system", id: "registration-flow" },
-				target: { type: "user", id: user.id },
-				outcome: "success",
-			});
-
+			const isFirstUser = totalUsers === 0;
+			const passwordHash = await bcrypt.hash(input.password, 10);
 			const sessionId = generateRandomString(255);
-			await prisma.session.create({
-				data: {
-					expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
-					sessionId: sessionId,
-					userId: user.id,
-				},
+
+			const user = await prisma.$transaction(async (tx) => {
+				const newUser = await tx.user.create({
+					data: {
+						passwordHash,
+						username: input.username,
+						role: isFirstUser ? "ADMIN" : "USER",
+					},
+				});
+
+				await tx.session.create({
+					data: {
+						expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
+						sessionId,
+						userId: newUser.id,
+					},
+				});
+
+				return newUser;
 			});
 
 			setCookie(ctx.event, "session_id", sessionId, {
@@ -95,14 +82,24 @@ export default router({
 				},
 			});
 
-			if (!user || !(await bcrypt.compare(input.password, user.passwordHash))) {
+			if (!user) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "User not found",
+				});
+			}
+
+			const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
+
+			if (isPasswordValid) {
 				throw new TRPCError({
 					code: "UNAUTHORIZED",
-					message: "Your username or password are not valid",
+					message: "Username or password are not valid",
 				});
 			}
 
 			const sessionId = generateRandomString(255);
+
 			await prisma.session.create({
 				data: {
 					expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
@@ -201,11 +198,7 @@ export default router({
 				}
 			}
 
-			let password;
-
-			if (input.password) {
-				password = await bcrypt.hash(input.password, 10);
-			}
+			const password = input.password ? await bcrypt.hash(input.password, 10) : undefined;
 
 			return await prisma.user.update({
 				where: {

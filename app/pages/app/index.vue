@@ -35,13 +35,7 @@
 					:value="movieStore.total"
 					to="/app/movies"
 				/>
-				<DataCard
-					icon="i-lucide-tv-minimal-play"
-					title="Series"
-					subtitle="Binge or regret"
-					:value="serieStore.total"
-					to="/app/series"
-				/>
+				<DataCard icon="i-lucide-tv-minimal-play" title="Series" subtitle="Binge or regret" :value="0" />
 				<DataCard icon="i-lucide-music" title="Musics" subtitle="Skipped after song 3" :value="0" />
 				<DataCard icon="i-lucide-book-open" title="Books" subtitle="Read (or lied about)" :value="0" />
 				<DataCard icon="i-lucide-gamepad-2" title="Games" subtitle="Backlog forever" :value="0" />
@@ -170,7 +164,6 @@ const { greeting } = useTimeGreeting();
 const userStore = useUserStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
-const serieStore = useSerieStore();
 const trpc = useTrpc();
 
 const recentMedias = computed(() => recentData.value?.results.slice(0, 5) ?? []);

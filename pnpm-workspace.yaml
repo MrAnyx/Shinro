@@ -5,6 +5,7 @@ trustPolicy: no-downgrade
 audit-level: low
 trustPolicyExclude:
     - "semver@6.3.1"
+    - "prisma@7.10.0"
 enablePrePostScripts: false
 allowBuilds:
     "@parcel/watcher": false

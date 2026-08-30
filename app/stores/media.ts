@@ -3,9 +3,8 @@ export const useMediaStore = defineStore("media", {
 	getters: {
 		total() {
 			const movieStore = useMovieStore();
-			const serieStore = useSerieStore();
 
-			return movieStore.total + serieStore.total;
+			return movieStore.total;
 		},
 	},
 	actions: {},
