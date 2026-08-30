@@ -78,7 +78,6 @@ import type { NavigationMenuItem, CommandPaletteItem, DropdownMenuItem } from "@
 const initializationStore = useInitializationStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
-const serieStore = useSerieStore();
 const userStore = useUserStore();
 const mediaStore = useMediaStore();
 
@@ -137,7 +136,7 @@ const mediaItems = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Series",
 		icon: "i-lucide-tv-minimal-play",
-		badge: serieStore.total,
+		badge: 0,
 		to: "/app/series",
 	},
 	{

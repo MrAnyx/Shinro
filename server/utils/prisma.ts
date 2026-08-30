@@ -1,7 +1,6 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient, Prisma } from "#prisma/client";
-import { omitConfig } from "#server/prisma/omitConfig";
 
 export function buildPrismaOrderBy<TOrderBy>(input: { sort: string; order: Prisma.SortOrder }[]): TOrderBy[] {
 	return input.map(({ sort, order }) =>
@@ -20,7 +19,6 @@ const prismaClientSingleton = () => {
 	});
 	return new PrismaClient({
 		adapter: pool,
-		omit: omitConfig,
 	});
 };
 
