@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const EnvSchema = z.object({
+export const serverEnvSchema = z.object({
 	// Private variables
 	NODE_ENV: z.enum(["production", "development"]),
 	DATABASE_URL: z.url(),
@@ -18,7 +18,8 @@ const EnvSchema = z.object({
 	NUXT_PUBLIC_ALLOW_REGISTRATION: z.stringbool(),
 });
 
-export type EnvSchema = z.infer<typeof EnvSchema>;
+export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
+// Here, we export the variable directly because the environment varables are accessible at any time.
 // eslint-disable-next-line node/no-process-env
-export default process.env.CI ? ({} as EnvSchema) : EnvSchema.parse(process.env);
+export const serverEnv = process.env.CI ? ({} as ServerEnv) : serverEnvSchema.parse(process.env);

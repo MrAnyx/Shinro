@@ -1,10 +1,8 @@
 import { z } from "zod";
 
-const schema = z.object({
+export const clientEnvSchema = z.object({
 	// Public variables
 	allowRegistration: z.boolean(),
 });
 
-const config = useRuntimeConfig();
-
-export default schema.parse(config.public);
+export type ClientEnv = z.infer<typeof clientEnvSchema>;

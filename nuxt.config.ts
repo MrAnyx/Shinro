@@ -1,7 +1,5 @@
 import { fileURLToPath } from "node:url";
 
-import "./server/utils/serverEnv";
-
 export default defineNuxtConfig({
 	nitro: {
 		experimental: {
