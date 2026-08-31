@@ -2,7 +2,6 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { Prisma } from "#prisma/client";
-import type { CollectionMediaCreateManyInput, CollectionMediaCreateManyMediaInput } from "#prisma/models";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({

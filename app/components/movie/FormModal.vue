@@ -109,7 +109,7 @@ const schema = z.object({
 });
 type Schema = z.infer<typeof schema>;
 
-const { data: movie, pending: loadingMovie } = useSafeAsyncData(() => trpc.movie.getById.query({ id: props.id }), {
+const { data: movie, pending: loadingMovie } = useClientAsyncData(() => trpc.movie.getById.query({ id: props.id }), {
 	enabled: () => !!props.id,
 });
 
@@ -128,7 +128,7 @@ watch(
 	{ immediate: true },
 );
 
-const { data: collections, pending: loadingCollections } = useSafeAsyncData(
+const { data: collections, pending: loadingCollections } = useClientAsyncData(
 	() => trpc.media.getCollections.query({ id: props.id }),
 	{ enabled: () => !!props.id },
 );

@@ -88,7 +88,7 @@ const openMovieFormModal = async (movie?: MovieWithMediaView) => {
 	}
 };
 
-const { data, pending, refresh } = useSafeAsyncData(
+const { data, pending, refresh } = useClientAsyncData(
 	() =>
 		trpc.movie.getAll.query({
 			page: page.value,

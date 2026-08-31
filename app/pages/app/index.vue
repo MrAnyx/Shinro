@@ -168,11 +168,11 @@ const trpc = useTrpc();
 
 const recentMedias = computed(() => recentData.value?.results.slice(0, 5) ?? []);
 
-const { data: recentData, pending: loadingRecent } = useSafeAsyncData(() =>
+const { data: recentData, pending: loadingRecent } = useClientAsyncData(() =>
 	trpc.media.getAll.query({ orderBy: [{ sort: "createdAt", order: "desc" }] }),
 );
 
-const { data: favoriteCollections, pending: loadingCollections } = useSafeAsyncData(() =>
+const { data: favoriteCollections, pending: loadingCollections } = useClientAsyncData(() =>
 	trpc.collection.getFavoritesWithMedias.query(),
 );
 

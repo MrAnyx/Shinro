@@ -38,7 +38,7 @@ const internalCollections = computed(
 		) ?? [],
 );
 
-const { data: collections, pending: loadingCollections } = useSafeAsyncData(() =>
+const { data: collections, pending: loadingCollections } = useClientAsyncData(() =>
 	trpc.collection.getAll.query({
 		force: true,
 		orderBy: [
