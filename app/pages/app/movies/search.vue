@@ -44,7 +44,7 @@
 				/>
 			</template>
 			<template #vote_average-cell="{ row }">
-				<VoteBadge :average="row.original.vote_average" :count="row.original.vote_count" />
+				<VoteBadge :score="row.original.vote_average" :count="row.original.vote_count" />
 			</template>
 			<template #actions-cell="{ row }">
 				<UButton

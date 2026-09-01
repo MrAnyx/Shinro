@@ -66,23 +66,31 @@ export default router({
 				id: ServerTmdbMovieValidation.id,
 			}),
 		)
-		.output(TmdbMovieDetailsDefaultViewSchema)
-		.query(async ({ input }) => {
-			return await tmdb(`/movie/${input.id}`, {
-				schema: TmdbMovieDetailsResponseSchema,
-			});
-		}),
-
-	credits: protectedProcedure
-		.input(
+		.output(
 			z.object({
-				id: ServerTmdbMovieValidation.id,
+				details: TmdbMovieDetailsDefaultViewSchema,
+				credits: TmdbMovieCreditsDefaultViewSchema,
+				saga: TmdbMovieCollectionDefaultViewSchema.optional(),
 			}),
 		)
-		.output(TmdbMovieCreditsDefaultViewSchema)
 		.query(async ({ input }) => {
-			return await tmdb(`/movie/${input.id}/credits`, {
-				schema: TmdbMovieCreditsResponseSchema,
-			});
+			const [details, credits] = await Promise.all([
+				tmdb(`/movie/${input.id}`, { schema: TmdbMovieDetailsResponseSchema }),
+				tmdb(`/movie/${input.id}/credits`, { schema: TmdbMovieCreditsResponseSchema }),
+			]);
+
+			let saga = undefined;
+
+			if (details.belongs_to_collection?.id) {
+				saga = await tmdb(`/collection/${details.belongs_to_collection.id}`, {
+					schema: TmdbMovieCollectionResponseSchema,
+				});
+			}
+
+			return {
+				details,
+				credits,
+				saga,
+			};
 		}),
 });

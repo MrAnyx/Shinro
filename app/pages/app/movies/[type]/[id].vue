@@ -7,7 +7,7 @@
 			:external="isExternal"
 			:in-my-list="isInMyList"
 			image-provider="tmdb"
-			:image="tmdbMovieDetails?.poster_path ?? undefined"
+			:image="tmdbMovieDetails?.details.poster_path ?? undefined"
 			v-model:rating="rating"
 			v-model:status="status"
 			v-model:collections="selectedCollectionIds"
@@ -24,8 +24,8 @@
 			<!-- Title and tagline -->
 			<DetailsTitleHeader
 				:loading="isLoading"
-				:title="myMovieDetails?.media.name ?? tmdbMovieDetails?.title ?? undefined"
-				:subtitle="tmdbMovieDetails?.tagline ?? undefined"
+				:title="myMovieDetails?.media.name ?? tmdbMovieDetails?.details.title ?? undefined"
+				:subtitle="tmdbMovieDetails?.details.tagline ?? undefined"
 			/>
 
 			<!-- Details badges -->
@@ -34,13 +34,13 @@
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
 				<template v-else>
-					<AdultBadge :adult="tmdbMovieDetails?.adult" />
-					<DetailsDateBadge :date="tmdbMovieDetails?.release_date ?? undefined" />
-					<DetailsReleaseBadge :start-date="tmdbMovieDetails?.release_date ?? undefined" />
-					<DetailsDurationBadge :duration="tmdbMovieDetails?.runtime" />
+					<AdultBadge :adult="tmdbMovieDetails?.details.adult" />
+					<DetailsDateBadge :date="tmdbMovieDetails?.details.release_date ?? undefined" />
+					<DetailsReleaseBadge :start-date="tmdbMovieDetails?.details.release_date ?? undefined" />
+					<DetailsDurationBadge :duration="tmdbMovieDetails?.details.runtime" />
 					<VoteBadge
-						:average="tmdbMovieDetails?.vote_average ?? 0"
-						:count="tmdbMovieDetails?.vote_count ?? 0"
+						:score="tmdbMovieDetails?.details.vote_average"
+						:count="tmdbMovieDetails?.details.vote_count"
 					/>
 				</template>
 			</div>
@@ -48,7 +48,7 @@
 			<!-- Synopsis -->
 			<DetailsOverview
 				:loading="isLoading"
-				:overview="myMovieDetails?.overview ?? tmdbMovieDetails?.overview ?? undefined"
+				:overview="myMovieDetails?.overview ?? tmdbMovieDetails?.details.overview ?? undefined"
 			/>
 
 			<!-- Genres -->
@@ -61,7 +61,7 @@
 			<UTabs :items="tabs" variant="link">
 				<template #credits>
 					<DetailsCreditCards
-						:credits="tmdbMovieCredits?.cast ?? undefined"
+						:credits="tmdbMovieDetails?.credits.cast ?? undefined"
 						image-provider="tmdb"
 						:loading="isLoading"
 						:show-more-to="`https://www.themoviedb.org/movie/${id}/cast`"
@@ -101,11 +101,11 @@ const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
 const genres = computed(
 	() =>
-		tmdbMovieDetails.value?.genres?.filter((g): g is { name: string } => !!g.name?.trim()).map((g) => g.name) ?? [],
+		tmdbMovieDetails.value?.details.genres
+			?.filter((g): g is { name: string } => !!g.name?.trim())
+			.map((g) => g.name) ?? [],
 );
-const isLoading = computed(
-	() => loadingDetails.value || loadingMyMovie.value || loadingCredits.value || loadingMovieCollections.value,
-);
+const isLoading = computed(() => loadingDetails.value || loadingMyMovie.value || loadingMovieCollections.value);
 const isInMyList = computed(() => !!myMovieDetails.value);
 const note = computed(() => myMovieDetails.value?.media.note);
 
@@ -123,11 +123,11 @@ const tabs = computed<TabsItem[]>(() => [
 				},
 			]
 		: []),
-	...(isExternal.value
+	...(isExternal.value && tmdbMovieDetails.value?.saga
 		? [
 				{
 					icon: "i-lucide-list-video",
-					label: "Saga",
+					label: `Saga (${tmdbMovieDetails.value.saga.name ?? "Unknown"})`,
 					slot: "saga",
 				},
 			]
@@ -161,11 +161,6 @@ watch(myMovieDetails, (newValue) => {
 
 const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
 	() => trpc.tmdbMovie.details.query({ id: id.value }),
-	{ enabled: () => isExternal.value },
-);
-
-const { data: tmdbMovieCredits, pending: loadingCredits } = useClientAsyncData(
-	() => trpc.tmdbMovie.credits.query({ id: id.value }),
 	{ enabled: () => isExternal.value },
 );
 

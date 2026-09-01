@@ -21,7 +21,7 @@ export const useClientAsyncData = <T>(fetcher: () => Promise<T>, options?: Optio
 		}
 
 		// false → suppress
-		if (onError?.(err) === false) {
+		if (onError?.(err.cause) === false) {
 			return;
 		}
 

@@ -4,26 +4,62 @@
 
 <script setup lang="ts">
 const props = defineProps<{
-	average: number;
-	count: number;
+	score?: number;
+	count?: number;
+	minScore?: number;
+	maxScore?: number;
 }>();
 
-const icon = computed(() => (props.count > 0 ? "i-lucide-star" : undefined));
+const count = computed(() => {
+	if (props.count === undefined) {
+		return undefined;
+	}
 
-const label = computed(() =>
-	props.count > 0
-		? `${props.average.toLocaleString(undefined, { maximumFractionDigits: 1 })} (${props.count.toLocaleString()} votes)`
-		: "No votes",
-);
+	return Math.max(0, props.count);
+});
+
+const score = computed(() => {
+	if (props.score === undefined) {
+		return count.value === undefined || count.value === 0 ? undefined : 0;
+	}
+
+	return Math.max(minScore.value, Math.min(props.score, maxScore.value));
+});
+
+const hasVotes = computed(() => {
+	if (count.value !== undefined) {
+		return count.value > 0;
+	}
+	return props.score !== undefined;
+});
+const icon = computed(() => (hasVotes.value ? "i-lucide-star" : undefined));
+const minScore = computed(() => props.minScore ?? 0);
+const maxScore = computed(() => props.maxScore ?? 10);
+const minThreshold = computed(() => minScore.value + (maxScore.value - minScore.value) * (1 / 3));
+const maxThreshold = computed(() => minScore.value + (maxScore.value - minScore.value) * (2 / 3));
+
+const label = computed(() => {
+	if (!hasVotes.value) {
+		return "No votes";
+	}
+
+	const scoreLabel =
+		score.value?.toLocaleString(undefined, { maximumFractionDigits: 1 }) ??
+		minScore.value.toLocaleString(undefined, { maximumFractionDigits: 1 });
+
+	const countLabel = count.value ? ` (${count.value.toLocaleString()} votes)` : "";
+
+	return `${scoreLabel}${countLabel}`.trim();
+});
 
 const color = computed<AppColor>(() => {
-	if (props.count <= 0) {
+	if (!hasVotes.value) {
 		return "neutral";
 	}
 
-	if (props.average >= 7) {
+	if (score.value! >= maxThreshold.value) {
 		return "success";
-	} else if (props.average >= 5) {
+	} else if (score.value! >= minThreshold.value) {
 		return "warning";
 	} else {
 		return "error";
