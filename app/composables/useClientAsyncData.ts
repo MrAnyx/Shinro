@@ -19,9 +19,12 @@ export const useClientAsyncData = <T>(fetcher: () => Promise<T>, options?: Optio
 		if (!err) {
 			return;
 		}
+
+		// false → suppress
 		if (onError?.(err) === false) {
 			return;
-		} // false → suppress
+		}
+
 		toast.error(err, defaultErrorMessage ? { description: defaultErrorMessage } : {});
 	});
 

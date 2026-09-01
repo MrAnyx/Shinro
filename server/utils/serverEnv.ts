@@ -4,6 +4,7 @@ export const serverEnvSchema = z.object({
 	// Private variables
 	NODE_ENV: z.enum(["production", "development"]),
 	DATABASE_URL: z.url(),
+	REDIS_URL: z.url(),
 
 	// TMDB variables
 	TMDB_TOKEN: z.string(),

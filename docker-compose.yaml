@@ -1,7 +1,17 @@
 services:
+    redis:
+        image: redis:8-alpine
+        container_name: shinro-redis
+        ports:
+            - "6379:6379"
+        volumes:
+            - redisdata:/data
+        environment:
+            - REDIS_ARGS=--requirepass shinro --appendonly yes
+
     db:
         image: postgres:16-alpine
-        container_name: shinro_db
+        container_name: shinro-db
         environment:
             POSTGRES_USER: shinro
             POSTGRES_PASSWORD: shinro
@@ -10,11 +20,7 @@ services:
             - "5432:5432"
         volumes:
             - pgdata:/var/lib/postgresql/data
-        healthcheck:
-            test: ["CMD-SHELL", "pg_isready -U shinro"]
-            interval: 5s
-            timeout: 5s
-            retries: 5
 
 volumes:
     pgdata:
+    redisdata:

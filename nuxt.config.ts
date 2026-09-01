@@ -8,6 +8,7 @@ export default defineNuxtConfig({
 		scheduledTasks: {
 			"* * * * *": ["hello"],
 		},
+		// redis storage in defined in server/plugins/redisStorage.ts
 	},
 	build: {
 		transpile: ["@trpc/client"],
@@ -19,7 +20,7 @@ export default defineNuxtConfig({
 	},
 	runtimeConfig: {
 		public: {
-			allowRegistration: true,
+			allowRegistration: undefined,
 		},
 	},
 	icon: {
