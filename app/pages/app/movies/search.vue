@@ -111,7 +111,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "title",
+		accessorFn: (row) => row.internal_movie?.media.name ?? row.title,
 		header: "Title",
 		meta: {
 			class: {
@@ -120,7 +120,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "overview",
+		accessorFn: (row) => row.internal_movie?.overview ?? row.overview,
 		header: "Synopsis",
 		meta: {
 			class: {

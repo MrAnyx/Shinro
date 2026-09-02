@@ -71,6 +71,9 @@
 				<template #saga>
 					<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 						<UTable :data="sagaMovies" :columns="sagaColumns" @select="onMovieSelected">
+							<template #title-cell="{ row }">
+								<span>{{ row.original.internal_movie?.media.name ?? row.original.title }}</span>
+							</template>
 							<template #image-cell="{ row }">
 								<ImageFallback
 									:width="60"
@@ -133,6 +136,8 @@ const movieStore = useMovieStore();
 const toast = useStatusToast();
 const overlay = useOverlay();
 
+const tableKey = ref(0);
+
 // Computed
 const type = computed(() => route.params.type as MediaSourceType);
 const id = computed(() => route.params.id as string);
@@ -187,7 +192,7 @@ const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
 		},
 	},
 	{
-		accessorFn: (x) => x.title,
+		id: "title",
 		header: "Title",
 		meta: {
 			class: {
@@ -196,8 +201,8 @@ const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "overview",
-		header: "Overview",
+		accessorFn: (x) => x.internal_movie?.overview ?? x.overview,
+		header: "Synopsis",
 		meta: {
 			class: {
 				td: "max-w-[300px] truncate",
@@ -315,6 +320,7 @@ const addMovie = async () => {
 
 		const movie = await movieStore.createMovieFromExternal({ externalId: id.value });
 		myMovieDetails.value = movie;
+		updateSagaMovieInternalMovie(id.value, movie);
 	} catch (err: any) {
 		toast.error(err);
 	}
@@ -333,6 +339,7 @@ const editMovie = async () => {
 	if (result) {
 		myMovieDetails.value = result.movie;
 		selectedCollectionIds.value = result.collections.map((c) => c.id);
+		updateSagaMovieInternalMovie(result.movie.media.externalId ?? undefined, result.movie);
 	}
 };
 
@@ -381,7 +388,7 @@ const updateRating = async () => {
 	}
 };
 
-const updateSagaMovieInternalId = (externalId: string, internalMovie?: MovieWithMediaView) => {
+const updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: MovieWithMediaView) => {
 	const target = tmdbMovieDetails.value?.saga?.parts?.find((m) => m.id === externalId);
 	if (target) {
 		target.internal_movie = internalMovie;
@@ -392,7 +399,7 @@ const addSagaMovieToMyList = async (row: TableRow<TmdbMovieCollectionPartDefault
 	try {
 		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
 
-		updateSagaMovieInternalId(row.original.id, movie);
+		updateSagaMovieInternalMovie(row.original.id, movie);
 
 		toast.success({ description: `${movie.media.name} has been added to your list` });
 	} catch (err: any) {
@@ -408,7 +415,7 @@ const removeSagaMovieFromMyList = async (row: TableRow<TmdbMovieCollectionPartDe
 
 		await movieStore.deleteMovie({ id: row.original.internal_movie.id });
 
-		updateSagaMovieInternalId(row.original.id, undefined);
+		updateSagaMovieInternalMovie(row.original.id, undefined);
 
 		toast.success({ description: `${row.original.title} has been removed from your list` });
 	} catch (err: any) {
