@@ -49,7 +49,7 @@
 			<template #actions-cell="{ row }">
 				<ToggleButton
 					variant="ghost"
-					:is-added="!!row.original.internalId"
+					:is-added="!!row.original.internal_movie"
 					:on-add="() => addMovieToMyList(row)"
 					:on-remove="() => removeMovieFromMyList(row)"
 				/>
@@ -184,10 +184,10 @@ const focusSearchField = () => {
 	searchInput.value?.inputRef?.focus();
 };
 
-const updateMovieInternalId = (externalId: string, internalId?: string) => {
+const updateMovieInternalId = (externalId: string, internalMovie?: MovieWithMediaView) => {
 	const target = data.value?.results.find((m) => m.id === externalId);
 	if (target) {
-		target.internalId = internalId;
+		target.internal_movie = internalMovie;
 	}
 };
 
@@ -195,7 +195,7 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	try {
 		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
 
-		updateMovieInternalId(row.original.id, movie.id);
+		updateMovieInternalId(row.original.id, movie);
 
 		toast.success({ description: `${movie.media.name} has been added to your list` });
 	} catch (err: any) {
@@ -205,11 +205,11 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 
 const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	try {
-		if (!row.original.internalId) {
+		if (!row.original.internal_movie?.id) {
 			return;
 		}
 
-		await movieStore.deleteMovie({ id: row.original.internalId });
+		await movieStore.deleteMovie({ id: row.original.internal_movie.id });
 
 		updateMovieInternalId(row.original.id, undefined);
 

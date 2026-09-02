@@ -47,7 +47,12 @@
 					<h2 class="text-xl">Recently Added</h2>
 				</div>
 				<UCard :ui="{ body: 'p-0!' }">
-					<UTable :columns="recentMediasColumns" :data="recentMedias" :loading="loadingRecent">
+					<UTable
+						:columns="recentMediasColumns"
+						:data="recentMedias"
+						:loading="loadingRecent"
+						@select="onMediaSelect"
+					>
 						<template #empty>
 							<UEmpty
 								title="No media found"
@@ -153,7 +158,8 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn } from "@nuxt/ui";
+import type { TableColumn, TableRow } from "@nuxt/ui";
+import { MediaType } from "~~/lib/prisma/enums";
 
 definePageMeta({
 	layout: "app",
@@ -225,6 +231,23 @@ const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 		},
 	},
 ];
+
+const onMediaSelect = async (e: Event, row: TableRow<MediaDefaultView>) => {
+	switch (row.original.type) {
+		case MediaType.MOVIE:
+			await navigateTo(
+				row.original.externalId
+					? `/app/movies/external/${row.original.externalId}`
+					: `/app/movies/internal/${row.original.id}`,
+			);
+			break;
+
+		// other types
+
+		default:
+			break;
+	}
+};
 
 const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 	{

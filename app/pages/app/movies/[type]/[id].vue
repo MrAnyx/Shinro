@@ -99,7 +99,7 @@
 							<template #actions-cell="{ row }">
 								<ToggleButton
 									variant="ghost"
-									:is-added="!!row.original.internalId"
+									:is-added="!!row.original.internal_movie"
 									:on-add="() => addSagaMovieToMyList(row)"
 									:on-remove="() => removeSagaMovieFromMyList(row)"
 								/>
@@ -381,10 +381,10 @@ const updateRating = async () => {
 	}
 };
 
-const updateSagaMovieInternalId = (externalId: string, internalId?: string) => {
+const updateSagaMovieInternalId = (externalId: string, internalMovie?: MovieWithMediaView) => {
 	const target = tmdbMovieDetails.value?.saga?.parts?.find((m) => m.id === externalId);
 	if (target) {
-		target.internalId = internalId;
+		target.internal_movie = internalMovie;
 	}
 };
 
@@ -392,7 +392,7 @@ const addSagaMovieToMyList = async (row: TableRow<TmdbMovieCollectionPartDefault
 	try {
 		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
 
-		updateSagaMovieInternalId(row.original.id, movie.id);
+		updateSagaMovieInternalId(row.original.id, movie);
 
 		toast.success({ description: `${movie.media.name} has been added to your list` });
 	} catch (err: any) {
@@ -402,11 +402,11 @@ const addSagaMovieToMyList = async (row: TableRow<TmdbMovieCollectionPartDefault
 
 const removeSagaMovieFromMyList = async (row: TableRow<TmdbMovieCollectionPartDefaultView>) => {
 	try {
-		if (!row.original.internalId) {
+		if (!row.original.internal_movie?.id) {
 			return;
 		}
 
-		await movieStore.deleteMovie({ id: row.original.internalId });
+		await movieStore.deleteMovie({ id: row.original.internal_movie.id });
 
 		updateSagaMovieInternalId(row.original.id, undefined);
 

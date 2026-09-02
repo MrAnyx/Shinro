@@ -12,7 +12,7 @@ export const TmdbMovieSearchDefaultViewSchema = z.object({
 	popularity: z.number(),
 	vote_average: z.number(),
 	vote_count: z.number(),
-	internalId: z.uuid().nullish(),
+	internal_movie: MovieWithMediaViewSchema.nullish(),
 });
 
 export const TmdbMovieDetailsDefaultViewSchema = z.object({
@@ -69,7 +69,7 @@ export const TmdbMovieCollectionPartDefaultViewSchema = z.object({
 	release_date: z.string().nullish(),
 	vote_average: z.number(),
 	vote_count: z.number(),
-	internalId: z.uuid().nullish(),
+	internal_movie: MovieWithMediaViewSchema.nullish(),
 });
 
 export const TmdbMovieCollectionDefaultViewSchema = z.object({

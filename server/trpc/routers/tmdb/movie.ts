@@ -19,6 +19,7 @@ export default router({
 				};
 			}
 
+			// Search for movies on TMDB
 			const tmdbMovies = await tmdb("/search/movie", {
 				schema: TmdbMovieSearchResponseSchema,
 				query: {
@@ -27,8 +28,10 @@ export default router({
 				},
 			});
 
+			// Get the external IDs of the movies found on TMDB
 			const externalIds = tmdbMovies.results?.map((x) => x.id) ?? [];
 
+			// Get the movies that belong to the user and have the same external IDs
 			const myMovies = await prisma.movie.findMany({
 				where: {
 					media: {
@@ -38,21 +41,19 @@ export default router({
 						},
 					},
 				},
-				select: {
-					id: true,
-					media: {
-						select: {
-							externalId: true,
-						},
-					},
+				include: {
+					media: true,
 				},
 			});
 
-			const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m.id]));
+			// Create a map of the user's movies for easy lookup
+			const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m]));
 
+			// Merge the TMDB movies with the user's movies
 			const movies =
-				tmdbMovies.results?.map((movie) => Object.assign(movie, { internalId: myMoviesMap.get(movie.id) })) ??
-				[];
+				tmdbMovies.results?.map((movie) =>
+					Object.assign(movie, { internal_movie: myMoviesMap.get(movie.id) }),
+				) ?? [];
 
 			return {
 				total: tmdbMovies.total_results,
@@ -74,6 +75,7 @@ export default router({
 			}),
 		)
 		.query(async ({ input, ctx }) => {
+			// Get the movie details and credits from TMDB in parallel
 			const [details, credits] = await Promise.all([
 				tmdb(`/movie/${input.id}`, { schema: TmdbMovieDetailsResponseSchema }),
 				tmdb(`/movie/${input.id}/credits`, { schema: TmdbMovieCreditsResponseSchema }),
@@ -81,13 +83,17 @@ export default router({
 
 			let saga = undefined;
 
+			// If the movie belongs to a collection, get the collection details from TMDB
 			if (details.belongs_to_collection?.id) {
+				// Get the collection details from TMDB
 				saga = await tmdb(`/collection/${details.belongs_to_collection.id}`, {
 					schema: TmdbMovieCollectionResponseSchema,
 				});
 
+				// Get the external IDs of the movies in the collection
 				const externalIds = saga.parts?.map((x) => x.id) ?? [];
 
+				// Get the movies that belong to the user and have the same external IDs
 				const myMovies = await prisma.movie.findMany({
 					where: {
 						media: {
@@ -97,20 +103,17 @@ export default router({
 							},
 						},
 					},
-					select: {
-						id: true,
-						media: {
-							select: {
-								externalId: true,
-							},
-						},
+					include: {
+						media: true,
 					},
 				});
 
-				const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m.id]));
+				// Create a map of the user's movies for easy lookup
+				const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m]));
 
+				// Merge the TMDB collection movies with the user's movies
 				saga.parts =
-					saga.parts?.map((part) => Object.assign(part, { internalId: myMoviesMap.get(part.id) })) ?? [];
+					saga.parts?.map((part) => Object.assign(part, { internal_movie: myMoviesMap.get(part.id) })) ?? [];
 			}
 
 			return {
