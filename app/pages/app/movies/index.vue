@@ -23,7 +23,7 @@
 					variant="naked"
 					icon="i-lucide-ban"
 					:actions="emptyActions"
-				></UEmpty>
+				/>
 			</template>
 			<template #image-cell="{ row }">
 				<ImageFallback
@@ -50,6 +50,9 @@
 					hour="2-digit"
 					minute="2-digit"
 				/>
+			</template>
+			<template #rating-cell="{ row }">
+				<VoteBadge :score="row.original.media.rating ?? undefined" />
 			</template>
 			<template #actions-cell="{ row }">
 				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row)">
@@ -156,6 +159,16 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 		},
 	},
 	{
+		header: "Rating",
+		id: "rating",
+		meta: {
+			class: {
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
+			},
+		},
+	},
+	{
 		id: "actions",
 		meta: {
 			class: {
@@ -191,10 +204,6 @@ const getRowActions = (row: TableRow<MovieWithMediaView>): DropdownMenuItem[][] 
 		},
 	],
 ];
-
-const resetSearchField = () => {
-	search.value = "";
-};
 
 const emptyActions: ButtonProps[] = [
 	{

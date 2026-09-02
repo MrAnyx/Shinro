@@ -19,7 +19,7 @@
 					variant="naked"
 					icon="i-lucide-ban"
 					:actions="emptyActions"
-				></UEmpty>
+				/>
 			</template>
 			<template #image-cell="{ row }">
 				<ImageFallback
@@ -47,23 +47,11 @@
 				<VoteBadge :score="row.original.vote_average" :count="row.original.vote_count" />
 			</template>
 			<template #actions-cell="{ row }">
-				<UButton
-					v-if="!row.original.internalId"
+				<ToggleButton
 					variant="ghost"
-					icon="i-lucide-circle-plus"
-					color="neutral"
-					@click="addMovieToMyList(row)"
-					:loading="loadingMovieIds.has(row.original.id)"
-					:disabled="loadingMovieIds.has(row.original.id)"
-				/>
-				<UButton
-					v-else
-					variant="ghost"
-					icon="i-lucide-circle-minus"
-					color="error"
-					@click="removeMovieFromMyList(row)"
-					:loading="loadingMovieIds.has(row.original.id)"
-					:disabled="loadingMovieIds.has(row.original.id)"
+					:is-added="!!row.original.internalId"
+					:on-add="() => addMovieToMyList(row)"
+					:on-remove="() => removeMovieFromMyList(row)"
 				/>
 			</template>
 		</UTable>
@@ -86,8 +74,6 @@ const toast = useStatusToast();
 const { search, page, trimmedSearch } = useSearchPagination();
 
 const searchInput = useTemplateRef("searchInput");
-
-const loadingMovieIds = reactive(new Set<string>());
 
 onMounted(() => {
 	focusSearchField();
@@ -198,61 +184,38 @@ const focusSearchField = () => {
 	searchInput.value?.inputRef?.focus();
 };
 
-const resetSearchField = () => {
-	search.value = "";
+const updateMovieInternalId = (externalId: string, internalId?: string) => {
+	const target = data.value?.results.find((m) => m.id === externalId);
+	if (target) {
+		target.internalId = internalId;
+	}
 };
 
 const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	try {
-		loadingMovieIds.add(row.original.id);
-
 		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
 
-		if (!data.value) {
-			return;
-		}
-
-		data.value = {
-			...data.value,
-			results: data.value.results.map((m) =>
-				m.id === row.original.id ? Object.assign(m, { internalId: movie.id }) : m,
-			),
-		};
+		updateMovieInternalId(row.original.id, movie.id);
 
 		toast.success({ description: `${movie.media.name} has been added to your list` });
 	} catch (err: any) {
 		toast.error(err);
-	} finally {
-		loadingMovieIds.delete(row.original.id);
 	}
 };
 
 const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	try {
-		loadingMovieIds.add(row.original.id);
-
 		if (!row.original.internalId) {
 			return;
 		}
 
 		await movieStore.deleteMovie({ id: row.original.internalId });
 
-		if (!data.value) {
-			return;
-		}
-
-		data.value = {
-			...data.value,
-			results: data.value.results.map((m) =>
-				m.id === row.original.id ? Object.assign(m, { internalId: undefined }) : m,
-			),
-		};
+		updateMovieInternalId(row.original.id, undefined);
 
 		toast.success({ description: `${row.original.title} has been removed from your list` });
 	} catch (err: any) {
 		toast.error(err);
-	} finally {
-		loadingMovieIds.delete(row.original.id);
 	}
 };
 

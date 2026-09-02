@@ -5,10 +5,10 @@
 
 			<div class="p-2 flex-1 flex flex-col items-center justify-center">
 				<p class="font-semibold text-center line-clamp-1">
-					{{ props.name ?? "No name" }}
+					{{ name }}
 				</p>
 				<p class="text-sm text-muted text-center line-clamp-1">
-					{{ props.character ?? "No character" }}
+					{{ character }}
 				</p>
 			</div>
 		</NuxtLink>
@@ -27,4 +27,7 @@ const props = defineProps<{
 	imageProvider?: keyof ConfiguredImageProviders;
 	to?: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric;
 }>();
+
+const name = computed(() => (props.name === "" || !props.name ? "No name" : props.name));
+const character = computed(() => (props.character === "" || !props.character ? "No character" : props.character));
 </script>
