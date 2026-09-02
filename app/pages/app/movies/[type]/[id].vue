@@ -61,19 +61,58 @@
 			<UTabs :items="tabs" variant="link">
 				<template #credits>
 					<DetailsCreditCards
-						:credits="tmdbMovieDetails?.credits.cast ?? undefined"
+						:credits="credits"
 						image-provider="tmdb"
 						:loading="isLoading"
 						:show-more-to="`https://www.themoviedb.org/movie/${id}/cast`"
 						:credit-card-to-fn="(credit) => `https://www.themoviedb.org/person/${credit.id}`"
 					/>
 				</template>
+				<template #saga>
+					<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
+						<UTable :data="sagaMovies" :columns="sagaColumns" @select="onMovieSelected">
+							<template #image-cell="{ row }">
+								<ImageFallback
+									:width="60"
+									:height="90"
+									class="rounded-sm"
+									provider="tmdb"
+									:src="row.original.poster_path"
+								/>
+							</template>
+							<template #adult-cell="{ row }">
+								<AdultBadge :adult="row.original.adult" />
+							</template>
+							<template #release_date-cell="{ row }">
+								<NuxtTime
+									v-if="row.original.release_date"
+									:datetime="row.original.release_date"
+									year="numeric"
+									month="short"
+									day="numeric"
+									timezone="UTC"
+								/>
+							</template>
+							<template #vote_average-cell="{ row }">
+								<VoteBadge :score="row.original.vote_average" :count="row.original.vote_count" />
+							</template>
+							<template #actions-cell="{ row }">
+								<ToggleButton
+									variant="ghost"
+									:is-added="!!row.original.internalId"
+									:on-add="() => addSagaMovieToMyList(row)"
+									:on-remove="() => removeSagaMovieFromMyList(row)"
+								/>
+							</template>
+						</UTable>
+					</UCard>
+				</template>
 			</UTabs>
 		</main>
 	</div>
 </template>
 <script setup lang="ts">
-import type { TabsItem } from "@nuxt/ui";
+import type { TabsItem, TableColumn, TableRow } from "@nuxt/ui";
 
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
@@ -108,6 +147,10 @@ const genres = computed(
 const isLoading = computed(() => loadingDetails.value || loadingMyMovie.value || loadingMovieCollections.value);
 const isInMyList = computed(() => !!myMovieDetails.value);
 const note = computed(() => myMovieDetails.value?.media.note);
+const credits = computed(() => tmdbMovieDetails.value?.credits.cast ?? []);
+const isSaga = computed(() => !!tmdbMovieDetails.value?.saga);
+const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown");
+const sagaMovies = computed(() => tmdbMovieDetails.value?.saga?.parts?.filter((p) => p.media_type === "movie") ?? []);
 
 const mediaQueryParams = computed(() =>
 	isInternal.value ? { id: id.value } : isExternal.value ? { externalId: id.value } : null,
@@ -123,16 +166,84 @@ const tabs = computed<TabsItem[]>(() => [
 				},
 			]
 		: []),
-	...(isExternal.value && tmdbMovieDetails.value?.saga
+	...(isExternal.value && isSaga.value
 		? [
 				{
 					icon: "i-lucide-list-video",
-					label: `Saga (${tmdbMovieDetails.value.saga.name ?? "Unknown"})`,
+					label: `Saga (${sagaName.value})`,
 					slot: "saga",
 				},
 			]
 		: []),
 ]);
+
+const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
+	{
+		id: "image",
+		meta: {
+			class: {
+				td: "w-[60px]",
+			},
+		},
+	},
+	{
+		accessorFn: (x) => x.title,
+		header: "Title",
+		meta: {
+			class: {
+				td: "max-w-[120px] truncate font-bold text-default",
+			},
+		},
+	},
+	{
+		accessorKey: "overview",
+		header: "Overview",
+		meta: {
+			class: {
+				td: "max-w-[300px] truncate",
+			},
+		},
+	},
+	{
+		id: "adult",
+		header: "Category",
+		meta: {
+			class: {
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
+			},
+		},
+	},
+	{
+		id: "release_date",
+		header: "Released At",
+		meta: {
+			class: {
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
+			},
+		},
+	},
+	{
+		id: "vote_average",
+		header: "Vote",
+		meta: {
+			class: {
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
+			},
+		},
+	},
+	{
+		id: "actions",
+		meta: {
+			class: {
+				th: "w-0 whitespace-nowrap",
+				td: "w-0 whitespace-nowrap",
+			},
+		},
+	},
+];
 
 // State
 const rating = ref<number | undefined>(undefined);
@@ -268,5 +379,44 @@ const updateRating = async () => {
 	} catch (err: any) {
 		toast.error(err);
 	}
+};
+
+const updateSagaMovieInternalId = (externalId: string, internalId?: string) => {
+	const target = tmdbMovieDetails.value?.saga?.parts?.find((m) => m.id === externalId);
+	if (target) {
+		target.internalId = internalId;
+	}
+};
+
+const addSagaMovieToMyList = async (row: TableRow<TmdbMovieCollectionPartDefaultView>) => {
+	try {
+		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
+
+		updateSagaMovieInternalId(row.original.id, movie.id);
+
+		toast.success({ description: `${movie.media.name} has been added to your list` });
+	} catch (err: any) {
+		toast.error(err);
+	}
+};
+
+const removeSagaMovieFromMyList = async (row: TableRow<TmdbMovieCollectionPartDefaultView>) => {
+	try {
+		if (!row.original.internalId) {
+			return;
+		}
+
+		await movieStore.deleteMovie({ id: row.original.internalId });
+
+		updateSagaMovieInternalId(row.original.id, undefined);
+
+		toast.success({ description: `${row.original.title} has been removed from your list` });
+	} catch (err: any) {
+		toast.error(err);
+	}
+};
+
+const onMovieSelected = async (e: Event, row: TableRow<TmdbMovieCollectionPartDefaultView>) => {
+	await navigateTo({ path: `/app/movies/external/${row.original.id}` });
 };
 </script>

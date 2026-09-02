@@ -73,7 +73,7 @@ export default router({
 				saga: TmdbMovieCollectionDefaultViewSchema.optional(),
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const [details, credits] = await Promise.all([
 				tmdb(`/movie/${input.id}`, { schema: TmdbMovieDetailsResponseSchema }),
 				tmdb(`/movie/${input.id}/credits`, { schema: TmdbMovieCreditsResponseSchema }),
@@ -85,6 +85,32 @@ export default router({
 				saga = await tmdb(`/collection/${details.belongs_to_collection.id}`, {
 					schema: TmdbMovieCollectionResponseSchema,
 				});
+
+				const externalIds = saga.parts?.map((x) => x.id) ?? [];
+
+				const myMovies = await prisma.movie.findMany({
+					where: {
+						media: {
+							ownerId: ctx.user.id,
+							externalId: {
+								in: externalIds,
+							},
+						},
+					},
+					select: {
+						id: true,
+						media: {
+							select: {
+								externalId: true,
+							},
+						},
+					},
+				});
+
+				const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m.id]));
+
+				saga.parts =
+					saga.parts?.map((part) => Object.assign(part, { internalId: myMoviesMap.get(part.id) })) ?? [];
 			}
 
 			return {

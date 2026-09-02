@@ -129,7 +129,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "adult",
+		id: "adult",
 		header: "Category",
 		meta: {
 			class: {
@@ -139,7 +139,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "release_date",
+		id: "release_date",
 		header: "Released At",
 		meta: {
 			class: {
@@ -149,7 +149,7 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		},
 	},
 	{
-		accessorKey: "vote_average",
+		id: "vote_average",
 		header: "Vote",
 		meta: {
 			class: {
