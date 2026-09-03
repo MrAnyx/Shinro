@@ -98,9 +98,7 @@ const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 
 const { data, pending, refresh } = useClientAsyncData(
 	() => trpc.collection.getAll.query({ page: page.value, search: trimmedSearch.value }),
-	{
-		watch: [page],
-	},
+	{ watch: [page] },
 );
 
 watchDebounced(trimmedSearch, () => refresh(), {

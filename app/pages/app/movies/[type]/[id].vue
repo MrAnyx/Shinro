@@ -136,13 +136,13 @@ const movieStore = useMovieStore();
 const toast = useStatusToast();
 const overlay = useOverlay();
 
-const tableKey = ref(0);
-
-// Computed
+// Page computed
 const type = computed(() => route.params.type as MediaSourceType);
 const id = computed(() => route.params.id as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
+
+// Readonly computed
 const genres = computed(
 	() =>
 		tmdbMovieDetails.value?.details.genres
@@ -151,11 +151,11 @@ const genres = computed(
 );
 const isLoading = computed(() => loadingDetails.value || loadingMyMovie.value || loadingMovieCollections.value);
 const isInMyList = computed(() => !!myMovieDetails.value);
-const note = computed(() => myMovieDetails.value?.media.note);
+const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
 const credits = computed(() => tmdbMovieDetails.value?.credits.cast ?? []);
-const isSaga = computed(() => !!tmdbMovieDetails.value?.saga);
+const hasSaga = computed(() => !!tmdbMovieDetails.value?.saga);
 const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown");
-const sagaMovies = computed(() => tmdbMovieDetails.value?.saga?.parts?.filter((p) => p.media_type === "movie") ?? []);
+const sagaMovies = ref<TmdbMovieCollectionPartDefaultView[]>([]);
 
 const mediaQueryParams = computed(() =>
 	isInternal.value ? { id: id.value } : isExternal.value ? { externalId: id.value } : null,
@@ -171,7 +171,7 @@ const tabs = computed<TabsItem[]>(() => [
 				},
 			]
 		: []),
-	...(isExternal.value && isSaga.value
+	...(isExternal.value && hasSaga.value
 		? [
 				{
 					icon: "i-lucide-list-video",
@@ -262,7 +262,7 @@ const { data: myMovieDetails, pending: loadingMyMovie } = useClientAsyncData(
 		return params ? trpc.movie.getById.query(params) : undefined;
 	},
 	{
-		onError: (err) => getTRPCErrorCode(err) !== "NOT_FOUND", // Hide toast in 404
+		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND", // Hide toast in 404
 	},
 );
 
@@ -280,13 +280,17 @@ const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
 	{ enabled: () => isExternal.value },
 );
 
+watch(tmdbMovieDetails, (newValue) => {
+	sagaMovies.value = newValue?.saga?.parts?.filter((p) => p.media_type === "movie") ?? [];
+});
+
 const { data: myMovieCollections, pending: loadingMovieCollections } = useClientAsyncData(
 	async () => {
 		const params = mediaQueryParams.value;
 		return params ? trpc.media.getCollections.query(params) : undefined;
 	},
 	{
-		onError: (err) => getTRPCErrorCode(err) !== "NOT_FOUND", // Hide toast in 404
+		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND", // Hide toast in 404
 	},
 );
 
@@ -389,7 +393,7 @@ const updateRating = async () => {
 };
 
 const updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: MovieWithMediaView) => {
-	const target = tmdbMovieDetails.value?.saga?.parts?.find((m) => m.id === externalId);
+	const target = sagaMovies.value.find((m) => m.id === externalId);
 	if (target) {
 		target.internal_movie = internalMovie;
 	}

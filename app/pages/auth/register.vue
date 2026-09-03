@@ -26,7 +26,22 @@ import { z } from "zod";
 
 definePageMeta({
 	layout: "auth",
-	middleware: ["registration", "guest-only"],
+	middleware: [
+		"guest-only",
+		() => {
+			const toast = useStatusToast();
+			const config = useClientConfig();
+
+			if (!config.allowRegistration) {
+				toast.warning({
+					title: "Registration not allowed",
+					description: "Registration as been disabled by the administrator",
+				});
+
+				return navigateTo("/");
+			}
+		},
+	],
 });
 
 const toast = useStatusToast();
