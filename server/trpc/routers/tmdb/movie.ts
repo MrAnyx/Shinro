@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { router, protectedProcedure } from "#server/trpc/init";
+import type { TmdbMovieSearchResponse } from "#server/types/tmdbMovie.models";
 
 export default router({
 	search: protectedProcedure
@@ -19,14 +20,15 @@ export default router({
 				};
 			}
 
-			// Search for movies on TMDB
-			const tmdbMovies = await tmdb("/search/movie", {
-				schema: TmdbMovieSearchResponseSchema,
-				query: {
-					query: input.search,
-					page: input.page,
-				},
-			});
+			const tmdbMovies = await useCache(`tmdb:search:${input.search}:${input.page}`, () =>
+				tmdb("/search/movie", {
+					schema: TmdbMovieSearchResponseSchema,
+					query: {
+						query: input.search,
+						page: input.page,
+					},
+				}),
+			);
 
 			// Get the external IDs of the movies found on TMDB
 			const externalIds = tmdbMovies.results?.map((x) => x.id) ?? [];
@@ -77,18 +79,26 @@ export default router({
 		.query(async ({ input, ctx }) => {
 			// Get the movie details and credits from TMDB in parallel
 			const [details, credits] = await Promise.all([
-				tmdb(`/movie/${input.id}`, { schema: TmdbMovieDetailsResponseSchema }),
-				tmdb(`/movie/${input.id}/credits`, { schema: TmdbMovieCreditsResponseSchema }),
+				useCache(`tmdb:details:${input.id}`, () =>
+					tmdb(`/movie/${input.id}`, { schema: TmdbMovieDetailsResponseSchema }),
+				),
+				useCache(`tmdb:credits:${input.id}`, () =>
+					tmdb(`/movie/${input.id}/credits`, { schema: TmdbMovieCreditsResponseSchema }),
+				),
 			]);
 
 			let saga = undefined;
 
 			// If the movie belongs to a collection, get the collection details from TMDB
 			if (details.belongs_to_collection?.id) {
+				const collectionId = details.belongs_to_collection.id;
+
 				// Get the collection details from TMDB
-				saga = await tmdb(`/collection/${details.belongs_to_collection.id}`, {
-					schema: TmdbMovieCollectionResponseSchema,
-				});
+				saga = await useCache(`tmdb:collection:${collectionId}`, () =>
+					tmdb(`/collection/${collectionId}`, {
+						schema: TmdbMovieCollectionResponseSchema,
+					}),
+				);
 
 				// Get the external IDs of the movies in the collection
 				const externalIds = saga.parts?.map((x) => x.id) ?? [];

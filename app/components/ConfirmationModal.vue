@@ -6,13 +6,16 @@
 
 		<template #footer>
 			<UButton label="Cancel" variant="ghost" color="neutral" @click="onCancel" :disabled="isLoading" />
-			<UButton label="Confirm" color="error" @click="onConfirm" :loading="isLoading" />
+			<UButton label="Confirm" :color="props.color ?? 'error'" @click="onConfirm" :loading="isLoading" />
 		</template>
 	</UModal>
 </template>
 
 <script setup lang="ts">
-const { callback } = defineProps<{ callback: () => Promise<void> | void }>();
+const props = defineProps<{
+	callback: () => Promise<void> | void;
+	color?: AppColor;
+}>();
 
 const emit = defineEmits<{
 	close: [value?: boolean];
@@ -28,7 +31,7 @@ const onCancel = () => {
 const onConfirm = async () => {
 	try {
 		isLoading.value = true;
-		await callback();
+		await props.callback();
 		emit("close", true);
 	} catch (err) {
 		toast.error(err);

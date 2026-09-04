@@ -94,7 +94,50 @@
 				<span>Danger zone</span>
 			</div>
 		</template>
+		<!-- <div class="flex flex-col gap-y-5">
+			<div class="flex">
+				<div class="w-1/2 shrink-0">
+					<h2 class="font-medium">Clear cache</h2>
+					<span class="text-sm text-muted"
+						>Remove locally cached data (service worker caches and other temporary cached assets). This
+						action will force the app to re-fetch assets and may increase load times temporarily.</span
+					>
+				</div>
+				<div class="flex-1 my-auto flex flex-col gap-y-3">
+					<UButton
+						label="Clear cache"
+						icon="i-lucide-refresh-cw"
+						class="self-end"
+						color="warning"
+						variant="subtle"
+						@click="clearCache"
+					/>
+				</div>
+			</div>
+		</div> -->
 		<div class="flex flex-col gap-y-5">
+			<div class="flex">
+				<div class="w-1/2 shrink-0">
+					<h2 class="font-medium">Clear cache</h2>
+					<span class="text-sm text-muted"
+						>Remove locally cached data (service worker caches and other temporary cached assets). This
+						action will force the app to re-fetch assets and may increase load times temporarily.</span
+					>
+				</div>
+				<div class="flex-1 my-auto flex flex-col gap-y-3">
+					<UButton
+						label="Clear cache"
+						icon="i-lucide-refresh-cw"
+						class="self-end"
+						color="warning"
+						variant="subtle"
+						@click="clearCache"
+					/>
+				</div>
+			</div>
+
+			<USeparator />
+
 			<div class="flex">
 				<div class="w-1/2 shrink-0">
 					<h2 class="font-medium">Delete my account</h2>
@@ -125,6 +168,7 @@ import { z } from "zod";
 const { openConfirmationModal } = useConfirmation();
 const userStore = useUserStore();
 const toast = useStatusToast();
+const trpc = useTrpc();
 
 // Username
 const isLoadingUsername = ref(false);
@@ -196,6 +240,21 @@ const deleteAccount = async () => {
 
 	if (result) {
 		await navigateTo("/");
+	}
+};
+
+const clearCache = async () => {
+	const result = await openConfirmationModal(
+		async () => {
+			await trpc.cache.clear.mutate();
+		},
+		{
+			color: "warning",
+		},
+	);
+
+	if (result) {
+		toast.success({ description: "Cache cleared" });
 	}
 };
 </script>
