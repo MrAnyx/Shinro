@@ -236,7 +236,7 @@ const onSavePassword = async (payload: FormSubmitEvent<PasswordSchema>) => {
 };
 
 const deleteAccount = async () => {
-	const result = await openConfirmationModal(async () => await userStore.deleteMe());
+	const result = await openConfirmationModal(() => userStore.deleteMe());
 
 	if (result) {
 		await navigateTo("/");
@@ -244,14 +244,7 @@ const deleteAccount = async () => {
 };
 
 const clearCache = async () => {
-	const result = await openConfirmationModal(
-		async () => {
-			await trpc.cache.clear.mutate();
-		},
-		{
-			color: "warning",
-		},
-	);
+	const result = await openConfirmationModal(() => trpc.cache.clear.mutate(), { color: "warning" });
 
 	if (result) {
 		toast.success({ description: "Cache cleared" });

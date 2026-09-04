@@ -179,8 +179,8 @@ const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[]
 			icon: "i-lucide-trash",
 			color: "error",
 			async onSelect() {
-				const result = await openConfirmationModal(
-					async () => await collectionStore.deleteCollection({ id: row.original.id }),
+				const result = await openConfirmationModal(() =>
+					collectionStore.deleteCollection({ id: row.original.id }),
 				);
 
 				if (result) {

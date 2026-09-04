@@ -193,9 +193,7 @@ const getRowActions = (row: TableRow<MovieWithMediaView>): DropdownMenuItem[][] 
 			icon: "i-lucide-trash",
 			color: "error",
 			async onSelect() {
-				const result = await openConfirmationModal(
-					async () => await movieStore.deleteMovie({ id: row.original.id }),
-				);
+				const result = await openConfirmationModal(() => movieStore.deleteMovie({ id: row.original.id }));
 
 				if (result) {
 					refresh();
