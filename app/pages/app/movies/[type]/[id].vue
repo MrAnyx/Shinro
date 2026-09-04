@@ -15,7 +15,7 @@
 			@remove="removeMovie"
 			@edit="editMovie"
 			@update:status="updateStatus"
-			@update:collections="updateMovieCollections"
+			@update:collections="updateCollections"
 			@update:rating="updateRating"
 		/>
 
@@ -70,7 +70,7 @@
 				</template>
 				<template #saga>
 					<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
-						<UTable :data="sagaMovies" :columns="sagaColumns" @select="onMovieSelected">
+						<UTable :data="sagaMovies" :columns="sagaColumns" @select="onSagaMovieSelected">
 							<template #title-cell="{ row }">
 								<span>{{ row.original.internal_movie?.media.name ?? row.original.title }}</span>
 							</template>
@@ -136,13 +136,16 @@ const movieStore = useMovieStore();
 const toast = useStatusToast();
 const overlay = useOverlay();
 
-// Page computed
+// Route + page state
 const type = computed(() => route.params.type as MediaSourceType);
 const id = computed(() => route.params.id as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
+const mediaQueryParams = computed(() =>
+	isInternal.value ? { id: id.value } : isExternal.value ? { externalId: id.value } : null,
+);
 
-// Readonly computed
+// Derived UI state
 const genres = computed(
 	() =>
 		tmdbMovieDetails.value?.details.genres
@@ -155,11 +158,6 @@ const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
 const credits = computed(() => tmdbMovieDetails.value?.credits.cast ?? []);
 const hasSaga = computed(() => !!tmdbMovieDetails.value?.saga);
 const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown");
-const sagaMovies = ref<TmdbMovieCollectionPartDefaultView[]>([]);
-
-const mediaQueryParams = computed(() =>
-	isInternal.value ? { id: id.value } : isExternal.value ? { externalId: id.value } : null,
-);
 
 const tabs = computed<TabsItem[]>(() => [
 	...(isExternal.value
@@ -182,6 +180,7 @@ const tabs = computed<TabsItem[]>(() => [
 		: []),
 ]);
 
+// Table config
 const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
 	{
 		id: "image",
@@ -250,19 +249,20 @@ const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
 	},
 ];
 
-// State
+// Local reactive state
 const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);
 const status = ref<MediaStatus | undefined>(undefined);
+const sagaMovies = ref<TmdbMovieCollectionPartDefaultView[]>([]);
 
-// Async data
+// Async data loading
 const { data: myMovieDetails, pending: loadingMyMovie } = useClientAsyncData(
 	async () => {
 		const params = mediaQueryParams.value;
 		return params ? trpc.movie.getById.query(params) : undefined;
 	},
 	{
-		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND", // Hide toast in 404
+		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
 	},
 );
 
@@ -290,7 +290,7 @@ const { data: myMovieCollections, pending: loadingMovieCollections } = useClient
 		return params ? trpc.media.getCollections.query(params) : undefined;
 	},
 	{
-		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND", // Hide toast in 404
+		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
 	},
 );
 
@@ -298,7 +298,9 @@ watch(myMovieCollections, (newValue) => {
 	selectedCollectionIds.value = newValue?.map((x) => x.id) ?? [];
 });
 
-// Methods
+// Movie lifecycle actions
+const movieFormModal = overlay.create(LazyMovieFormModal);
+
 const removeMovie = async () => {
 	try {
 		if (!isInMyList.value) {
@@ -330,14 +332,12 @@ const addMovie = async () => {
 	}
 };
 
-const movieFormModal = overlay.create(LazyMovieFormModal);
 const editMovie = async () => {
 	if (!isInMyList.value) {
 		return;
 	}
 
 	const instance = movieFormModal.open({ id: myMovieDetails.value!.id });
-
 	const result = await instance.result;
 
 	if (result) {
@@ -347,6 +347,7 @@ const editMovie = async () => {
 	}
 };
 
+// Metadata updates
 const updateStatus = async (status?: MediaStatus) => {
 	if (!isInMyList.value) {
 		return;
@@ -362,7 +363,7 @@ const updateStatus = async (status?: MediaStatus) => {
 	}
 };
 
-const updateMovieCollections = async () => {
+const updateCollections = async () => {
 	if (!isInMyList.value) {
 		return;
 	}
@@ -392,6 +393,7 @@ const updateRating = async () => {
 	}
 };
 
+// Saga helpers
 const updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: MovieWithMediaView) => {
 	const target = sagaMovies.value.find((m) => m.id === externalId);
 	if (target) {
@@ -404,7 +406,6 @@ const addSagaMovieToMyList = async (row: TableRow<TmdbMovieCollectionPartDefault
 		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
 
 		updateSagaMovieInternalMovie(row.original.id, movie);
-
 		toast.success({ description: `${movie.media.name} has been added to your list` });
 	} catch (err: any) {
 		toast.error(err);
@@ -418,16 +419,14 @@ const removeSagaMovieFromMyList = async (row: TableRow<TmdbMovieCollectionPartDe
 		}
 
 		await movieStore.deleteMovie({ id: row.original.internal_movie.id });
-
 		updateSagaMovieInternalMovie(row.original.id, undefined);
-
 		toast.success({ description: `${row.original.title} has been removed from your list` });
 	} catch (err: any) {
 		toast.error(err);
 	}
 };
 
-const onMovieSelected = async (e: Event, row: TableRow<TmdbMovieCollectionPartDefaultView>) => {
+const onSagaMovieSelected = async (_event: Event, row: TableRow<TmdbMovieCollectionPartDefaultView>) => {
 	await navigateTo({ path: `/app/movies/external/${row.original.id}` });
 };
 </script>
