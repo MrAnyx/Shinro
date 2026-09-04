@@ -47,6 +47,19 @@ import type { ButtonProps, PageFeatureProps } from "@nuxt/ui";
 
 definePageMeta({
 	layout: "landing",
+	middleware: [
+		() => {
+			const config = useClientConfig();
+
+			if (!config.allowHomepage) {
+				return abortNavigation({
+					statusCode: 404,
+					statusMessage: "Not Found",
+					statusText: "The page you are looking for does not exist",
+				});
+			}
+		},
+	],
 });
 
 const heroButtons = ref<ButtonProps[]>([

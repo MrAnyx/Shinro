@@ -10,12 +10,13 @@
 		:validate-on="['change']"
 	>
 		<template #description>
-			Already have an acount?
-			<ULink to="/auth/login" class="text-primary font-medium">Sign in</ULink>.
+			<div>
+				Already have an account?
+				<ULink to="/auth/login" class="text-primary font-medium">Log in to your eternal commitment</ULink>.
+			</div>
 		</template>
 		<template #footer>
-			By signing up, you agree to our
-			<ULink to="/" class="text-primary font-medium">Terms of Service</ULink>.
+			By signing up, you confirm that your watchlist is about to become a personality trait.
 		</template>
 	</UAuthForm>
 </template>
@@ -29,16 +30,14 @@ definePageMeta({
 	middleware: [
 		"guest-only",
 		() => {
-			const toast = useStatusToast();
 			const config = useClientConfig();
 
 			if (!config.allowRegistration) {
-				toast.warning({
-					title: "Registration not allowed",
-					description: "Registration as been disabled by the administrator",
+				return abortNavigation({
+					statusCode: 404,
+					statusMessage: "Not Found",
+					statusText: "The page you are looking for does not exist",
 				});
-
-				return navigateTo("/");
 			}
 		},
 	],

@@ -10,13 +10,16 @@
 		:validate-on="['change']"
 	>
 		<template #description>
-			Don't have an account?
-			<ULink to="/auth/register" class="text-primary font-medium">Sign up</ULink>.
+			<div v-if="config.allowRegistration">
+				Don't have an account?
+				<ULink to="/auth/register" class="text-primary font-medium">Join the chaos</ULink>.
+			</div>
+			<div v-else>
+				Don't have an account?
+				<span class="text-gray-500">Tough luck. The VIP list is closed.</span>
+			</div>
 		</template>
-		<template #footer>
-			By signing in, you agree to our
-			<ULink to="/" class="text-primary font-medium">Terms of Service</ULink>.
-		</template>
+		<template #footer> By continuing, you're choosing convenience over chaos. We respect that. </template>
 	</UAuthForm>
 </template>
 
@@ -31,6 +34,7 @@ definePageMeta({
 
 const userStore = useUserStore();
 const toast = useStatusToast();
+const config = useClientConfig();
 
 const isLoading = ref(false);
 
