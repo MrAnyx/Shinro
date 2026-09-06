@@ -281,7 +281,10 @@ const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
 );
 
 watch(tmdbMovieDetails, (newValue) => {
-	sagaMovies.value = newValue?.saga?.parts?.filter((p) => p.media_type === "movie") ?? [];
+	sagaMovies.value =
+		newValue?.saga?.parts
+			?.filter((p) => p.media_type === "movie")
+			?.sort((a, b) => (a.release_date ?? "").localeCompare(b.release_date ?? "")) ?? [];
 });
 
 const { data: myMovieCollections, pending: loadingMovieCollections } = useClientAsyncData(
