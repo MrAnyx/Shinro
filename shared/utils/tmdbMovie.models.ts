@@ -57,7 +57,6 @@ export const TmdbMovieCreditsDefaultViewSchema = z.object({
 
 export const TmdbMovieCollectionPartDefaultViewSchema = z.object({
 	adult: z.boolean(),
-	backdrop_path: z.string().nullish(),
 	id: z.string(),
 	title: z.string().nullish(),
 	original_title: z.string().nullish(),
@@ -73,12 +72,7 @@ export const TmdbMovieCollectionPartDefaultViewSchema = z.object({
 });
 
 export const TmdbMovieCollectionDefaultViewSchema = z.object({
-	id: z.string(),
 	name: z.string().nullish(),
-	original_language: z.string().nullish(),
 	original_name: z.string().nullish(),
-	overview: z.string().nullish(),
-	poster_path: z.string().nullish(),
-	backdrop_path: z.string().nullish(),
 	parts: z.array(TmdbMovieCollectionPartDefaultViewSchema).nullish(),
 });
