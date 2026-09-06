@@ -188,7 +188,7 @@ const onSaveUsername = async (payload: FormSubmitEvent<UsernameSchema>) => {
 		isLoadingUsername.value = true;
 
 		await userStore.updateMe(payload.data);
-		toast.success({ description: `Your username has been updated` });
+		toast.success({ description: `Username has been updated` });
 	} catch (err) {
 		toast.error(err);
 	} finally {
@@ -220,14 +220,12 @@ const onSavePassword = async (payload: FormSubmitEvent<PasswordSchema>) => {
 	try {
 		isLoadingPassword.value = true;
 
-		await userStore.updateMe({
-			password: payload.data.password,
-		});
+		await userStore.updateMe({ password: payload.data.password });
 
 		passwordState.password = "";
 		passwordState.password_confirmation = "";
 
-		toast.success({ description: `Your password has been updated` });
+		toast.success({ description: `Password has been updated` });
 	} catch (err) {
 		toast.error(err);
 	} finally {
@@ -239,6 +237,7 @@ const deleteAccount = async () => {
 	const result = await openConfirmationModal(() => userStore.deleteMe());
 
 	if (result) {
+		toast.success({ description: "Your account has been deleted" });
 		await navigateTo("/");
 	}
 };
@@ -247,7 +246,7 @@ const clearCache = async () => {
 	const result = await openConfirmationModal(() => trpc.cache.clear.mutate(), { color: "warning" });
 
 	if (result) {
-		toast.success({ description: "Cache cleared" });
+		toast.success({ description: "Cache has been cleared" });
 	}
 };
 </script>
