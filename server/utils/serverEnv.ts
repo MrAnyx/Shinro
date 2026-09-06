@@ -17,7 +17,6 @@ export const serverEnvSchema = z.object({
 
 	// Public variables
 	NUXT_PUBLIC_ALLOW_REGISTRATION: z.stringbool(),
-	NUXT_PUBLIC_ALLOW_HOMEPAGE: z.stringbool(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
