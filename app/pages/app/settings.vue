@@ -34,5 +34,11 @@ const links = computed<NavigationMenuItem[]>(() => [
 		to: "/app/settings/profile",
 		exact: true,
 	},
+	{
+		label: "Appearance",
+		icon: "i-lucide-palette",
+		to: "/app/settings/appearance",
+		exact: true,
+	},
 ]);
 </script>
