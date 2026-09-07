@@ -1,24 +1,17 @@
 <template>
-	<UCard>
-		<template #title>
-			<div class="flex items-center gap-x-2">
-				<UIcon name="i-lucide-user" class="size-5" />
-				<span>Account</span>
-			</div>
-		</template>
+	<ColorCard title="Account" icon="i-lucide-user">
 		<div class="flex flex-col gap-y-5">
-			<UForm
-				class="flex"
-				:state="usernameState"
-				:schema="usernameSchema"
-				@submit="onSaveUsername"
-				:validate-on="['change']"
+			<SettingsParameterItem
+				title="Username"
+				description="Choose the name you use to identify yourself across Shinro."
 			>
-				<div class="w-1/2 shrink-0">
-					<h2 class="font-medium">Username</h2>
-					<span class="text-sm text-muted">Choose the name you use to identify yourself across Shinro.</span>
-				</div>
-				<div class="flex-1 my-auto flex flex-col gap-y-3">
+				<UForm
+					class="flex-1 my-auto flex flex-col gap-y-3"
+					:state="usernameState"
+					:schema="usernameSchema"
+					@submit="onSaveUsername"
+					:validate-on="['change']"
+				>
 					<UFormField name="username">
 						<UInput
 							v-model="usernameState.username"
@@ -37,23 +30,19 @@
 						type="submit"
 						:loading="isLoadingUsername"
 					/>
-				</div>
-			</UForm>
+				</UForm>
+			</SettingsParameterItem>
 
 			<USeparator />
 
-			<UForm
-				class="flex"
-				:state="passwordState"
-				:schema="passwordSchema"
-				@submit="onSavePassword"
-				:validate-on="['change']"
-			>
-				<div class="w-1/2 shrink-0">
-					<h2 class="font-medium">Password</h2>
-					<span class="text-sm text-muted">Update your password to keep your account secure.</span>
-				</div>
-				<div class="flex-1 my-auto flex flex-col gap-y-3">
+			<SettingsParameterItem title="Password" description="Update your password to keep your account secure.">
+				<UForm
+					class="flex-1 my-auto flex flex-col gap-y-3"
+					:state="passwordState"
+					:schema="passwordSchema"
+					@submit="onSavePassword"
+					:validate-on="['change']"
+				>
 					<UFormField name="password">
 						<UInput
 							v-model="passwordState.password"
@@ -82,83 +71,44 @@
 						type="submit"
 						:loading="isLoadingPassword"
 					/>
-				</div>
-			</UForm>
+				</UForm>
+			</SettingsParameterItem>
 		</div>
-	</UCard>
+	</ColorCard>
 
-	<UCard :ui="{ root: 'ring ring-error/50', header: 'bg-error/5' }">
-		<template #title>
-			<div class="flex items-center gap-x-2 text-error">
-				<UIcon name="i-lucide-triangle-alert" class="size-5" />
-				<span>Danger zone</span>
-			</div>
-		</template>
-		<!-- <div class="flex flex-col gap-y-5">
-			<div class="flex">
-				<div class="w-1/2 shrink-0">
-					<h2 class="font-medium">Clear cache</h2>
-					<span class="text-sm text-muted"
-						>Remove locally cached data (service worker caches and other temporary cached assets). This
-						action will force the app to re-fetch assets and may increase load times temporarily.</span
-					>
-				</div>
-				<div class="flex-1 my-auto flex flex-col gap-y-3">
-					<UButton
-						label="Clear cache"
-						icon="i-lucide-refresh-cw"
-						class="self-end"
-						color="warning"
-						variant="subtle"
-						@click="clearCache"
-					/>
-				</div>
-			</div>
-		</div> -->
+	<ColorCard title="Danger zone" icon="i-lucide-triangle-alert" color="error" variant="subtle">
 		<div class="flex flex-col gap-y-5">
-			<div class="flex">
-				<div class="w-1/2 shrink-0">
-					<h2 class="font-medium">Clear cache</h2>
-					<span class="text-sm text-muted"
-						>Remove locally cached data (service worker caches and other temporary cached assets). This
-						action will force the app to re-fetch assets and may increase load times temporarily.</span
-					>
-				</div>
-				<div class="flex-1 my-auto flex flex-col gap-y-3">
-					<UButton
-						label="Clear cache"
-						icon="i-lucide-refresh-cw"
-						class="self-end"
-						color="warning"
-						variant="subtle"
-						@click="clearCache"
-					/>
-				</div>
-			</div>
+			<SettingsParameterItem
+				title="Clear cache"
+				description="Remove locally cached data (service worker caches and other temporary cached assets). This action will force the app to re-fetch assets and may increase load times temporarily."
+			>
+				<UButton
+					label="Clear cache"
+					icon="i-lucide-refresh-cw"
+					class="self-end"
+					color="warning"
+					variant="subtle"
+					@click="clearCache"
+				/>
+			</SettingsParameterItem>
 
-			<USeparator />
+			<USeparator :ui="{ border: 'border-error/15' }" />
 
-			<div class="flex">
-				<div class="w-1/2 shrink-0">
-					<h2 class="font-medium">Delete my account</h2>
-					<span class="text-sm text-muted"
-						>Permanently erase your account, collections, saved media, and all other associated data. This
-						action cannot be undone.</span
-					>
-				</div>
-				<div class="flex-1 my-auto flex flex-col gap-y-3">
-					<UButton
-						label="Delete my account"
-						icon="i-lucide-trash"
-						class="self-end"
-						color="error"
-						variant="subtle"
-						@click="deleteAccount"
-					/>
-				</div>
-			</div>
+			<SettingsParameterItem
+				title="Delete my account"
+				description="Permanently erase your account, collections, saved media, and all other associated data. This action cannot be undone."
+			>
+				<UButton
+					label="Delete my account"
+					icon="i-lucide-trash"
+					class="self-end"
+					color="error"
+					variant="subtle"
+					@click="deleteAccount"
+				/>
+			</SettingsParameterItem>
 		</div>
-	</UCard>
+	</ColorCard>
 </template>
 
 <script setup lang="ts">
