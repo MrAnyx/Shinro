@@ -223,4 +223,31 @@ export default router({
 
 			deleteCookie(ctx.event, "session_id");
 		}),
+
+	verifyPassword: protectedProcedure
+		.input(
+			z.object({
+				password: ServerUserValidation.password,
+			}),
+		)
+		.output(z.boolean())
+		.mutation(async ({ ctx, input }) => {
+			const user = await prisma.user.findUnique({
+				where: {
+					id: ctx.user.id,
+				},
+				select: {
+					passwordHash: true,
+				},
+			});
+
+			if (!user) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "User not found",
+				});
+			}
+
+			return await bcrypt.compare(input.password, user.passwordHash);
+		}),
 });

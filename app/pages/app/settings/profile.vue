@@ -184,7 +184,7 @@ const onSavePassword = async (payload: FormSubmitEvent<PasswordSchema>) => {
 };
 
 const deleteAccount = async () => {
-	const result = await openConfirmationModal(() => userStore.deleteMe());
+	const result = await openConfirmationModal(() => userStore.deleteMe(), { requirePassword: true });
 
 	if (result) {
 		toast.success({ description: "Your account has been deleted" });
