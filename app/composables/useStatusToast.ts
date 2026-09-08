@@ -24,24 +24,34 @@ export const useStatusToast = () => {
 		});
 	};
 
+	const error = (error: unknown, opts: StatusToastOptions = {}) => {
+		let description = "An error occurred";
+
+		if (typeof error === "string") {
+			description = error;
+		} else if (isTRPCError(error)) {
+			description = error.message;
+		} else if (error instanceof Error) {
+			description = error.message;
+		}
+
+		return notify("error", { title: "Error", description, ...opts });
+	};
+
+	const withErrorToast = async (fn: () => Promise<void> | void, opts?: StatusToastOptions) => {
+		try {
+			await fn();
+		} catch (err) {
+			error(err, opts);
+		}
+	};
+
 	return {
 		success: (opts: StatusToastOptions) => notify("success", { title: "Success", ...opts }),
 		info: (opts: StatusToastOptions) => notify("info", { title: "Information", ...opts }),
 		warning: (opts: StatusToastOptions) => notify("warning", { title: "Warning", ...opts }),
 		neutral: (opts: StatusToastOptions) => notify("neutral", { title: "Information", ...opts }),
-
-		error: (error: unknown, opts: StatusToastOptions = {}) => {
-			let description = "An error occurred";
-
-			if (typeof error === "string") {
-				description = error;
-			} else if (isTRPCError(error)) {
-				description = error.message;
-			} else if (error instanceof Error) {
-				description = error.message;
-			}
-
-			return notify("error", { title: "Error", description, ...opts });
-		},
+		error,
+		withErrorToast,
 	};
 };
