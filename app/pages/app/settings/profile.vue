@@ -184,7 +184,11 @@ const onSavePassword = async (payload: FormSubmitEvent<PasswordSchema>) => {
 };
 
 const deleteAccount = async () => {
-	const result = await openConfirmationModal(() => userStore.deleteMe(), { requirePassword: true });
+	const result = await openConfirmationModal(() => userStore.deleteMe(), {
+		requirePassword: true,
+		message:
+			"This will permanently delete your account, including all collections, saved media, and related data. This action cannot be undone. Please confirm your password to continue.",
+	});
 
 	if (result) {
 		toast.success({ description: "Your account has been deleted" });
