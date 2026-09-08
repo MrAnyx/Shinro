@@ -70,7 +70,6 @@
 </template>
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt/ui";
-import { watchDebounced } from "@vueuse/core";
 
 import { LazyCollectionFormModal } from "#components";
 

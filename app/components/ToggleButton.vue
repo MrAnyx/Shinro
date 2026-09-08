@@ -21,8 +21,9 @@ const props = defineProps<
 	} & Pick<ButtonProps, "disabled" | "variant" | "size">
 >();
 
+const isAdded = computed(() => !!props.isAdded);
+
 const loading = ref(false);
-const isAdded = ref(props.isAdded ?? false);
 
 const icon = computed(() => (isAdded.value ? "i-lucide-circle-minus" : "i-lucide-circle-plus"));
 const color = computed(() => (isAdded.value ? "error" : "neutral"));
@@ -35,8 +36,6 @@ const handleClick = async () => {
 		} else {
 			await props.onAdd?.();
 		}
-
-		isAdded.value = !isAdded.value;
 	} finally {
 		loading.value = false;
 	}

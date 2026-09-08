@@ -7,17 +7,16 @@ trustPolicyExclude:
     - "semver@6.3.1"
     - "prisma@7.10.0"
 enablePrePostScripts: false
+supportedArchitectures:
+    os:
+        - current
+    cpu:
+        - current
+
 allowBuilds:
     "@parcel/watcher": false
     "@prisma/engines": false
     esbuild: false
     maplibre-gl: false
     prisma: false
-    prisma-zod-generator: false
-    sharp: false
     vue-demi: false
-supportedArchitectures:
-    os:
-        - current
-    cpu:
-        - current

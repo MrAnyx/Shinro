@@ -1,5 +1,3 @@
-import { useIntervalFn } from "@vueuse/core";
-
 export const useTimeGreeting = () => {
 	const now = ref(new Date());
 

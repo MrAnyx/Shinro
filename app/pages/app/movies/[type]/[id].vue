@@ -146,11 +146,12 @@ const mediaQueryParams = computed(() =>
 );
 
 // Derived UI state
-const genres = computed(
-	() =>
-		tmdbMovieDetails.value?.details.genres
-			?.filter((g): g is { name: string } => !!g.name?.trim())
-			.map((g) => g.name) ?? [],
+const genres = computed(() =>
+	pipe(
+		tmdbMovieDetails.value?.details.genres ?? [],
+		filter((g): g is { name: string } => !!g.name?.trim()),
+		map((g) => g.name),
+	),
 );
 const isLoading = computed(() => loadingDetails.value || loadingMyMovie.value || loadingMovieCollections.value);
 const isInMyList = computed(() => !!myMovieDetails.value);
@@ -281,10 +282,11 @@ const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
 );
 
 watch(tmdbMovieDetails, (newValue) => {
-	sagaMovies.value =
-		newValue?.saga?.parts
-			?.filter((p) => p.media_type === "movie")
-			?.sort((a, b) => (a.release_date ?? "").localeCompare(b.release_date ?? "")) ?? [];
+	sagaMovies.value = pipe(
+		newValue?.saga?.parts ?? [],
+		filter((p) => p.media_type === "movie"),
+		orderBy(["release_date"], ["asc"]),
+	);
 });
 
 const { data: myMovieCollections, pending: loadingMovieCollections } = useClientAsyncData(
@@ -312,6 +314,7 @@ const removeMovie = async () => {
 
 		await movieStore.deleteMovie({ id: myMovieDetails.value!.id });
 		myMovieDetails.value = undefined;
+		updateSagaMovieInternalMovie(id.value, undefined);
 
 		if (isInternal.value) {
 			await navigateTo("/app/movies");
@@ -409,6 +412,12 @@ const addSagaMovieToMyList = async (row: TableRow<TmdbMovieCollectionPartDefault
 		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
 
 		updateSagaMovieInternalMovie(row.original.id, movie);
+
+		// Update movie details if saga movie added to list
+		if (row.original.id === id.value) {
+			myMovieDetails.value = movie;
+		}
+
 		toast.success({ description: `${movie.media.name} has been added to your list` });
 	} catch (err: any) {
 		toast.error(err);
@@ -422,7 +431,14 @@ const removeSagaMovieFromMyList = async (row: TableRow<TmdbMovieCollectionPartDe
 		}
 
 		await movieStore.deleteMovie({ id: row.original.internal_movie.id });
+
+		// Update movie details if saga movie added to list
+		if (row.original.internal_movie.id === myMovieDetails.value?.id) {
+			myMovieDetails.value = undefined;
+		}
+
 		updateSagaMovieInternalMovie(row.original.id, undefined);
+
 		toast.success({ description: `${row.original.title} has been removed from your list` });
 	} catch (err: any) {
 		toast.error(err);
