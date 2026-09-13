@@ -3,6 +3,7 @@ import cacheRouter from "#server/trpc/routers/cache";
 import collectionRouter from "#server/trpc/routers/collection";
 import mediaRouter from "#server/trpc/routers/media";
 import movieRouter from "#server/trpc/routers/movie";
+import musicRouter from "#server/trpc/routers/music";
 import tmdbMovieRouter from "#server/trpc/routers/tmdb/movie";
 import userRouter from "#server/trpc/routers/user";
 
@@ -13,6 +14,7 @@ export const appRouter = router({
 	cache: cacheRouter,
 	movie: movieRouter,
 	media: mediaRouter,
+	music: musicRouter,
 });
 
 export type AppRouter = typeof appRouter;
