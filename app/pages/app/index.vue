@@ -196,7 +196,7 @@ const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 		accessorKey: "name",
 		meta: {
 			class: {
-				td: "max-w-[120px] truncate font-bold",
+				td: "max-w-[120px] truncate font-bold text-default",
 			},
 		},
 	},
@@ -263,7 +263,7 @@ const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 		accessorFn: (x) => x.media.name,
 		meta: {
 			class: {
-				td: "max-w-[120px] truncate font-bold",
+				td: "max-w-[120px] truncate font-bold text-default",
 			},
 		},
 	},

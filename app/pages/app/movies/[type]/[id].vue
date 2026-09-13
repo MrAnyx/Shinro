@@ -330,7 +330,7 @@ const addSagaMovieToMyList = (row: TableRow<TmdbMovieCollectionPartDefaultView>)
 		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
 		updateSagaMovieInternalMovie(String(row.original.id), movie);
 
-		if (String(row.original.id) === id.value) {
+		if (row.original.id === id.value) {
 			myMovieDetails.value = movie;
 		}
 
