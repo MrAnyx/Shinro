@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 import { router, protectedProcedure } from "#server/trpc/init";
-import type { TmdbMovieSearchResponse } from "#server/types/tmdbMovie.models";
 
 export default router({
 	search: protectedProcedure
