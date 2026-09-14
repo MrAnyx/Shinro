@@ -22,7 +22,13 @@ export const MovieMediaViewSchema = MediaDefaultViewSchema.extend({
 	movie: z.lazy(() => MovieDefaultViewSchema),
 });
 
+export const SerieMediaViewSchema = MediaDefaultViewSchema.extend({
+	type: z.literal(MediaType.SERIE),
+	movie: z.lazy(() => SerieDefaultViewSchema),
+});
+
 export const AnyMediaViewSchema = z.discriminatedUnion("type", [
 	MovieMediaViewSchema,
+	SerieMediaViewSchema,
 	// other types
 ]);

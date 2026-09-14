@@ -45,13 +45,9 @@
 <script setup lang="ts">
 import type { ButtonProps, PageFeatureProps } from "@nuxt/ui";
 
-const trpc = useTrpc();
-
 definePageMeta({
 	layout: "landing",
 });
-
-const { data } = useClientAsyncData(() => trpc.music.search.query());
 
 const heroButtons = ref<ButtonProps[]>([
 	{

@@ -1,3 +1,4 @@
+import { pipe, filter, map } from "es-toolkit/fp";
 import { z } from "zod";
 
 import { router, protectedProcedure } from "#server/trpc/init";
@@ -19,7 +20,7 @@ export default router({
 				};
 			}
 
-			const tmdbMovies = await useCache(`tmdb:search:${input.search}:${input.page}`, () =>
+			const tmdbMovies = await useCache(`tmdb:movie:search:${input.search}:${input.page}`, () =>
 				tmdb("/search/movie", {
 					schema: TmdbMovieSearchResponseSchema,
 					query: {
@@ -30,7 +31,11 @@ export default router({
 			);
 
 			// Get the external IDs of the movies found on TMDB
-			const externalIds = tmdbMovies.results?.map((x) => x.id) ?? [];
+			const externalIds = pipe(
+				tmdbMovies.results ?? [],
+				filter((x) => !!x),
+				map((x) => x.id),
+			);
 
 			// Get the movies that belong to the user and have the same external IDs
 			const myMovies = await prisma.movie.findMany({
@@ -51,10 +56,11 @@ export default router({
 			const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m]));
 
 			// Merge the TMDB movies with the user's movies
-			const movies =
-				tmdbMovies.results?.map((movie) =>
-					Object.assign(movie, { internal_movie: myMoviesMap.get(movie.id) }),
-				) ?? [];
+			const movies = pipe(
+				tmdbMovies.results ?? [],
+				filter((x) => !!x),
+				map((x) => Object.assign(x, { internal_movie: myMoviesMap.get(x.id) })),
+			);
 
 			return {
 				total: tmdbMovies.total_results,
@@ -78,10 +84,10 @@ export default router({
 		.query(async ({ input, ctx }) => {
 			// Get the movie details and credits from TMDB in parallel
 			const [details, credits] = await Promise.all([
-				useCache(`tmdb:details:${input.id}`, () =>
+				useCache(`tmdb:movie:details:${input.id}`, () =>
 					tmdb(`/movie/${input.id}`, { schema: TmdbMovieDetailsResponseSchema }),
 				),
-				useCache(`tmdb:credits:${input.id}`, () =>
+				useCache(`tmdb:movie:credits:${input.id}`, () =>
 					tmdb(`/movie/${input.id}/credits`, { schema: TmdbMovieCreditsResponseSchema }),
 				),
 			]);
@@ -93,7 +99,7 @@ export default router({
 				const collectionId = details.belongs_to_collection.id;
 
 				// Get the collection details from TMDB
-				saga = await useCache(`tmdb:collection:${collectionId}`, () =>
+				saga = await useCache(`tmdb:movie:collection:${collectionId}`, () =>
 					tmdb(`/collection/${collectionId}`, {
 						schema: TmdbMovieCollectionResponseSchema,
 					}),
