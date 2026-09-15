@@ -1,4 +1,4 @@
-<!-- <template>
+<template>
 	<div class="flex justify-between">
 		<SearchInput v-model="search" />
 
@@ -70,6 +70,7 @@
 </template>
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt/ui";
+import { watchDebounced } from "@vueuse/core";
 
 import { LazySerieFormModal } from "#components";
 
@@ -85,7 +86,7 @@ const openSerieFormModal = async (serie?: SerieWithMediaView) => {
 
 	const result = await instance.result;
 
-	if (result) {
+	if (result?.serie) {
 		refresh();
 	}
 };
@@ -221,4 +222,4 @@ const onSerieSelected = async (e: Event, row: TableRow<SerieWithMediaView>) => {
 		await navigateTo(`/app/series/internal/${row.original.id}`);
 	}
 };
-</script> -->
+</script>

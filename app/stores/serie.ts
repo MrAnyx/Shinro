@@ -5,9 +5,9 @@ export const useSerieStore = defineStore("serie", {
 	getters: {},
 	actions: {
 		async initialize() {
-			// const trpc = useTrpc();
-			// const [count] = await Promise.all([trpc.serie.count.query()]);
-			// this.total = count;
+			const trpc = useTrpc();
+			const [count] = await Promise.all([trpc.serie.count.query()]);
+			this.total = count;
 		},
 
 		// async createSerie(payload: TRPCProcedureInput<"serie", "create">) {
@@ -24,10 +24,10 @@ export const useSerieStore = defineStore("serie", {
 		// 	return serie;
 		// },
 
-		// async deleteSerie(payload: TRPCProcedureInput<"serie", "delete">) {
-		// 	const trpc = useTrpc();
-		// 	await trpc.serie.delete.mutate(payload);
-		// 	this.total -= 1;
-		// },
+		async deleteSerie(payload: TRPCProcedureInput<"serie", "delete">) {
+			const trpc = useTrpc();
+			await trpc.serie.delete.mutate(payload);
+			this.total -= 1;
+		},
 	},
 });

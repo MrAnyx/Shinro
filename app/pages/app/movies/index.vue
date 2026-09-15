@@ -70,6 +70,7 @@
 </template>
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt/ui";
+import { watchDebounced } from "@vueuse/core";
 
 import { LazyMovieFormModal } from "#components";
 
@@ -85,7 +86,7 @@ const openMovieFormModal = async (movie?: MovieWithMediaView) => {
 
 	const result = await instance.result;
 
-	if (result) {
+	if (result?.movie) {
 		refresh();
 	}
 };

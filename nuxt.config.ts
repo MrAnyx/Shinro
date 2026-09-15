@@ -28,18 +28,6 @@ export default defineNuxtConfig({
 			enableGames: undefined,
 		},
 	},
-	imports: {
-		presets: [
-			{
-				from: "@vueuse/core",
-				imports: ["watchDebounced", "useIntervalFn"],
-			},
-			{
-				from: "es-toolkit/fp",
-				imports: ["filter", "pipe", "orderBy", "map"],
-			},
-		],
-	},
 	icon: {
 		clientBundle: {
 			scan: true,

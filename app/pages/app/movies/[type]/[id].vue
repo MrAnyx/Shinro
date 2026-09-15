@@ -116,6 +116,7 @@
 </template>
 <script setup lang="ts">
 import type { TabsItem, TableColumn, TableRow } from "@nuxt/ui";
+import { filter, map, orderBy, pipe } from "es-toolkit/fp";
 
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";

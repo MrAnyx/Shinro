@@ -66,6 +66,7 @@
 
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, TableRow } from "@nuxt/ui";
+import { watchDebounced } from "@vueuse/core";
 
 const trpc = useTrpc();
 const movieStore = useMovieStore();

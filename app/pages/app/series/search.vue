@@ -33,7 +33,7 @@
 			<template #adult-cell="{ row }">
 				<AdultBadge :adult="row.original.adult" />
 			</template>
-			<template #release_date-cell="{ row }">
+			<template #first_air_at-cell="{ row }">
 				<NuxtTime
 					v-if="row.original.first_air_date"
 					:datetime="row.original.first_air_date"
@@ -66,9 +66,10 @@
 
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, TableRow } from "@nuxt/ui";
+import { watchDebounced } from "@vueuse/core";
 
 const trpc = useTrpc();
-// const serieStore = useSerieStore();
+const serieStore = useSerieStore();
 const toast = useStatusToast();
 const { search, page, trimmedSearch } = useSearchPagination();
 
@@ -201,16 +202,18 @@ const addSerieToMyList = async (row: TableRow<TmdbSerieSearchDefaultView>) => {
 };
 
 const removeSerieFromMyList = async (row: TableRow<TmdbSerieSearchDefaultView>) => {
-	// try {
-	// 	if (!row.original.internal_serie?.id) {
-	// 		return;
-	// 	}
-	// 	await serieStore.deleteSerie({ id: row.original.internal_serie.id });
-	// 	updateSerieInternalId(row.original.id, undefined);
-	// 	toast.success({ description: `${row.original.title} has been removed from your list` });
-	// } catch (err: any) {
-	// 	toast.error(err);
-	// }
+	try {
+		if (!row.original.internal_serie?.id) {
+			return;
+		}
+
+		await serieStore.deleteSerie({ id: row.original.internal_serie.id });
+		updateSerieInternalId(row.original.id, undefined);
+
+		toast.success({ description: `${row.original.name} has been removed from your list` });
+	} catch (err: any) {
+		toast.error(err);
+	}
 };
 
 const onSerieSelected = async (e: Event, row: TableRow<TmdbSerieSearchDefaultView>) => {

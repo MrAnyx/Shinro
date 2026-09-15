@@ -3,7 +3,7 @@ import { z } from "zod";
 import { Prisma } from "#prisma/client";
 
 export const ServerMediaValidation = {
-	id: MovieIdSchemaBase,
+	id: MediaIdSchemaBase,
 	externalId: MediaExternalIdSchemaBase,
 	status: MediaStatusSchemaBase.nullable(),
 	name: MediaNameSchemaBase,

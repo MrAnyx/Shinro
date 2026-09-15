@@ -1,7 +1,7 @@
 <template>
-	<UDashboardPanel id="movies">
+	<UDashboardPanel id="series">
 		<template #header>
-			<UDashboardNavbar title="Movies">
+			<UDashboardNavbar title="Series">
 				<template #leading>
 					<UDashboardSidebarCollapse />
 				</template>
@@ -23,23 +23,23 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 
 definePageMeta({
 	layout: "app",
-	middleware: ["auth", "movies"],
+	middleware: ["auth", "series"],
 });
 
-const movieStore = useMovieStore();
+const serieStore = useSerieStore();
 
 const links = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "My list",
 		icon: "i-lucide-user-star",
-		to: "/app/movies",
+		to: "/app/series",
 		exact: true,
-		badge: movieStore.total,
+		badge: serieStore.total,
 	},
 	{
 		label: "Search",
 		icon: "i-lucide-search",
-		to: "/app/movies/search",
+		to: "/app/series/search",
 		exact: true,
 	},
 ]);
