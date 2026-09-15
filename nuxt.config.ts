@@ -21,7 +21,11 @@ export default defineNuxtConfig({
 	runtimeConfig: {
 		public: {
 			allowRegistration: undefined,
-			allowHomepage: undefined,
+			enableMovies: undefined,
+			enableSeries: undefined,
+			enableMusics: undefined,
+			enableBooks: undefined,
+			enableGames: undefined,
 		},
 	},
 	imports: {

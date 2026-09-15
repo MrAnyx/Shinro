@@ -25,7 +25,7 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 
 definePageMeta({
 	layout: "app",
-	middleware: ["auth"],
+	middleware: ["auth", "movies"],
 });
 
 const movieStore = useMovieStore();

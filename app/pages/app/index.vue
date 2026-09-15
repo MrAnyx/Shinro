@@ -34,11 +34,37 @@
 					subtitle="Watched (or not)"
 					:value="movieStore.total"
 					to="/app/movies"
+					:disabled="!config.enableMovies"
 				/>
-				<DataCard icon="i-lucide-tv-minimal-play" title="Series" subtitle="Binge or regret" :value="0" />
-				<DataCard icon="i-lucide-music" title="Musics" subtitle="Skipped after song 3" :value="0" />
-				<DataCard icon="i-lucide-book-open" title="Books" subtitle="Read (or lied about)" :value="0" />
-				<DataCard icon="i-lucide-gamepad-2" title="Games" subtitle="Backlog forever" :value="0" />
+				<DataCard
+					icon="i-lucide-tv-minimal-play"
+					title="Series"
+					subtitle="Binge or regret"
+					:value="0"
+					to="/app/series"
+					:disabled="!config.enableSeries"
+				/>
+				<DataCard
+					icon="i-lucide-music"
+					title="Musics"
+					subtitle="Skipped after song 3"
+					:value="0"
+					:disabled="!config.enableMusics"
+				/>
+				<DataCard
+					icon="i-lucide-book-open"
+					title="Books"
+					subtitle="Read (or lied about)"
+					:value="0"
+					:disabled="!config.enableBooks"
+				/>
+				<DataCard
+					icon="i-lucide-gamepad-2"
+					title="Games"
+					subtitle="Backlog forever"
+					:value="0"
+					:disabled="!config.enableGames"
+				/>
 			</div>
 
 			<div class="flex flex-col gap-y-3">
@@ -170,6 +196,7 @@ const { greeting } = useTimeGreeting();
 const userStore = useUserStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
+const config = useClientConfig();
 const trpc = useTrpc();
 
 const recentMedias = computed(() => recentData.value?.results.slice(0, 5) ?? []);

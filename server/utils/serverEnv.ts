@@ -17,6 +17,11 @@ export const serverEnvSchema = z.object({
 
 	// Public variables
 	NUXT_PUBLIC_ALLOW_REGISTRATION: z.stringbool(),
+	NUXT_PUBLIC_ENABLE_MOVIES: z.stringbool(),
+	NUXT_PUBLIC_ENABLE_SERIES: z.stringbool(),
+	NUXT_PUBLIC_ENABLE_MUSICS: z.stringbool(),
+	NUXT_PUBLIC_ENABLE_BOOKS: z.stringbool(),
+	NUXT_PUBLIC_ENABLE_GAMES: z.stringbool(),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;

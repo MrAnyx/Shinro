@@ -1,6 +1,6 @@
 <template>
-	<NuxtLink :to="props.to">
-		<UCard :ui="{ body: 'flex gap-x-4 items-center' }">
+	<NuxtLink :to="!props.disabled ? props.to : undefined">
+		<UCard :ui="{ body: `flex gap-x-4 items-center ${disabledClass}` }">
 			<UIcon :name="props.icon" class="h-6 w-6 text-primary" v-if="props.icon" />
 			<div class="flex-1">
 				<h2 class="">{{ props.title }}</h2>
@@ -20,7 +20,12 @@ const props = defineProps<{
 	subtitle: string;
 	value: string | number;
 	to?: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric;
+	disabled?: boolean;
 }>();
+
+const disabledClass = computed(() => {
+	return props.disabled ? "opacity-30 cursor-not-allowed" : "";
+});
 
 const value = computed(() => {
 	if (typeof props.value === "string") {

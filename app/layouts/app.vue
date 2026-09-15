@@ -80,6 +80,7 @@ const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
 const userStore = useUserStore();
 const mediaStore = useMediaStore();
+const config = useClientConfig();
 
 const username = computed(() => userStore.user?.username ?? "Unknown");
 
@@ -120,53 +121,47 @@ const dashboardItems = computed<NavigationMenuItem[]>(() => [
 		icon: "i-lucide-chart-pie",
 	},
 ]);
+const mediaItems = computed<NavigationMenuItem[]>(() => {
+	const items: (NavigationMenuItem | false)[] = [
+		{
+			label: "Media",
+			type: "label",
+			badge: mediaStore.total,
+		},
+		config.enableMovies && {
+			label: "Movies",
+			badge: movieStore.total,
+			icon: "i-lucide-clapperboard",
+			to: "/app/movies",
+		},
+		config.enableSeries && {
+			label: "Series",
+			icon: "i-lucide-tv-minimal-play",
+			badge: 0,
+			to: "/app/series",
+		},
+		config.enableMusics && {
+			label: "Music",
+			badge: { label: "Soon", color: "info" },
+			disabled: true,
+			icon: "i-lucide-music",
+		},
+		config.enableBooks && {
+			label: "Books",
+			badge: { label: "Soon", color: "info" },
+			disabled: true,
+			icon: "i-lucide-book-open",
+		},
+		config.enableGames && {
+			label: "Games",
+			badge: { label: "Soon", color: "info" },
+			disabled: true,
+			icon: "i-lucide-gamepad-2",
+		},
+	];
 
-const mediaItems = computed<NavigationMenuItem[]>(() => [
-	{
-		label: "Media",
-		type: "label",
-		badge: mediaStore.total,
-	},
-	{
-		label: "Movies",
-		badge: movieStore.total,
-		icon: "i-lucide-clapperboard",
-		to: "/app/movies",
-	},
-	{
-		label: "Series",
-		icon: "i-lucide-tv-minimal-play",
-		badge: 0,
-		to: "/app/series",
-	},
-	{
-		label: "Music",
-		badge: {
-			label: "Soon",
-			color: "info",
-		},
-		disabled: true,
-		icon: "i-lucide-music",
-	},
-	{
-		label: "Books",
-		badge: {
-			label: "Soon",
-			color: "info",
-		},
-		disabled: true,
-		icon: "i-lucide-book-open",
-	},
-	{
-		label: "Games",
-		badge: {
-			label: "Soon",
-			color: "info",
-		},
-		disabled: true,
-		icon: "i-lucide-gamepad-2",
-	},
-]);
+	return items.filter(Boolean) as NavigationMenuItem[];
+});
 
 const sidebarSecondaryItems: NavigationMenuItem[] = [
 	{
