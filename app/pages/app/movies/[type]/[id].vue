@@ -172,6 +172,7 @@ const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
 watch(tmdbMovieDetails, (newValue) => {
 	sagaMovies.value = pipe(
 		newValue?.saga?.parts ?? [],
+		filter((p) => !!p),
 		filter((p) => p.media_type === "movie"),
 		orderBy(["release_date"], ["asc"]),
 	);
@@ -187,13 +188,7 @@ watch(myMovieCollections, (newValue) => {
 });
 
 // Derived UI state
-const genres = computed(() =>
-	pipe(
-		tmdbMovieDetails.value?.details.genres ?? [],
-		filter((g): g is { name: string } => !!g.name?.trim()),
-		map((g) => g.name),
-	),
-);
+const genres = computed(() => tmdbMovieDetails.value?.details.genres?.flatMap((x) => x?.name?.trim() || []));
 const isLoading = computed(() => loadingDetails.value || loadingMyMovie.value || loadingMovieCollections.value);
 const isInMyList = computed(() => !!myMovieDetails.value);
 const note = computed(() => myMovieDetails.value?.media.note ?? undefined);

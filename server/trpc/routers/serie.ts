@@ -5,150 +5,158 @@ import { ImageType, MediaType, Prisma } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
-	// create: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			name: ServerMediaValidation.name,
-	// 			overview: ServerMovieValidation.overview,
-	// 			status: ServerMediaValidation.status,
-	// 			rating: ServerMediaValidation.rating,
-	// 			note: ServerMediaValidation.note,
-	// 		}),
-	// 	)
-	// 	.output(MovieWithMediaViewSchema)
-	// 	.mutation(async ({ input, ctx }) => {
-	// 		return await prisma.movie.create({
-	// 			data: {
-	// 				media: {
-	// 					create: {
-	// 						name: input.name,
-	// 						type: MediaType.MOVIE,
-	// 						status: input.status,
-	// 						ownerId: ctx.user.id,
-	// 						rating: input.rating,
-	// 						note: input.note,
-	// 					},
-	// 				},
-	// 				overview: input.overview,
-	// 			},
-	// 			include: {
-	// 				media: true,
-	// 			},
-	// 		});
-	// 	}),
-	// createFromExternal: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			externalId: ServerTmdbMovieValidation.id,
-	// 		}),
-	// 	)
-	// 	.output(MovieWithMediaViewSchema)
-	// 	.mutation(async ({ input, ctx }) => {
-	// 		const movieExist = await prisma.movie.findFirst({
-	// 			where: {
-	// 				media: {
-	// 					ownerId: ctx.user.id,
-	// 					externalId: input.externalId,
-	// 				},
-	// 			},
-	// 			select: {
-	// 				id: true,
-	// 			},
-	// 		});
-	// 		if (movieExist) {
-	// 			throw new TRPCError({
-	// 				code: "CONFLICT",
-	// 				message: "This movie as already been added",
-	// 			});
-	// 		}
-	// 		const tmdbMovie = await tmdb(`/movie/${input.externalId}`, {
-	// 			schema: TmdbMovieDetailsResponseSchema,
-	// 		});
-	// 		const movie = await prisma.movie.create({
-	// 			data: {
-	// 				media: {
-	// 					create: {
-	// 						externalId: tmdbMovie.id,
-	// 						name: tmdbMovie.title ?? null,
-	// 						type: MediaType.MOVIE,
-	// 						ownerId: ctx.user.id,
-	// 						imagePath: tmdbMovie.poster_path ?? null,
-	// 						imageType: ImageType.TMDB,
-	// 					},
-	// 				},
-	// 				overview: tmdbMovie.overview ?? null,
-	// 			},
-	// 			include: {
-	// 				media: true,
-	// 			},
-	// 		});
-	// 		return movie;
-	// 	}),
-	// update: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			id: ServerMovieValidation.id,
-	// 			name: ServerMediaValidation.name.optional(),
-	// 			overview: ServerMovieValidation.overview.optional(),
-	// 			status: ServerMediaValidation.status.optional(),
-	// 			rating: ServerMediaValidation.rating.optional(),
-	// 			note: ServerMediaValidation.note.optional(),
-	// 		}),
-	// 	)
-	// 	.output(MovieWithMediaViewSchema)
-	// 	.mutation(async ({ input, ctx }) => {
-	// 		const existingMovie = await prisma.movie.findFirst({
-	// 			where: {
-	// 				id: input.id,
-	// 				media: {
-	// 					ownerId: ctx.user.id,
-	// 				},
-	// 			},
-	// 			select: {
-	// 				id: true,
-	// 				media: {
-	// 					select: {
-	// 						ownerId: true,
-	// 					},
-	// 				},
-	// 			},
-	// 		});
-	// 		if (!existingMovie) {
-	// 			throw new TRPCError({
-	// 				code: "NOT_FOUND",
-	// 				message: "Movie not found",
-	// 			});
-	// 		}
-	// 		const {
-	// 			name = Prisma.skip,
-	// 			rating = Prisma.skip,
-	// 			overview = Prisma.skip,
-	// 			note = Prisma.skip,
-	// 			status = Prisma.skip,
-	// 		} = input;
-	// 		return await prisma.movie.update({
-	// 			where: {
-	// 				id: input.id,
-	// 				media: {
-	// 					ownerId: ctx.user.id,
-	// 				},
-	// 			},
-	// 			data: {
-	// 				media: {
-	// 					update: {
-	// 						name,
-	// 						rating,
-	// 						note,
-	// 						status,
-	// 					},
-	// 				},
-	// 				overview,
-	// 			},
-	// 			include: {
-	// 				media: true,
-	// 			},
-	// 		});
-	// 	}),
+	create: protectedProcedure
+		.input(
+			z.object({
+				name: ServerMediaValidation.name,
+				overview: ServerSerieValidation.overview,
+				status: ServerMediaValidation.status,
+				rating: ServerMediaValidation.rating,
+				note: ServerMediaValidation.note,
+			}),
+		)
+		.output(SerieWithMediaViewSchema)
+		.mutation(async ({ input, ctx }) => {
+			return await prisma.serie.create({
+				data: {
+					media: {
+						create: {
+							name: input.name,
+							type: MediaType.SERIE,
+							status: input.status,
+							ownerId: ctx.user.id,
+							rating: input.rating,
+							note: input.note,
+						},
+					},
+					overview: input.overview,
+				},
+				include: {
+					media: true,
+				},
+			});
+		}),
+
+	createFromExternal: protectedProcedure
+		.input(
+			z.object({
+				externalId: ServerTmdbSerieValidation.id,
+			}),
+		)
+		.output(SerieWithMediaViewSchema)
+		.mutation(async ({ input, ctx }) => {
+			const serieExist = await prisma.serie.findFirst({
+				where: {
+					media: {
+						ownerId: ctx.user.id,
+						externalId: input.externalId,
+					},
+				},
+				select: {
+					id: true,
+				},
+			});
+
+			if (serieExist) {
+				throw new TRPCError({
+					code: "CONFLICT",
+					message: "This serie as already been added",
+				});
+			}
+
+			const tmdbSerie = await tmdb(`/tv/${input.externalId}`, {
+				schema: TmdbSerieDetailsResponseSchema,
+			});
+
+			const movie = await prisma.serie.create({
+				data: {
+					media: {
+						create: {
+							externalId: tmdbSerie.id,
+							name: tmdbSerie.name ?? null,
+							type: MediaType.SERIE,
+							ownerId: ctx.user.id,
+							imagePath: tmdbSerie.poster_path ?? null,
+							imageType: ImageType.TMDB,
+						},
+					},
+					overview: tmdbSerie.overview ?? null,
+				},
+				include: {
+					media: true,
+				},
+			});
+
+			return movie;
+		}),
+	update: protectedProcedure
+		.input(
+			z.object({
+				id: ServerSerieValidation.id,
+				name: ServerMediaValidation.name.optional(),
+				overview: ServerSerieValidation.overview.optional(),
+				status: ServerMediaValidation.status.optional(),
+				rating: ServerMediaValidation.rating.optional(),
+				note: ServerMediaValidation.note.optional(),
+			}),
+		)
+		.output(SerieWithMediaViewSchema)
+		.mutation(async ({ input, ctx }) => {
+			const existingSerie = await prisma.serie.findFirst({
+				where: {
+					id: input.id,
+					media: {
+						ownerId: ctx.user.id,
+					},
+				},
+				select: {
+					id: true,
+					media: {
+						select: {
+							ownerId: true,
+						},
+					},
+				},
+			});
+
+			if (!existingSerie) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Serie not found",
+				});
+			}
+
+			const {
+				name = Prisma.skip,
+				rating = Prisma.skip,
+				overview = Prisma.skip,
+				note = Prisma.skip,
+				status = Prisma.skip,
+			} = input;
+
+			return await prisma.serie.update({
+				where: {
+					id: input.id,
+					media: {
+						ownerId: ctx.user.id,
+					},
+				},
+				data: {
+					media: {
+						update: {
+							name,
+							rating,
+							note,
+							status,
+						},
+					},
+					overview,
+				},
+				include: {
+					media: true,
+				},
+			});
+		}),
 
 	delete: protectedProcedure
 		.input(

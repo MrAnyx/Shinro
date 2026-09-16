@@ -74,6 +74,7 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem, CommandPaletteItem, DropdownMenuItem } from "@nuxt/ui";
+import { filter } from "es-toolkit/fp";
 
 const initializationStore = useInitializationStore();
 const collectionStore = useCollectionStore();

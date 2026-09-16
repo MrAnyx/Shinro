@@ -10,12 +10,14 @@ export const useSerieStore = defineStore("serie", {
 			this.total = count;
 		},
 
-		// async createSerie(payload: TRPCProcedureInput<"serie", "create">) {
-		// 	const trpc = useTrpc();
-		// 	const serie = await trpc.serie.create.mutate(payload);
-		// 	this.total += 1;
-		// 	return serie;
-		// },
+		async createSerie(payload: TRPCProcedureInput<"serie", "create">) {
+			const trpc = useTrpc();
+
+			const serie = await trpc.serie.create.mutate(payload);
+			this.total += 1;
+
+			return serie;
+		},
 
 		// async createSerieFromExternal(payload: TRPCProcedureInput<"serie", "createFromExternal">) {
 		// 	const trpc = useTrpc();
