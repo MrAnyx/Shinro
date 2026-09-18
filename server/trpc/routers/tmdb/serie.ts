@@ -62,73 +62,24 @@ export default router({
 			};
 		}),
 
-	// details: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			id: ServerTmdbMovieValidation.id,
-	// 		}),
-	// 	)
-	// 	.output(
-	// 		z.object({
-	// 			details: TmdbMovieDetailsDefaultViewSchema,
-	// 			credits: TmdbMovieCreditsDefaultViewSchema,
-	// 			saga: TmdbMovieCollectionDefaultViewSchema.optional(),
-	// 		}),
-	// 	)
-	// 	.query(async ({ input, ctx }) => {
-	// 		// Get the movie details and credits from TMDB in parallel
-	// 		const [details, credits] = await Promise.all([
-	// 			useCache(`tmdb:details:${input.id}`, () =>
-	// 				tmdb(`/movie/${input.id}`, { schema: TmdbMovieDetailsResponseSchema }),
-	// 			),
-	// 			useCache(`tmdb:credits:${input.id}`, () =>
-	// 				tmdb(`/movie/${input.id}/credits`, { schema: TmdbMovieCreditsResponseSchema }),
-	// 			),
-	// 		]);
+	details: protectedProcedure
+		.input(z.object({ id: ServerTmdbSerieValidation.id }))
+		.output(
+			z.object({
+				details: TmdbSerieDetailsDefaultViewSchema,
+				credits: TmdbSerieCreditsDefaultViewSchema,
+			}),
+		)
+		.query(async ({ input }) => {
+			const [details, credits] = await Promise.all([
+				useCache(`tmdb:serie:details:v2:${input.id}`, () =>
+					tmdb(`/tv/${input.id}`, { schema: TmdbSerieDetailsResponseSchema }),
+				),
+				useCache(`tmdb:serie:credits:${input.id}`, () =>
+					tmdb(`/tv/${input.id}/credits`, { schema: TmdbSerieCreditsResponseSchema }),
+				),
+			]);
 
-	// 		let saga = undefined;
-
-	// 		// If the movie belongs to a collection, get the collection details from TMDB
-	// 		if (details.belongs_to_collection?.id) {
-	// 			const collectionId = details.belongs_to_collection.id;
-
-	// 			// Get the collection details from TMDB
-	// 			saga = await useCache(`tmdb:collection:${collectionId}`, () =>
-	// 				tmdb(`/collection/${collectionId}`, {
-	// 					schema: TmdbMovieCollectionResponseSchema,
-	// 				}),
-	// 			);
-
-	// 			// Get the external IDs of the movies in the collection
-	// 			const externalIds = saga.parts?.map((x) => x.id) ?? [];
-
-	// 			// Get the movies that belong to the user and have the same external IDs
-	// 			const myMovies = await prisma.movie.findMany({
-	// 				where: {
-	// 					media: {
-	// 						ownerId: ctx.user.id,
-	// 						externalId: {
-	// 							in: externalIds,
-	// 						},
-	// 					},
-	// 				},
-	// 				include: {
-	// 					media: true,
-	// 				},
-	// 			});
-
-	// 			// Create a map of the user's movies for easy lookup
-	// 			const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m]));
-
-	// 			// Merge the TMDB collection movies with the user's movies
-	// 			saga.parts =
-	// 				saga.parts?.map((part) => Object.assign(part, { internal_movie: myMoviesMap.get(part.id) })) ?? [];
-	// 		}
-
-	// 		return {
-	// 			details,
-	// 			credits,
-	// 			saga,
-	// 		};
-	// 	}),
+			return { details, credits };
+		}),
 });

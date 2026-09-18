@@ -40,7 +40,7 @@
 					icon="i-lucide-tv-minimal-play"
 					title="Series"
 					subtitle="Binge or regret"
-					:value="0"
+					:value="serieStore.total"
 					to="/app/series"
 					:disabled="!config.enableSeries"
 				/>
@@ -196,6 +196,7 @@ const { greeting } = useTimeGreeting();
 const userStore = useUserStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
+const serieStore = useSerieStore();
 const config = useClientConfig();
 const trpc = useTrpc();
 

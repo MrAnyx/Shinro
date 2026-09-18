@@ -33,7 +33,7 @@
 			<template #adult-cell="{ row }">
 				<AdultBadge :adult="row.original.adult" />
 			</template>
-			<template #first_air_at-cell="{ row }">
+			<template #first_air_date-cell="{ row }">
 				<NuxtTime
 					v-if="row.original.first_air_date"
 					:datetime="row.original.first_air_date"
@@ -139,7 +139,7 @@ const columns: TableColumn<TmdbSerieSearchDefaultView>[] = [
 		},
 	},
 	{
-		id: "first_air_at",
+		id: "first_air_date",
 		header: "Released At",
 		meta: {
 			class: {
@@ -192,13 +192,13 @@ const updateSerieInternalId = (externalId: string, internalSerie?: SerieWithMedi
 };
 
 const addSerieToMyList = async (row: TableRow<TmdbSerieSearchDefaultView>) => {
-	// try {
-	// 	const serie = await serieStore.createSerieFromExternal({ externalId: row.original.id });
-	// 	updateSerieInternalId(row.original.id, serie);
-	// 	toast.success({ description: `${serie.media.name} has been added to your list` });
-	// } catch (err: any) {
-	// 	toast.error(err);
-	// }
+	try {
+		const serie = await serieStore.createSerieFromExternal({ externalId: row.original.id });
+		updateSerieInternalId(row.original.id, serie);
+		toast.success({ description: `${serie.media.name} has been added to your list` });
+	} catch (err: any) {
+		toast.error(err);
+	}
 };
 
 const removeSerieFromMyList = async (row: TableRow<TmdbSerieSearchDefaultView>) => {

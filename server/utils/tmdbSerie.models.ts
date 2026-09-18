@@ -39,10 +39,41 @@ export const TmdbSerieDetailsResponseSchema = z.object({
 	name: z.string().nullish(),
 	number_of_episodes: z.number(),
 	number_of_seasons: z.number(),
+	seasons: z
+		.array(
+			z
+				.object({
+					air_date: z.string().nullish(),
+					episode_count: z.number().nullish(),
+					id: z.coerce.string(),
+					name: z.string().nullish(),
+					season_number: z.number(),
+					overview: z.string().nullish(),
+					poster_path: z.string().nullish(),
+					vote_average: z.number(),
+				})
+				.nullish(),
+		)
+		.nullish(),
 	overview: z.string().nullish(),
 	popularity: z.number(),
 	poster_path: z.string().nullish(),
 	vote_average: z.number(),
 	vote_count: z.number(),
 	tagline: z.string().nullish(),
+});
+
+export const TmdbSerieCreditsResponseSchema = z.object({
+	cast: z
+		.array(
+			z
+				.object({
+					id: z.coerce.string(),
+					name: z.string().nullish(),
+					profile_path: z.string().nullish(),
+					character: z.string().nullish(),
+				})
+				.nullish(),
+		)
+		.nullish(),
 });
