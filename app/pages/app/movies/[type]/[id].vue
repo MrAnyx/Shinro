@@ -116,7 +116,6 @@
 </template>
 <script setup lang="ts">
 import type { TabsItem, TableColumn, TableRow } from "@nuxt/ui";
-import { filter, map, orderBy, pipe } from "es-toolkit/fp";
 
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
@@ -170,12 +169,28 @@ const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
 );
 
 watch(tmdbMovieDetails, (newValue) => {
-	sagaMovies.value = pipe(
-		newValue?.saga?.parts ?? [],
-		filter((p) => !!p),
-		filter((p) => p.media_type === "movie"),
-		orderBy(["release_date"], ["asc"]),
-	);
+	// sagaMovies.value = pipe(
+	// 	newValue?.saga?.parts ?? [],
+	// 	filter((p) => !!p),
+	// 	filter((p) => p.media_type === "movie"),
+	// 	orderBy(["release_date"], ["asc"]),
+	// );
+	sagaMovies.value =
+		newValue?.saga?.parts
+			?.filter((p) => !!p)
+			?.filter((p) => p.media_type === "movie")
+			?.sort((a, b) => {
+				if (!a.release_date && !b.release_date) {
+					return 0;
+				}
+				if (!a.release_date) {
+					return 1;
+				}
+				if (!b.release_date) {
+					return -1;
+				}
+				return a.release_date.localeCompare(b.release_date);
+			}) ?? [];
 });
 
 const { data: myMovieCollections, pending: loadingMovieCollections } = useClientAsyncData(
@@ -192,7 +207,7 @@ const genres = computed(() => tmdbMovieDetails.value?.details.genres?.flatMap((x
 const isLoading = computed(() => loadingDetails.value || loadingMyMovie.value || loadingMovieCollections.value);
 const isInMyList = computed(() => !!myMovieDetails.value);
 const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
-const credits = computed(() => tmdbMovieDetails.value?.credits.cast ?? []);
+const credits = computed(() => tmdbMovieDetails.value?.credits.cast?.filter((x) => !!x) ?? []);
 const hasSaga = computed(() => !!tmdbMovieDetails.value?.saga);
 const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown");
 

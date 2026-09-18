@@ -74,11 +74,11 @@
 
 <script setup lang="ts">
 import type { NavigationMenuItem, CommandPaletteItem, DropdownMenuItem } from "@nuxt/ui";
-import { filter } from "es-toolkit/fp";
 
 const initializationStore = useInitializationStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
+const serieStore = useSerieStore();
 const userStore = useUserStore();
 const mediaStore = useMediaStore();
 const config = useClientConfig();
@@ -138,26 +138,29 @@ const mediaItems = computed<NavigationMenuItem[]>(() => {
 		config.enableSeries && {
 			label: "Series",
 			icon: "i-lucide-tv-minimal-play",
-			badge: 0,
+			badge: serieStore.total,
 			to: "/app/series",
 		},
 		config.enableMusics && {
 			label: "Music",
-			badge: { label: "Soon", color: "info" },
-			disabled: true,
 			icon: "i-lucide-music",
+			badge: { label: "Soon", color: "info" },
+			to: "#",
+			disabled: true,
 		},
 		config.enableBooks && {
 			label: "Books",
-			badge: { label: "Soon", color: "info" },
-			disabled: true,
 			icon: "i-lucide-book-open",
+			badge: { label: "Soon", color: "info" },
+			to: "#",
+			disabled: true,
 		},
 		config.enableGames && {
 			label: "Games",
-			badge: { label: "Soon", color: "info" },
-			disabled: true,
 			icon: "i-lucide-gamepad-2",
+			badge: { label: "Soon", color: "info" },
+			to: "#",
+			disabled: true,
 		},
 	];
 

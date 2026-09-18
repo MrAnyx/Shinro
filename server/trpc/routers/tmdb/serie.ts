@@ -1,4 +1,3 @@
-import { pipe, filter, map } from "es-toolkit/fp";
 import { z } from "zod";
 
 import { router, protectedProcedure } from "#server/trpc/init";
@@ -31,11 +30,7 @@ export default router({
 			);
 
 			// Get the external IDs of the series found on TMDB
-			const externalIds = pipe(
-				tmdbSeries.results ?? [],
-				filter((x) => !!x),
-				map((x) => x.id),
-			);
+			const externalIds = tmdbSeries.results?.filter((x) => !!x)?.map((x) => x.id) ?? [];
 
 			// Get the series that belong to the user and have the same external IDs
 			const mySeries = await prisma.serie.findMany({
@@ -56,11 +51,10 @@ export default router({
 			const mySerieMap = new Map(mySeries.map((m) => [m.media.externalId, m]));
 
 			// Merge the TMDB movies with the user's movies
-			const series = pipe(
-				tmdbSeries.results ?? [],
-				filter((x) => !!x),
-				map((x) => Object.assign(x, { internal_serie: mySerieMap.get(x.id) })),
-			);
+			const series =
+				tmdbSeries.results
+					?.filter((x) => !!x)
+					?.map((x) => Object.assign(x, { internal_serie: mySerieMap.get(x.id) })) ?? [];
 
 			return {
 				total: tmdbSeries.total_results,

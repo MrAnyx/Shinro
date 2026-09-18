@@ -1,5 +1,3 @@
-import { sum } from "es-toolkit";
-
 export const useMediaStore = defineStore("media", {
 	state: () => ({}),
 	getters: {
@@ -7,7 +5,7 @@ export const useMediaStore = defineStore("media", {
 			const movieStore = useMovieStore();
 			const serieStore = useSerieStore();
 
-			return sum([movieStore.total, serieStore.total]);
+			return [movieStore.total, serieStore.total].reduce((acc, curr) => acc + curr, 0);
 		},
 	},
 	actions: {},

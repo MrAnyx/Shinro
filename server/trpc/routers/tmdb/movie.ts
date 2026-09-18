@@ -1,4 +1,3 @@
-import { pipe, filter, map } from "es-toolkit/fp";
 import { z } from "zod";
 
 import { router, protectedProcedure } from "#server/trpc/init";
@@ -31,11 +30,7 @@ export default router({
 			);
 
 			// Get the external IDs of the movies found on TMDB
-			const externalIds = pipe(
-				tmdbMovies.results ?? [],
-				filter((x) => !!x),
-				map((x) => x.id),
-			);
+			const externalIds = tmdbMovies.results?.filter((x) => !!x)?.map((x) => x.id) ?? [];
 
 			// Get the movies that belong to the user and have the same external IDs
 			const myMovies = await prisma.movie.findMany({
@@ -56,11 +51,10 @@ export default router({
 			const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m]));
 
 			// Merge the TMDB movies with the user's movies
-			const movies = pipe(
-				tmdbMovies.results ?? [],
-				filter((x) => !!x),
-				map((x) => Object.assign(x, { internal_movie: myMoviesMap.get(x.id) })),
-			);
+			const movies =
+				tmdbMovies.results
+					?.filter((x) => !!x)
+					?.map((x) => Object.assign(x, { internal_movie: myMoviesMap.get(x.id) })) ?? [];
 
 			return {
 				total: tmdbMovies.total_results,
@@ -127,11 +121,10 @@ export default router({
 				const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m]));
 
 				// Merge the TMDB collection movies with the user's movies
-				saga.parts = pipe(
-					saga.parts ?? [],
-					filter((x) => !!x),
-					map((x) => Object.assign(x, { internal_movie: myMoviesMap.get(x.id) })),
-				);
+				saga.parts =
+					saga.parts
+						?.filter((x) => !!x)
+						?.map((x) => Object.assign(x, { internal_movie: myMoviesMap.get(x.id) })) ?? [];
 			}
 
 			return {
