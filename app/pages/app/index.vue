@@ -11,7 +11,7 @@
 			<UCard class="shrink-0">
 				<div class="flex flex-col gap-y-3">
 					<h2 class="text-2xl">
-						{{ greeting }} <span class="font-bold text-highlighted">{{ userStore.user?.username }}</span>
+						{{ greeting }} <span class="font-bold text-highlighted">{{ userStore.username }}</span>
 					</h2>
 					<p class="text-muted">
 						Because remembering the plot of everything you've ever consumed is overrated. Just log it here

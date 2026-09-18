@@ -4,6 +4,7 @@ export const useUserStore = defineStore("user", {
 	}),
 	getters: {
 		isAuthenticated: (state) => !!state.user,
+		username: (state) => state.user?.username ?? "Unknown",
 	},
 	actions: {
 		async login(payload: TRPCProcedureInput<"user", "login">) {

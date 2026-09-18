@@ -50,17 +50,15 @@
 					:ui="{ content: collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)' }"
 				>
 					<UButton
-						:label="username"
+						:label="userStore.username"
 						:trailingIcon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
 						color="neutral"
-						:avatar="{ alt: username }"
+						:avatar="{ alt: userStore.username }"
 						variant="ghost"
 						block
 						:square="collapsed"
 						class="data-[state=open]:bg-elevated"
-						:ui="{
-							trailingIcon: 'text-dimmed',
-						}"
+						:ui="{ trailingIcon: 'text-dimmed' }"
 					/>
 				</UDropdownMenu>
 			</template>
@@ -82,8 +80,6 @@ const serieStore = useSerieStore();
 const userStore = useUserStore();
 const mediaStore = useMediaStore();
 const config = useClientConfig();
-
-const username = computed(() => userStore.user?.username ?? "Unknown");
 
 onMounted(async () => {
 	await initializationStore.initialize();
@@ -179,10 +175,10 @@ const sidebarSecondaryItems: NavigationMenuItem[] = [
 const userDropdown = computed<DropdownMenuItem[][]>(() => [
 	[
 		{
-			label: username.value,
+			label: userStore.username,
 			type: "label",
 			avatar: {
-				alt: username.value,
+				alt: userStore.username,
 			},
 		},
 	],
