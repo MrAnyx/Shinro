@@ -5,6 +5,7 @@
 			:loading="isLoading"
 			:external="isExternal"
 			:in-my-list="isInMyList"
+			media-label="serie"
 			image-provider="tmdb"
 			:image="image"
 			v-model:rating="rating"
@@ -68,7 +69,7 @@
 				</template>
 				<template #seasons>
 					<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
-						<UTable :data="seasons" :columns="seasonColumns" sticky>
+						<UTable :data="seasons" :columns="seasonColumns" sticky @select="onSeasonSelected">
 							<template #empty>
 								<UEmpty title="No seasons found" variant="naked" icon="i-lucide-ban" />
 							</template>
@@ -94,6 +95,14 @@
 							<template #vote_average-cell="{ row }">
 								<VoteBadge :score="row.original.vote_average" />
 							</template>
+							<template #actions-cell="{ row }">
+								<ToggleButton
+									variant="ghost"
+									:is-added="!!getInternalSeason(row.original)"
+									:on-add="() => addSeasonToMyList(row)"
+									:on-remove="() => removeSeasonFromMyList(row)"
+								/>
+							</template>
 						</UTable>
 					</UCard>
 				</template>
@@ -103,7 +112,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn, TabsItem } from "@nuxt/ui";
+import type { TableColumn, TableRow, TabsItem } from "@nuxt/ui";
 
 import { LazySerieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
@@ -153,6 +162,11 @@ const { data: mySerieCollections, pending: loadingSerieCollections } = useClient
 	{ ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND" },
 );
 
+const { data: mySeasons, pending: loadingSeasons } = useClientAsyncData(
+	() => trpc.season.getBySerie.query({ serieId: mySerieDetails.value!.id }),
+	{ enabled: () => !!mySerieDetails.value, watch: [mySerieDetails] },
+);
+
 watch(mySerieCollections, (newValue) => {
 	selectedCollectionIds.value = newValue?.map((collection) => collection.id) ?? [];
 });
@@ -161,7 +175,9 @@ const genres = computed(() => tmdbSerieDetails.value?.details.genres?.flatMap((g
 const image = computed(
 	() => mySerieDetails.value?.media.imagePath ?? tmdbSerieDetails.value?.details.poster_path ?? undefined,
 );
-const isLoading = computed(() => loadingDetails.value || loadingMySerie.value || loadingSerieCollections.value);
+const isLoading = computed(
+	() => loadingDetails.value || loadingMySerie.value || loadingSerieCollections.value || loadingSeasons.value,
+);
 const isInMyList = computed(() => !!mySerieDetails.value);
 const note = computed(() => mySerieDetails.value?.media.note ?? undefined);
 const credits = computed(() => tmdbSerieDetails.value?.credits.cast?.filter((credit) => !!credit) ?? []);
@@ -199,6 +215,7 @@ const seasonColumns: TableColumn<TmdbSerieSeasonDefaultView>[] = [
 		header: "Vote",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
+	{ id: "actions", meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } } },
 ];
 
 const serieFormModal = overlay.create(LazySerieFormModal);
@@ -266,4 +283,44 @@ const updateRating = () =>
 		}
 		await trpc.serie.update.mutate({ id: mySerieDetails.value!.id, rating: rating.value ?? null });
 	});
+
+const getInternalSeason = (season: TmdbSerieSeasonDefaultView) =>
+	mySeasons.value?.find((savedSeason) => savedSeason.number === season.season_number);
+
+const addSeasonToMyList = (row: TableRow<TmdbSerieSeasonDefaultView>) =>
+	toast.withErrorToast(async () => {
+		if (!mySerieDetails.value || getInternalSeason(row.original)) {
+			return;
+		}
+		const savedSeason = await trpc.season.createFromExternal.mutate({
+			serieId: mySerieDetails.value.id,
+			externalId: row.original.id,
+			number: row.original.season_number,
+			name: row.original.name ?? `Season ${row.original.season_number}`,
+			imagePath: row.original.poster_path ?? null,
+			overview: row.original.overview ?? null,
+			status: null,
+			rating: null,
+			note: null,
+		});
+		mySeasons.value = [...(mySeasons.value ?? []), savedSeason];
+		toast.success({ description: `${savedSeason.media.name} has been added to your list` });
+	});
+
+const removeSeasonFromMyList = (row: TableRow<TmdbSerieSeasonDefaultView>) =>
+	toast.withErrorToast(async () => {
+		const savedSeason = getInternalSeason(row.original);
+		if (!savedSeason) {
+			return;
+		}
+		await trpc.season.delete.mutate({ id: savedSeason.id });
+		mySeasons.value = mySeasons.value?.filter((season) => season.id !== savedSeason.id) ?? [];
+		toast.success({
+			description: `${row.original.name ?? `Season ${row.original.season_number}`} has been removed from your list`,
+		});
+	});
+
+const onSeasonSelected = (_event: Event, row: TableRow<TmdbSerieSeasonDefaultView>) => {
+	return navigateTo(`/app/series/${id.value}/season/${row.original.season_number}`);
+};
 </script>

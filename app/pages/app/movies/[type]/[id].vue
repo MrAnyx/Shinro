@@ -6,6 +6,7 @@
 			:loading="isLoading"
 			:external="isExternal"
 			:in-my-list="isInMyList"
+			media-label="movie"
 			image-provider="tmdb"
 			:image="tmdbMovieDetails?.details.poster_path ?? undefined"
 			v-model:rating="rating"

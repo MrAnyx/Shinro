@@ -82,4 +82,20 @@ export default router({
 
 			return { details, credits };
 		}),
+
+	seasonDetails: protectedProcedure
+		.input(
+			z.object({
+				serieId: ServerTmdbSerieValidation.id,
+				seasonNumber: z.coerce.number().int().nonnegative(),
+			}),
+		)
+		.output(TmdbSerieSeasonDefaultViewSchema)
+		.query(async ({ input }) =>
+			useCache(`tmdb:serie:season:${input.serieId}:${input.seasonNumber}`, () =>
+				tmdb(`/tv/${input.serieId}/season/${input.seasonNumber}`, {
+					schema: TmdbSerieSeasonResponseSchema,
+				}),
+			),
+		),
 });
