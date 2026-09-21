@@ -28,7 +28,7 @@ export const TmdbSerieDetailsDefaultViewSchema = z.object({
 			z
 				.object({
 					air_date: z.string().nullish(),
-					episode_count: z.number().nullish(),
+					episode_count: z.number(),
 					id: z.string(),
 					name: z.string().nullish(),
 					season_number: z.number(),
@@ -69,9 +69,9 @@ export const TmdbSerieCreditsDefaultViewSchema = z.object({
 		.nullish(),
 });
 
-export const TmdbSerieSeasonDefaultViewSchema = z.object({
+export const TmdbSerieSeasonDetailsDefaultViewSchema = z.object({
 	air_date: z.string().nullish(),
-	episode_count: z.number().nullish(),
+	episode_count: z.number(),
 	id: z.string(),
 	name: z.string().nullish(),
 	season_number: z.number(),
@@ -87,7 +87,7 @@ export const TmdbSerieSeasonDefaultViewSchema = z.object({
 					id: z.string(),
 					name: z.string().nullish(),
 					overview: z.string().nullish(),
-					runtime: z.number().nullish(),
+					runtime: z.number(),
 					still_path: z.string().nullish(),
 					vote_average: z.number(),
 					vote_count: z.number(),
@@ -97,13 +97,14 @@ export const TmdbSerieSeasonDefaultViewSchema = z.object({
 		.nullish(),
 });
 
-export const TmdbSerieEpisodeDefaultViewSchema = z.object({
+export const TmdbSerieSeasonEpisodeDetailsDefaultViewSchema = z.object({
 	air_date: z.string().nullish(),
 	episode_number: z.number(),
-	id: z.string(),
 	name: z.string().nullish(),
 	overview: z.string().nullish(),
-	runtime: z.number().nullish(),
+	id: z.string(),
+	runtime: z.number(),
+	season_number: z.number(),
 	still_path: z.string().nullish(),
 	vote_average: z.number(),
 	vote_count: z.number(),

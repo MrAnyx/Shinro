@@ -44,7 +44,7 @@ export const TmdbSerieDetailsResponseSchema = z.object({
 			z
 				.object({
 					air_date: z.string().nullish(),
-					episode_count: z.number().nullish(),
+					episode_count: z.number(),
 					id: z.coerce.string(),
 					name: z.string().nullish(),
 					season_number: z.number(),
@@ -78,9 +78,8 @@ export const TmdbSerieCreditsResponseSchema = z.object({
 		.nullish(),
 });
 
-export const TmdbSerieSeasonResponseSchema = z.object({
+export const TmdbSerieSeasonDetailsResponseSchema = z.object({
 	air_date: z.string().nullish(),
-	episode_count: z.number().nullish(),
 	id: z.coerce.string(),
 	name: z.string().nullish(),
 	season_number: z.number(),
@@ -96,7 +95,7 @@ export const TmdbSerieSeasonResponseSchema = z.object({
 					id: z.coerce.string(),
 					name: z.string().nullish(),
 					overview: z.string().nullish(),
-					runtime: z.number().nullish(),
+					runtime: z.number(),
 					still_path: z.string().nullish(),
 					vote_average: z.number(),
 					vote_count: z.number(),

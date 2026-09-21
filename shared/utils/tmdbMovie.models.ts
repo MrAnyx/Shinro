@@ -55,21 +55,25 @@ export const TmdbMovieCreditsDefaultViewSchema = z.object({
 		.nullish(),
 });
 
-export const TmdbMovieCollectionPartDefaultViewSchema = z.object({
-	adult: z.boolean(),
-	id: z.string(),
-	title: z.string().nullish(),
-	overview: z.string().nullish(),
-	poster_path: z.string().nullish(),
-	media_type: z.string().nullish(),
-	popularity: z.number(),
-	release_date: z.string().nullish(),
-	vote_average: z.number(),
-	vote_count: z.number(),
-	internal_movie: MovieWithMediaViewSchema.nullish(),
-});
-
 export const TmdbMovieCollectionDefaultViewSchema = z.object({
 	name: z.string().nullish(),
-	parts: z.array(TmdbMovieCollectionPartDefaultViewSchema.nullish()).nullish(),
+	parts: z
+		.array(
+			z
+				.object({
+					adult: z.boolean(),
+					id: z.string(),
+					title: z.string().nullish(),
+					overview: z.string().nullish(),
+					poster_path: z.string().nullish(),
+					media_type: z.string().nullish(),
+					popularity: z.number(),
+					release_date: z.string().nullish(),
+					vote_average: z.number(),
+					vote_count: z.number(),
+					internal_movie: MovieWithMediaViewSchema.nullish(),
+				})
+				.nullish(),
+		)
+		.nullish(),
 });
