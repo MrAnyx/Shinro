@@ -21,13 +21,16 @@ export const useSerieStore = defineStore("serie", {
 
 		async createSerieFromExternal(payload: TRPCProcedureInput<"serie", "createFromExternal">) {
 			const trpc = useTrpc();
+
 			const serie = await trpc.serie.createFromExternal.mutate(payload);
 			this.total += 1;
+
 			return serie;
 		},
 
 		async deleteSerie(payload: TRPCProcedureInput<"serie", "delete">) {
 			const trpc = useTrpc();
+
 			await trpc.serie.delete.mutate(payload);
 			this.total -= 1;
 		},
