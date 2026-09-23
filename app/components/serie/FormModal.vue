@@ -162,38 +162,38 @@ const onSave = async () => {
 };
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
-	// try {
-	// 	isSubmitting.value = true;
-	// 	let updatedSerie;
-	// 	if (props.id) {
-	// 		updatedSerie = await trpc.serie.update.mutate({
-	// 			id: props.id,
-	// 			name: payload.data.name,
-	// 			overview: payload.data.overview,
-	// 			rating: payload.data.rating ?? null,
-	// 			note: payload.data.note,
-	// 			status: payload.data.status ?? null,
-	// 		});
-	// 		toast.success({ description: `Serie ${updatedSerie.media.name} has been updated` });
-	// 	} else {
-	// 		updatedSerie = await serieStore.createSerie({
-	// 			name: payload.data.name,
-	// 			status: payload.data.status ?? null,
-	// 			overview: payload.data.overview,
-	// 			note: payload.data.note,
-	// 			rating: payload.data.rating ?? null,
-	// 		});
-	// 		toast.success({ description: `Serie ${updatedSerie.media.name} has been created` });
-	// 	}
-	// 	const updatedCollections = await trpc.media.updateCollections.mutate({
-	// 		id: updatedSerie.id,
-	// 		collectionIds: payload.data.collections,
-	// 	});
-	// 	emit("close", { serie: updatedSerie, collections: updatedCollections });
-	// } catch (err) {
-	// 	toast.error(err);
-	// } finally {
-	// 	isSubmitting.value = false;
-	// }
+	try {
+		isSubmitting.value = true;
+		let updatedSerie;
+		if (props.id) {
+			updatedSerie = await trpc.serie.update.mutate({
+				id: props.id,
+				name: payload.data.name,
+				overview: payload.data.overview,
+				rating: payload.data.rating ?? null,
+				note: payload.data.note,
+				status: payload.data.status ?? null,
+			});
+			toast.success({ description: `Serie ${updatedSerie.media.name} has been updated` });
+		} else {
+			updatedSerie = await serieStore.createSerie({
+				name: payload.data.name,
+				status: payload.data.status ?? null,
+				overview: payload.data.overview,
+				note: payload.data.note,
+				rating: payload.data.rating ?? null,
+			});
+			toast.success({ description: `Serie ${updatedSerie.media.name} has been created` });
+		}
+		const updatedCollections = await trpc.media.updateCollections.mutate({
+			id: updatedSerie.id,
+			collectionIds: payload.data.collections,
+		});
+		emit("close", { serie: updatedSerie, collections: updatedCollections });
+	} catch (err) {
+		toast.error(err);
+	} finally {
+		isSubmitting.value = false;
+	}
 };
 </script>

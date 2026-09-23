@@ -37,7 +37,7 @@
 					/>
 
 					<UButton
-						:label="`Edit ${props.mediaLabel ?? 'media'}`"
+						:label="`Edit`"
 						block
 						leading-icon="i-lucide-square-pen"
 						variant="subtle"
@@ -71,7 +71,6 @@ const props = defineProps<{
 	inMyList: boolean;
 	image?: string;
 	imageProvider?: keyof ConfiguredImageProviders;
-	mediaLabel?: string;
 }>();
 
 const emit = defineEmits<{

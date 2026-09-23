@@ -10,7 +10,6 @@ export const TmdbSerieSearchResponseSchema = z.object({
 					adult: z.boolean(),
 					name: z.string().nullish(),
 					overview: z.string().nullish(),
-					popularity: z.number(),
 					poster_path: z.string().nullish(),
 					first_air_date: z.string().nullish(),
 					vote_average: z.number(),
@@ -22,8 +21,19 @@ export const TmdbSerieSearchResponseSchema = z.object({
 });
 
 export const TmdbSerieDetailsResponseSchema = z.object({
+	id: z.coerce.string(),
+	name: z.string().nullish(),
+	poster_path: z.string().nullish(),
 	adult: z.boolean(),
 	first_air_date: z.string().nullish(),
+	last_air_date: z.string().nullish(),
+	in_production: z.boolean(),
+	number_of_seasons: z.number(),
+	number_of_episodes: z.number(),
+	overview: z.string().nullish(),
+	vote_average: z.number(),
+	vote_count: z.number(),
+	tagline: z.string().nullish(),
 	genres: z
 		.array(
 			z
@@ -33,12 +43,6 @@ export const TmdbSerieDetailsResponseSchema = z.object({
 				.nullish(),
 		)
 		.nullish(),
-	id: z.coerce.string(),
-	in_production: z.boolean(),
-	last_air_date: z.string().nullish(),
-	name: z.string().nullish(),
-	number_of_episodes: z.number(),
-	number_of_seasons: z.number(),
 	seasons: z
 		.array(
 			z
@@ -55,12 +59,6 @@ export const TmdbSerieDetailsResponseSchema = z.object({
 				.nullish(),
 		)
 		.nullish(),
-	overview: z.string().nullish(),
-	popularity: z.number(),
-	poster_path: z.string().nullish(),
-	vote_average: z.number(),
-	vote_count: z.number(),
-	tagline: z.string().nullish(),
 });
 
 export const TmdbSerieCreditsResponseSchema = z.object({
@@ -80,6 +78,7 @@ export const TmdbSerieCreditsResponseSchema = z.object({
 
 export const TmdbSerieSeasonDetailsResponseSchema = z.object({
 	air_date: z.string().nullish(),
+	episode_count: z.number(),
 	id: z.coerce.string(),
 	name: z.string().nullish(),
 	season_number: z.number(),

@@ -12,7 +12,6 @@ export const TmdbMovieSearchResponseSchema = z.object({
 					poster_path: z.string().nullish(),
 					release_date: z.string().nullish(),
 					adult: z.boolean(),
-					popularity: z.number(),
 					vote_average: z.number(),
 					vote_count: z.number(),
 				})
@@ -76,7 +75,6 @@ export const TmdbMovieCollectionResponseSchema = z.object({
 					overview: z.string().nullish(),
 					poster_path: z.string().nullish(),
 					media_type: z.string().nullish(),
-					popularity: z.number(),
 					release_date: z.string().nullish(),
 					vote_average: z.number(),
 					vote_count: z.number(),

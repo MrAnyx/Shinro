@@ -6,7 +6,6 @@
 			:loading="isLoading"
 			:external="isExternal"
 			:in-my-list="isInMyList"
-			media-label="movie"
 			image-provider="tmdb"
 			:image="tmdbMovieDetails?.details.poster_path ?? undefined"
 			v-model:rating="rating"
@@ -159,6 +158,7 @@ const { data: myMovieDetails, pending: loadingMyMovie } = useClientAsyncData(
 watch(myMovieDetails, (newValue) => {
 	rating.value = newValue?.media.rating ?? undefined;
 	status.value = newValue?.media.status ?? undefined;
+
 	if (!newValue) {
 		selectedCollectionIds.value = [];
 	}
@@ -170,12 +170,6 @@ const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
 );
 
 watch(tmdbMovieDetails, (newValue) => {
-	// sagaMovies.value = pipe(
-	// 	newValue?.saga?.parts ?? [],
-	// 	filter((p) => !!p),
-	// 	filter((p) => p.media_type === "movie"),
-	// 	orderBy(["release_date"], ["asc"]),
-	// );
 	sagaMovies.value =
 		newValue?.saga?.parts
 			?.filter((p) => !!p)

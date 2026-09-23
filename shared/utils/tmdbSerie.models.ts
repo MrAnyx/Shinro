@@ -5,7 +5,6 @@ export const TmdbSerieSearchDefaultViewSchema = z.object({
 	adult: z.boolean(),
 	name: z.string().nullish(),
 	overview: z.string().nullish(),
-	popularity: z.number(),
 	poster_path: z.string().nullish(),
 	first_air_date: z.string().nullish(),
 	vote_average: z.number(),
@@ -21,8 +20,8 @@ export const TmdbSerieDetailsDefaultViewSchema = z.object({
 	first_air_date: z.string().nullish(),
 	last_air_date: z.string().nullish(),
 	in_production: z.boolean(),
-	number_of_episodes: z.number(),
 	number_of_seasons: z.number(),
+	number_of_episodes: z.number(),
 	seasons: z
 		.array(
 			z
@@ -35,6 +34,7 @@ export const TmdbSerieDetailsDefaultViewSchema = z.object({
 					overview: z.string().nullish(),
 					poster_path: z.string().nullish(),
 					vote_average: z.number(),
+					internal_season: SeasonWithMediaViewSchema.nullish(),
 				})
 				.nullish(),
 		)
@@ -95,17 +95,4 @@ export const TmdbSerieSeasonDetailsDefaultViewSchema = z.object({
 				.nullish(),
 		)
 		.nullish(),
-});
-
-export const TmdbSerieSeasonEpisodeDetailsDefaultViewSchema = z.object({
-	air_date: z.string().nullish(),
-	episode_number: z.number(),
-	name: z.string().nullish(),
-	overview: z.string().nullish(),
-	id: z.string(),
-	runtime: z.number(),
-	season_number: z.number(),
-	still_path: z.string().nullish(),
-	vote_average: z.number(),
-	vote_count: z.number(),
 });

@@ -63,16 +63,20 @@ export default router({
 		}),
 
 	details: protectedProcedure
-		.input(z.object({ id: ServerTmdbSerieValidation.id }))
+		.input(
+			z.object({
+				id: ServerTmdbSerieValidation.id,
+			}),
+		)
 		.output(
 			z.object({
 				details: TmdbSerieDetailsDefaultViewSchema,
 				credits: TmdbSerieCreditsDefaultViewSchema,
 			}),
 		)
-		.query(async ({ input }) => {
+		.query(async ({ input, ctx }) => {
 			const [details, credits] = await Promise.all([
-				useCache(`tmdb:serie:details:v2:${input.id}`, () =>
+				useCache(`tmdb:serie:details:${input.id}`, () =>
 					tmdb(`/tv/${input.id}`, { schema: TmdbSerieDetailsResponseSchema }),
 				),
 				useCache(`tmdb:serie:credits:${input.id}`, () =>
@@ -80,22 +84,37 @@ export default router({
 				),
 			]);
 
-			return { details, credits };
-		}),
+			// Get the external IDs of the season in the collection
+			const externalIds = details.seasons?.filter((x) => !!x).map((x) => x.id) ?? [];
 
-	seasonDetails: protectedProcedure
-		.input(
-			z.object({
-				serieId: ServerTmdbSerieValidation.id,
-				seasonNumber: z.coerce.number().int().nonnegative(),
-			}),
-		)
-		.output(TmdbSerieSeasonDefaultViewSchema)
-		.query(async ({ input }) =>
-			useCache(`tmdb:serie:season:${input.serieId}:${input.seasonNumber}`, () =>
-				tmdb(`/tv/${input.serieId}/season/${input.seasonNumber}`, {
-					schema: TmdbSerieSeasonResponseSchema,
-				}),
-			),
-		),
+			// Get the seasons that belong to the user and have the same external IDs
+			const mySeasons = await prisma.season.findMany({
+				where: {
+					media: {
+						ownerId: ctx.user.id,
+						externalId: {
+							in: externalIds,
+						},
+					},
+				},
+				include: {
+					media: true,
+				},
+			});
+
+			// Create a map of the user's seasons for easy lookup
+			const mySeasonsMap = new Map(mySeasons.map((m) => [m.media.externalId, m]));
+
+			// Merge the TMDB collection seasons with the user's seasons
+			details.seasons =
+				details.seasons
+					?.filter((x) => !!x)
+					?.sort((a, b) => a.season_number - b.season_number)
+					?.map((x) => Object.assign(x, { internal_season: mySeasonsMap.get(x.id) })) ?? [];
+
+			return {
+				details,
+				credits,
+			};
+		}),
 });

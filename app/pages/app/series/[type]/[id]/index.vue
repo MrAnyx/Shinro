@@ -5,9 +5,8 @@
 			:loading="isLoading"
 			:external="isExternal"
 			:in-my-list="isInMyList"
-			media-label="serie"
 			image-provider="tmdb"
-			:image="image"
+			:image="tmdbSerieDetails?.details.poster_path ?? undefined"
 			v-model:rating="rating"
 			v-model:status="status"
 			v-model:collections="selectedCollectionIds"
@@ -19,16 +18,19 @@
 			@update:rating="updateRating"
 		/>
 
+		<!-- Main section -->
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
+			<!-- Title and tagline -->
 			<DetailsTitleHeader
 				:loading="isLoading"
 				:title="mySerieDetails?.media.name ?? tmdbSerieDetails?.details.name ?? undefined"
 				:subtitle="tmdbSerieDetails?.details.tagline ?? undefined"
 			/>
 
+			<!-- Details badges -->
 			<div class="flex gap-2 flex-wrap" v-if="isExternal">
 				<template v-if="isLoading">
-					<USkeleton v-for="i in 4" :key="i" class="h-6 w-24 rounded-sm" />
+					<USkeleton v-for="i in 4" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
 				<template v-else>
 					<AdultBadge :adult="tmdbSerieDetails?.details.adult" />
@@ -37,12 +39,8 @@
 						:start-date="tmdbSerieDetails?.details.first_air_date ?? undefined"
 						:end-date="tmdbSerieDetails?.details.last_air_date ?? undefined"
 					/>
-					<UBadge color="neutral" variant="subtle" leading-icon="i-lucide-layers">
-						{{ tmdbSerieDetails?.details.number_of_seasons }} seasons
-					</UBadge>
-					<UBadge color="neutral" variant="subtle" leading-icon="i-lucide-list-video">
-						{{ tmdbSerieDetails?.details.number_of_episodes }} episodes
-					</UBadge>
+					<DetailsSeasonCountBadge :count="tmdbSerieDetails?.details.number_of_seasons" />
+					<DetailsEpisodeCountBadge :count="tmdbSerieDetails?.details.number_of_seasons" />
 					<VoteBadge
 						:score="tmdbSerieDetails?.details.vote_average"
 						:count="tmdbSerieDetails?.details.vote_count"
@@ -98,7 +96,7 @@
 							<template #actions-cell="{ row }">
 								<ToggleButton
 									variant="ghost"
-									:is-added="!!getInternalSeason(row.original)"
+									:is-added="!!row.original.internal_season"
 									:on-add="() => addSeasonToMyList(row)"
 									:on-remove="() => removeSeasonFromMyList(row)"
 								/>
@@ -150,6 +148,10 @@ const { data: mySerieDetails, pending: loadingMySerie } = useClientAsyncData(
 watch(mySerieDetails, (newValue) => {
 	rating.value = newValue?.media.rating ?? undefined;
 	status.value = newValue?.media.status ?? undefined;
+
+	if (!newValue) {
+		selectedCollectionIds.value = [];
+	}
 });
 
 const { data: tmdbSerieDetails, pending: loadingDetails } = useClientAsyncData(
@@ -162,34 +164,29 @@ const { data: mySerieCollections, pending: loadingSerieCollections } = useClient
 	{ ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND" },
 );
 
-const { data: mySeasons, pending: loadingSeasons } = useClientAsyncData(
-	() => trpc.season.getBySerie.query({ serieId: mySerieDetails.value!.id }),
-	{ enabled: () => !!mySerieDetails.value, watch: [mySerieDetails] },
-);
-
 watch(mySerieCollections, (newValue) => {
 	selectedCollectionIds.value = newValue?.map((collection) => collection.id) ?? [];
 });
 
 const genres = computed(() => tmdbSerieDetails.value?.details.genres?.flatMap((genre) => genre?.name?.trim() || []));
-const image = computed(
-	() => mySerieDetails.value?.media.imagePath ?? tmdbSerieDetails.value?.details.poster_path ?? undefined,
-);
-const isLoading = computed(
-	() => loadingDetails.value || loadingMySerie.value || loadingSerieCollections.value || loadingSeasons.value,
-);
+const isLoading = computed(() => loadingDetails.value || loadingMySerie.value || loadingSerieCollections.value);
 const isInMyList = computed(() => !!mySerieDetails.value);
 const note = computed(() => mySerieDetails.value?.media.note ?? undefined);
 const credits = computed(() => tmdbSerieDetails.value?.credits.cast?.filter((credit) => !!credit) ?? []);
 const seasons = computed(() => tmdbSerieDetails.value?.details.seasons?.filter((season) => !!season) ?? []);
 
 const tabs = computed<TabsItem[]>(() => [
-	{ icon: "i-lucide-users", label: "Credits", slot: "credits" },
-	{ icon: "i-lucide-list-video", label: `Seasons (${seasons.value.length})`, slot: "seasons" },
+	...(isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : []),
+	...(isExternal.value
+		? [{ icon: "i-lucide-layers", label: `Seasons (${seasons.value.length})`, slot: "seasons" }]
+		: []),
 ]);
 
-const seasonColumns: TableColumn<TmdbSerieSeasonDefaultView>[] = [
-	{ id: "image", meta: { class: { td: "w-[60px]" } } },
+const seasonColumns: TableColumn<TmdbSerieSeasonDetailsDefaultView>[] = [
+	{
+		id: "image",
+		meta: { class: { td: "w-[60px]" } },
+	},
 	{
 		accessorFn: (season) => season.name ?? `Season ${season.season_number}`,
 		header: "Title",
@@ -284,43 +281,40 @@ const updateRating = () =>
 		await trpc.serie.update.mutate({ id: mySerieDetails.value!.id, rating: rating.value ?? null });
 	});
 
-const getInternalSeason = (season: TmdbSerieSeasonDefaultView) =>
-	mySeasons.value?.find((savedSeason) => savedSeason.number === season.season_number);
-
-const addSeasonToMyList = (row: TableRow<TmdbSerieSeasonDefaultView>) =>
+const addSeasonToMyList = (row: TableRow<TmdbSerieSeasonDetailsDefaultView>) =>
 	toast.withErrorToast(async () => {
-		if (!mySerieDetails.value || getInternalSeason(row.original)) {
-			return;
-		}
-		const savedSeason = await trpc.season.createFromExternal.mutate({
-			serieId: mySerieDetails.value.id,
-			externalId: row.original.id,
-			number: row.original.season_number,
-			name: row.original.name ?? `Season ${row.original.season_number}`,
-			imagePath: row.original.poster_path ?? null,
-			overview: row.original.overview ?? null,
-			status: null,
-			rating: null,
-			note: null,
-		});
-		mySeasons.value = [...(mySeasons.value ?? []), savedSeason];
-		toast.success({ description: `${savedSeason.media.name} has been added to your list` });
+		// if (!mySerieDetails.value || getInternalSeason(row.original)) {
+		// 	return;
+		// }
+		// const savedSeason = await trpc.season.createFromExternal.mutate({
+		// 	serieId: mySerieDetails.value.id,
+		// 	externalId: row.original.id,
+		// 	number: row.original.season_number,
+		// 	name: row.original.name ?? `Season ${row.original.season_number}`,
+		// 	imagePath: row.original.poster_path ?? null,
+		// 	overview: row.original.overview ?? null,
+		// 	status: null,
+		// 	rating: null,
+		// 	note: null,
+		// });
+		// mySeasons.value = [...(mySeasons.value ?? []), savedSeason];
+		// toast.success({ description: `${savedSeason.media.name} has been added to your list` });
 	});
 
-const removeSeasonFromMyList = (row: TableRow<TmdbSerieSeasonDefaultView>) =>
+const removeSeasonFromMyList = (row: TableRow<TmdbSerieSeasonDetailsDefaultView>) =>
 	toast.withErrorToast(async () => {
-		const savedSeason = getInternalSeason(row.original);
-		if (!savedSeason) {
-			return;
-		}
-		await trpc.season.delete.mutate({ id: savedSeason.id });
-		mySeasons.value = mySeasons.value?.filter((season) => season.id !== savedSeason.id) ?? [];
-		toast.success({
-			description: `${row.original.name ?? `Season ${row.original.season_number}`} has been removed from your list`,
-		});
+		// const savedSeason = getInternalSeason(row.original);
+		// if (!savedSeason) {
+		// 	return;
+		// }
+		// await trpc.season.delete.mutate({ id: savedSeason.id });
+		// mySeasons.value = mySeasons.value?.filter((season) => season.id !== savedSeason.id) ?? [];
+		// toast.success({
+		// 	description: `${row.original.name ?? `Season ${row.original.season_number}`} has been removed from your list`,
+		// });
 	});
 
-const onSeasonSelected = (_event: Event, row: TableRow<TmdbSerieSeasonDefaultView>) => {
-	return navigateTo(`/app/series/${id.value}/season/${row.original.season_number}`);
+const onSeasonSelected = (_event: Event, row: TableRow<TmdbSerieSeasonDetailsDefaultView>) => {
+	return navigateTo(`/app/series/${type.value}/${id.value}/season/${row.original.season_number}`);
 };
 </script>
