@@ -122,36 +122,28 @@ const { data: movie, pending: loadingMovie } = useClientAsyncData(() => trpc.mov
 	enabled: () => !!props.id,
 });
 
-watch(
-	movie,
-	(m) => {
-		if (!m) {
-			return;
-		}
-		state.name = m.media.name ?? "";
-		state.status = m.media.status ?? undefined;
-		state.note = m.media.note ?? "";
-		state.overview = m.overview ?? "";
-		state.rating = m.media.rating ?? undefined;
-	},
-	{ immediate: true },
-);
+watch(movie, (m) => {
+	if (!m) {
+		return;
+	}
+	state.name = m.media.name ?? "";
+	state.status = m.media.status ?? undefined;
+	state.note = m.media.note ?? "";
+	state.overview = m.overview ?? "";
+	state.rating = m.media.rating ?? undefined;
+});
 
 const { data: collections, pending: loadingCollections } = useClientAsyncData(
 	() => trpc.media.getCollections.query({ id: props.id }),
 	{ enabled: () => !!props.id },
 );
 
-watch(
-	collections,
-	(c) => {
-		if (!c) {
-			return;
-		}
-		state.collections = c.map((col) => col.id);
-	},
-	{ immediate: true },
-);
+watch(collections, (c) => {
+	if (!c) {
+		return;
+	}
+	state.collections = c.map((col) => col.id);
+});
 
 const onCancel = () => {
 	emit("close");
@@ -161,43 +153,40 @@ const onSave = async () => {
 	form.value?.submit();
 };
 
-const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
-	try {
-		isSubmitting.value = true;
+const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
+	toast.withErrorToast(async () => {
+		try {
+			isSubmitting.value = true;
 
-		let updatedMovie;
+			let updatedMovie;
 
-		if (props.id) {
-			updatedMovie = await trpc.movie.update.mutate({
-				id: props.id,
-				name: payload.data.name,
-				overview: payload.data.overview,
-				rating: payload.data.rating ?? null,
-				note: payload.data.note,
-				status: payload.data.status ?? null,
+			if (props.id) {
+				updatedMovie = await trpc.movie.update.mutate({
+					id: props.id,
+					name: payload.data.name,
+					overview: payload.data.overview,
+					rating: payload.data.rating ?? null,
+					note: payload.data.note,
+					status: payload.data.status ?? null,
+				});
+			} else {
+				updatedMovie = await movieStore.createMovie({
+					name: payload.data.name,
+					status: payload.data.status ?? null,
+					overview: payload.data.overview,
+					note: payload.data.note,
+					rating: payload.data.rating ?? null,
+				});
+			}
+
+			const updatedCollections = await trpc.media.updateCollections.mutate({
+				id: updatedMovie.id,
+				collectionIds: payload.data.collections,
 			});
-			toast.success({ description: `Movie ${updatedMovie.media.name} has been updated` });
-		} else {
-			updatedMovie = await movieStore.createMovie({
-				name: payload.data.name,
-				status: payload.data.status ?? null,
-				overview: payload.data.overview,
-				note: payload.data.note,
-				rating: payload.data.rating ?? null,
-			});
-			toast.success({ description: `Movie ${updatedMovie.media.name} has been created` });
+
+			emit("close", { movie: updatedMovie, collections: updatedCollections });
+		} finally {
+			isSubmitting.value = false;
 		}
-
-		const updatedCollections = await trpc.media.updateCollections.mutate({
-			id: updatedMovie.id,
-			collectionIds: payload.data.collections,
-		});
-
-		emit("close", { movie: updatedMovie, collections: updatedCollections });
-	} catch (err) {
-		toast.error(err);
-	} finally {
-		isSubmitting.value = false;
-	}
-};
+	});
 </script>

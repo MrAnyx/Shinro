@@ -92,18 +92,14 @@ const { data: collection, pending: loadingCollection } = useClientAsyncData(
 	},
 );
 
-watch(
-	collection,
-	(c) => {
-		if (!c) {
-			return;
-		}
-		state.name = c.name;
-		state.description = c.description ?? "";
-		state.favorite = c.favorite;
-	},
-	{ immediate: true },
-);
+watch(collection, (c) => {
+	if (!c) {
+		return;
+	}
+	state.name = c.name;
+	state.description = c.description ?? "";
+	state.favorite = c.favorite;
+});
 
 const onCancel = () => {
 	emit("close");
@@ -113,34 +109,31 @@ const onSave = async () => {
 	form.value?.submit();
 };
 
-const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
-	try {
-		isSubmitting.value = true;
+const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
+	toast.withErrorToast(async () => {
+		try {
+			isSubmitting.value = true;
 
-		let updatedCollection;
+			let updatedCollection;
 
-		if (props.id) {
-			updatedCollection = await trpc.collection.update.mutate({
-				id: props.id,
-				name: payload.data.name,
-				description: payload.data.description,
-				favorite: payload.data.favorite,
-			});
-			toast.success({ description: `Collection ${updatedCollection.name} has been updated` });
-		} else {
-			updatedCollection = await collectionStore.createCollection({
-				name: payload.data.name,
-				description: payload.data.description,
-				favorite: payload.data.favorite,
-			});
-			toast.success({ description: `Collection ${updatedCollection.name} has been created` });
+			if (props.id) {
+				updatedCollection = await trpc.collection.update.mutate({
+					id: props.id,
+					name: payload.data.name,
+					description: payload.data.description,
+					favorite: payload.data.favorite,
+				});
+			} else {
+				updatedCollection = await collectionStore.createCollection({
+					name: payload.data.name,
+					description: payload.data.description,
+					favorite: payload.data.favorite,
+				});
+			}
+
+			emit("close", updatedCollection);
+		} finally {
+			isSubmitting.value = false;
 		}
-
-		emit("close", updatedCollection);
-	} catch (err) {
-		toast.error(ErrorEvent);
-	} finally {
-		isSubmitting.value = false;
-	}
-};
+	});
 </script>

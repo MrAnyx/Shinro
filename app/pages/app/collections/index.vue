@@ -180,14 +180,17 @@ const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[]
 			icon: "i-lucide-trash",
 			color: "error",
 			async onSelect() {
-				const result = await openConfirmationModal(() =>
-					collectionStore.deleteCollection({ id: row.original.id }),
-				);
+				toast.withErrorToast(async () => {
+					const result = await openConfirmationModal(() =>
+						collectionStore.deleteCollection({ id: row.original.id }),
+					);
 
-				if (result) {
-					// Delete the selected element. No need to refresh here
-					data.value.results = data.value.results.filter((m) => m.id !== row.original.id);
-				}
+					if (result) {
+						// Delete the selected element. No need to refresh here
+						data.value.results = data.value.results.filter((m) => m.id !== row.original.id);
+						toast.success({ description: `Collection ${row.original.name} has been deleted` });
+					}
+				});
 			},
 		},
 	],
@@ -203,8 +206,8 @@ const emptyActions: ButtonProps[] = [
 	},
 ];
 
-const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) => {
-	try {
+const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) =>
+	toast.withErrorToast(async () => {
 		const collection = await trpc.collection.update.mutate({
 			id: row.original.id,
 			favorite: !row.original.favorite,
@@ -225,10 +228,7 @@ const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) =>
 				? "Collection removed from your favorites"
 				: "Collection added to your favorites",
 		});
-	} catch (err: any) {
-		toast.error(err);
-	}
-};
+	});
 
 const onCollectionSelected = async (row: TableRow<CollectionDefaultView>) => {
 	await navigateTo({ path: `/app/collections/${row.original.id}` });

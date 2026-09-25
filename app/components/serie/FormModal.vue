@@ -113,36 +113,28 @@ const { data: serie, pending: loadingSerie } = useClientAsyncData(() => trpc.ser
 	enabled: () => !!props.id,
 });
 
-watch(
-	serie,
-	(m) => {
-		if (!m) {
-			return;
-		}
-		state.name = m.media.name ?? "";
-		state.status = m.media.status ?? undefined;
-		state.note = m.media.note ?? "";
-		state.overview = m.overview ?? "";
-		state.rating = m.media.rating ?? undefined;
-	},
-	{ immediate: true },
-);
+watch(serie, (m) => {
+	if (!m) {
+		return;
+	}
+	state.name = m.media.name ?? "";
+	state.status = m.media.status ?? undefined;
+	state.note = m.media.note ?? "";
+	state.overview = m.overview ?? "";
+	state.rating = m.media.rating ?? undefined;
+});
 
 const { data: collections, pending: loadingCollections } = useClientAsyncData(
 	() => trpc.media.getCollections.query({ id: props.id }),
 	{ enabled: () => !!props.id },
 );
 
-watch(
-	collections,
-	(c) => {
-		if (!c) {
-			return;
-		}
-		state.collections = c.map((col) => col.id);
-	},
-	{ immediate: true },
-);
+watch(collections, (c) => {
+	if (!c) {
+		return;
+	}
+	state.collections = c.map((col) => col.id);
+});
 
 const state = reactive<Schema>({
 	name: "",
@@ -161,39 +153,38 @@ const onSave = async () => {
 	form.value?.submit();
 };
 
-const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
-	try {
-		isSubmitting.value = true;
-		let updatedSerie;
-		if (props.id) {
-			updatedSerie = await trpc.serie.update.mutate({
-				id: props.id,
-				name: payload.data.name,
-				overview: payload.data.overview,
-				rating: payload.data.rating ?? null,
-				note: payload.data.note,
-				status: payload.data.status ?? null,
+const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
+	toast.withErrorToast(async () => {
+		try {
+			isSubmitting.value = true;
+
+			let updatedSerie;
+
+			if (props.id) {
+				updatedSerie = await trpc.serie.update.mutate({
+					id: props.id,
+					name: payload.data.name,
+					overview: payload.data.overview,
+					rating: payload.data.rating ?? null,
+					note: payload.data.note,
+					status: payload.data.status ?? null,
+				});
+			} else {
+				updatedSerie = await serieStore.createSerie({
+					name: payload.data.name,
+					status: payload.data.status ?? null,
+					overview: payload.data.overview,
+					note: payload.data.note,
+					rating: payload.data.rating ?? null,
+				});
+			}
+			const updatedCollections = await trpc.media.updateCollections.mutate({
+				id: updatedSerie.id,
+				collectionIds: payload.data.collections,
 			});
-			toast.success({ description: `Serie ${updatedSerie.media.name} has been updated` });
-		} else {
-			updatedSerie = await serieStore.createSerie({
-				name: payload.data.name,
-				status: payload.data.status ?? null,
-				overview: payload.data.overview,
-				note: payload.data.note,
-				rating: payload.data.rating ?? null,
-			});
-			toast.success({ description: `Serie ${updatedSerie.media.name} has been created` });
+			emit("close", { serie: updatedSerie, collections: updatedCollections });
+		} finally {
+			isSubmitting.value = false;
 		}
-		const updatedCollections = await trpc.media.updateCollections.mutate({
-			id: updatedSerie.id,
-			collectionIds: payload.data.collections,
-		});
-		emit("close", { serie: updatedSerie, collections: updatedCollections });
-	} catch (err) {
-		toast.error(err);
-	} finally {
-		isSubmitting.value = false;
-	}
-};
+	});
 </script>
