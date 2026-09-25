@@ -186,10 +186,7 @@ const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[]
 
 				if (result) {
 					// Delete the selected element. No need to refresh here
-					const idx = data.value.results.findIndex((m) => m.id === row.original.id);
-					if (idx !== -1) {
-						data.value.results.splice(idx, 1);
-					}
+					data.value.results = data.value.results.filter((m) => m.id !== row.original.id);
 				}
 			},
 		},
@@ -220,7 +217,7 @@ const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) =>
 		// Update the collection list
 		const idx = data.value.results.findIndex((m) => m.id === row.original.id);
 		if (idx !== -1) {
-			data.value.results[idx] = collection;
+			data.value.results = data.value.results.with(idx, collection);
 		}
 
 		toast.success({

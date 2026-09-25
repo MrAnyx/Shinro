@@ -196,7 +196,8 @@ const getRowActions = (row: TableRow<MovieWithMediaView>): DropdownMenuItem[][] 
 				const result = await openConfirmationModal(() => movieStore.deleteMovie({ id: row.original.id }));
 
 				if (result) {
-					refresh();
+					// Delete the selected element. No need to refresh here
+					data.value.results = data.value.results.filter((m) => m.id !== row.original.id);
 				}
 			},
 		},

@@ -147,7 +147,6 @@ const mediaQueryParams = computed(() => (isInternal.value ? { id: id.value } : {
 const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);
 const status = ref<MediaStatus | undefined>(undefined);
-const sagaMovies = ref<TmdbMovieCollectionPartDefaultView[]>([]);
 
 // Async data loading
 const { data: myMovieDetails, pending: loadingMyMovie } = useClientAsyncData(
@@ -169,25 +168,6 @@ const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
 	{ enabled: () => isExternal.value },
 );
 
-watch(tmdbMovieDetails, (newValue) => {
-	sagaMovies.value =
-		newValue?.saga?.parts
-			?.filter((p) => !!p)
-			?.filter((p) => p.media_type === "movie")
-			?.sort((a, b) => {
-				if (!a.release_date && !b.release_date) {
-					return 0;
-				}
-				if (!a.release_date) {
-					return 1;
-				}
-				if (!b.release_date) {
-					return -1;
-				}
-				return a.release_date.localeCompare(b.release_date);
-			}) ?? [];
-});
-
 const { data: myMovieCollections, pending: loadingMovieCollections } = useClientAsyncData(
 	async () => (mediaQueryParams.value ? trpc.media.getCollections.query(mediaQueryParams.value) : undefined),
 	{ ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND" },
@@ -205,6 +185,24 @@ const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
 const credits = computed(() => tmdbMovieDetails.value?.credits.cast?.filter((x) => !!x) ?? []);
 const hasSaga = computed(() => !!tmdbMovieDetails.value?.saga);
 const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown");
+const sagaMovies = computed(
+	() =>
+		tmdbMovieDetails.value?.saga?.parts
+			?.filter((p) => !!p)
+			?.filter((p) => p.media_type === "movie")
+			?.sort((a, b) => {
+				if (!a.release_date && !b.release_date) {
+					return 0;
+				}
+				if (!a.release_date) {
+					return 1;
+				}
+				if (!b.release_date) {
+					return -1;
+				}
+				return a.release_date.localeCompare(b.release_date);
+			}) ?? [],
+);
 
 const tabs = computed<TabsItem[]>(() => [
 	...(isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : []),
@@ -252,7 +250,8 @@ const updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: Movie
 	if (!externalId) {
 		return;
 	}
-	const target = sagaMovies.value.find((m) => String(m.id) === externalId);
+
+	const target = tmdbMovieDetails.value?.saga?.parts?.find((m) => m?.id === externalId);
 	if (target) {
 		target.internal_movie = internalMovie;
 	}
@@ -334,7 +333,7 @@ const updateRating = () =>
 const addSagaMovieToMyList = (row: TableRow<TmdbMovieCollectionPartDefaultView>) =>
 	toast.withErrorToast(async () => {
 		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
-		updateSagaMovieInternalMovie(String(row.original.id), movie);
+		updateSagaMovieInternalMovie(row.original.id, movie);
 
 		if (row.original.id === id.value) {
 			myMovieDetails.value = movie;
