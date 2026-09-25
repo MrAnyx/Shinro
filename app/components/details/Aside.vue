@@ -37,7 +37,7 @@
 					/>
 
 					<UButton
-						:label="`Edit`"
+						label="Edit this media"
 						block
 						leading-icon="i-lucide-square-pen"
 						variant="subtle"

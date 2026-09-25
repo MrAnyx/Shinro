@@ -40,7 +40,7 @@
 						:end-date="tmdbSerieDetails?.details.last_air_date ?? undefined"
 					/>
 					<DetailsSeasonCountBadge :count="tmdbSerieDetails?.details.number_of_seasons" />
-					<DetailsEpisodeCountBadge :count="tmdbSerieDetails?.details.number_of_seasons" />
+					<DetailsEpisodeCountBadge :count="tmdbSerieDetails?.details.number_of_episodes" />
 					<VoteBadge
 						:score="tmdbSerieDetails?.details.vote_average"
 						:count="tmdbSerieDetails?.details.vote_count"

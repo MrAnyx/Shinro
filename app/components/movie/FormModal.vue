@@ -2,7 +2,7 @@
 	<UModal :dismissible="!isLoading" :close="!isLoading">
 		<template #title>
 			<div class="flex items-center gap-x-2">
-				<UIcon name="i-lucide-loader-circle" class="animate-spin size-5" v-if="isInitializing" />
+				<Spinner class="size-5" v-if="isInitializing" />
 				<span>{{ movie ? "Update" : "Create" }} a movie</span>
 			</div>
 		</template>
