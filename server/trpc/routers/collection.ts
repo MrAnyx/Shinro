@@ -190,4 +190,31 @@ export default router({
 
 			return { total, results };
 		}),
+
+	getById: protectedProcedure
+		.input(
+			z.object({
+				id: ServerCollectionValidation.id,
+			}),
+		)
+		.output(CollectionDefaultViewSchema)
+		.query(async ({ input, ctx }) => {
+			await delay(3000);
+
+			const collection = await prisma.collection.findFirst({
+				where: {
+					id: input.id,
+					ownerId: ctx.user.id,
+				},
+			});
+
+			if (!collection) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Collection not found",
+				});
+			}
+
+			return collection;
+		}),
 });

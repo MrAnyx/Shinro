@@ -1,5 +1,12 @@
 <template>
-	<UModal :title="`${collection ? 'Update' : 'Create'} a collection`" :dismissible="!isLoading" :close="!isLoading">
+	<UModal :dismissible="!isLoading" :close="!isLoading">
+		<template #title>
+			<div class="flex items-center gap-x-2">
+				<Spinner class="size-5" v-if="isInitializing" />
+				<span>{{ props.id ? "Update" : "Create" }} a collection</span>
+			</div>
+		</template>
+
 		<template #body>
 			<UForm
 				ref="form"
@@ -10,20 +17,38 @@
 				class="gap-4 flex flex-col"
 			>
 				<UFormField label="Name" name="name" required>
-					<UInput v-model="state.name" class="w-full" :maxlength="255" autofocus />
+					<UInput
+						v-model="state.name"
+						class="w-full"
+						:maxlength="255"
+						autofocus
+						:disabled="isLoading"
+						:loading="loadingCollection"
+					/>
 				</UFormField>
 				<UFormField label="Description" name="description">
-					<UInput v-model="state.description" class="w-full" :maxlength="500" />
+					<UInput
+						v-model="state.description"
+						class="w-full"
+						:maxlength="500"
+						:disabled="isLoading"
+						:loading="loadingCollection"
+					/>
 				</UFormField>
 				<UFormField label="Favorite" name="favorite">
-					<USwitch v-model="state.favorite" />
+					<USwitch v-model="state.favorite" :disabled="isLoading" :loading="loadingCollection" />
 				</UFormField>
 			</UForm>
 		</template>
 
 		<template #footer>
 			<UButton label="Cancel" variant="ghost" color="neutral" @click="onCancel" :disabled="isLoading" />
-			<UButton :label="collection ? 'Update' : 'Create'" @click="onSave" :loading="isLoading" />
+			<UButton
+				:label="collection ? 'Update' : 'Create'"
+				@click="onSave"
+				:loading="isSubmitting"
+				:disabled="isInitializing"
+			/>
 		</template>
 	</UModal>
 </template>
@@ -32,17 +57,20 @@
 import type { FormSubmitEvent } from "@nuxt/ui";
 import { z } from "zod";
 
-const { collection } = defineProps<{ collection?: CollectionDefaultView }>();
+const props = defineProps<{ id?: string }>();
 
 const emit = defineEmits<{
 	close: [value?: CollectionDefaultView];
 }>();
 
-const isLoading = ref(false);
+const isSubmitting = ref(false);
 const form = useTemplateRef("form");
 const toast = useStatusToast();
 const trpc = useTrpc();
 const collectionStore = useCollectionStore();
+
+const isInitializing = computed(() => loadingCollection.value);
+const isLoading = computed(() => isInitializing.value || isSubmitting.value);
 
 const schema = z.object({
 	name: ClientCollectionValidation.name,
@@ -50,11 +78,32 @@ const schema = z.object({
 	favorite: ClientCollectionValidation.favorite,
 });
 type Schema = z.infer<typeof schema>;
+
 const state = reactive<Schema>({
-	name: collection?.name ?? "",
-	description: collection?.description ?? "",
-	favorite: collection?.favorite ?? false,
+	name: "",
+	description: "",
+	favorite: false,
 });
+
+const { data: collection, pending: loadingCollection } = useClientAsyncData(
+	() => trpc.collection.getById.query({ id: props.id! }),
+	{
+		enabled: () => !!props.id,
+	},
+);
+
+watch(
+	collection,
+	(c) => {
+		if (!c) {
+			return;
+		}
+		state.name = c.name;
+		state.description = c.description ?? "";
+		state.favorite = c.favorite;
+	},
+	{ immediate: true },
+);
 
 const onCancel = () => {
 	emit("close");
@@ -66,20 +115,24 @@ const onSave = async () => {
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	try {
-		isLoading.value = true;
+		isSubmitting.value = true;
 
 		let updatedCollection;
 
-		if (collection) {
+		if (props.id) {
 			updatedCollection = await trpc.collection.update.mutate({
-				id: collection.id,
+				id: props.id,
 				name: payload.data.name,
 				description: payload.data.description,
 				favorite: payload.data.favorite,
 			});
 			toast.success({ description: `Collection ${updatedCollection.name} has been updated` });
 		} else {
-			updatedCollection = await collectionStore.createCollection(payload.data);
+			updatedCollection = await collectionStore.createCollection({
+				name: payload.data.name,
+				description: payload.data.description,
+				favorite: payload.data.favorite,
+			});
 			toast.success({ description: `Collection ${updatedCollection.name} has been created` });
 		}
 
@@ -87,7 +140,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 	} catch (err) {
 		toast.error(ErrorEvent);
 	} finally {
-		isLoading.value = false;
+		isSubmitting.value = false;
 	}
 };
 </script>

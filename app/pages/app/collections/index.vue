@@ -86,7 +86,7 @@ const { search, page, trimmedSearch } = useSearchPagination();
 const collectionFormModal = overlay.create(LazyCollectionFormModal);
 const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 	const instance = collectionFormModal.open({
-		collection,
+		id: collection?.id,
 	});
 
 	const result = await instance.result;

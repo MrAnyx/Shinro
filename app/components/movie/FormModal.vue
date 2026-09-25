@@ -3,7 +3,7 @@
 		<template #title>
 			<div class="flex items-center gap-x-2">
 				<Spinner class="size-5" v-if="isInitializing" />
-				<span>{{ movie ? "Update" : "Create" }} a movie</span>
+				<span>{{ props.id ? "Update" : "Create" }} a movie</span>
 			</div>
 		</template>
 		<template #body>
@@ -109,6 +109,15 @@ const schema = z.object({
 });
 type Schema = z.infer<typeof schema>;
 
+const state = reactive<Schema>({
+	name: "",
+	status: undefined,
+	collections: [],
+	note: "",
+	overview: "",
+	rating: undefined,
+});
+
 const { data: movie, pending: loadingMovie } = useClientAsyncData(() => trpc.movie.getById.query({ id: props.id }), {
 	enabled: () => !!props.id,
 });
@@ -143,15 +152,6 @@ watch(
 	},
 	{ immediate: true },
 );
-
-const state = reactive<Schema>({
-	name: "",
-	status: undefined,
-	collections: [],
-	note: "",
-	overview: "",
-	rating: undefined,
-});
 
 const onCancel = () => {
 	emit("close");
