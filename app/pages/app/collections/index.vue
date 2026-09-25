@@ -13,7 +13,7 @@
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="onCollectionSelected"
+			@select="(e, row) => onCollectionSelected(row)"
 		>
 			<template #empty>
 				<UEmpty
@@ -45,13 +45,15 @@
 				/>
 			</template>
 			<template #favorite-cell="{ row }">
-				<UButton
-					:icon="row.original.favorite ? 'i-ph-star-fill' : 'i-ph-star'"
+				<ToggleButton
 					variant="ghost"
-					:color="row.original.favorite ? 'warning' : 'neutral'"
-					@click="toggleCollectionFavorite(row)"
-					:disabled="loadingCollectionIds.has(row.original.id)"
-					:loading="loadingCollectionIds.has(row.original.id)"
+					on-icon="i-ph-star-fill"
+					off-icon="i-ph-star"
+					on-color="warning"
+					off-color="neutral"
+					:is-added="row.original.favorite"
+					:onClickOn="() => toggleCollectionFavorite(row)"
+					:onClickOff="() => toggleCollectionFavorite(row)"
 				/>
 			</template>
 			<template #actions-cell="{ row }">
@@ -65,7 +67,7 @@
 		v-model:page="page"
 		:total="data?.total"
 		:items-per-page="ITEMS_PER_PAGE"
-		v-show="(data?.total ?? 0) > ITEMS_PER_PAGE"
+		v-if="(data?.total ?? 0) > ITEMS_PER_PAGE"
 	/>
 </template>
 <script setup lang="ts">
@@ -73,8 +75,6 @@ import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt
 import { watchDebounced } from "@vueuse/core";
 
 import { LazyCollectionFormModal } from "#components";
-
-const loadingCollectionIds = reactive(new Set<string>());
 
 const overlay = useOverlay();
 const trpc = useTrpc();
@@ -191,10 +191,6 @@ const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[]
 	],
 ];
 
-const resetSearchField = () => {
-	search.value = "";
-};
-
 const emptyActions: ButtonProps[] = [
 	{
 		icon: "i-lucide-plus",
@@ -207,8 +203,6 @@ const emptyActions: ButtonProps[] = [
 
 const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) => {
 	try {
-		loadingCollectionIds.add(row.original.id);
-
 		const collection = await trpc.collection.update.mutate({
 			id: row.original.id,
 			favorite: !row.original.favorite,
@@ -230,12 +224,10 @@ const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) =>
 		});
 	} catch (err: any) {
 		toast.error(err);
-	} finally {
-		loadingCollectionIds.delete(row.original.id);
 	}
 };
 
-const onCollectionSelected = async (e: Event, row: TableRow<CollectionDefaultView>) => {
+const onCollectionSelected = async (row: TableRow<CollectionDefaultView>) => {
 	await navigateTo({ path: `/app/collections/${row.original.id}` });
 };
 </script>

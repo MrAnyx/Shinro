@@ -199,8 +199,6 @@ export default router({
 		)
 		.output(CollectionDefaultViewSchema)
 		.query(async ({ input, ctx }) => {
-			await delay(3000);
-
 			const collection = await prisma.collection.findFirst({
 				where: {
 					id: input.id,

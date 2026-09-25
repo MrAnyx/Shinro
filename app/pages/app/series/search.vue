@@ -50,8 +50,8 @@
 				<ToggleButton
 					variant="ghost"
 					:is-added="!!row.original.internal_serie"
-					:on-add="() => addSerieToMyList(row)"
-					:on-remove="() => removeSerieFromMyList(row)"
+					:onClickOn="() => addSerieToMyList(row)"
+					:onClickOff="() => removeSerieFromMyList(row)"
 				/>
 			</template>
 		</UTable>
@@ -60,7 +60,7 @@
 		v-model:page="page"
 		:total="data?.total"
 		:items-per-page="TMDB_ITEMS_PER_PAGE"
-		v-show="(data?.total ?? 0) > TMDB_ITEMS_PER_PAGE"
+		v-if="(data?.total ?? 0) > TMDB_ITEMS_PER_PAGE"
 	/>
 </template>
 

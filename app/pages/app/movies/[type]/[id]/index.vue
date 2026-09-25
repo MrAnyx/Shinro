@@ -103,8 +103,8 @@
 								<ToggleButton
 									variant="ghost"
 									:is-added="!!row.original.internal_movie"
-									:on-add="() => addSagaMovieToMyList(row)"
-									:on-remove="() => removeSagaMovieFromMyList(row)"
+									:onClickOn="() => addSagaMovieToMyList(row)"
+									:onClickOff="() => removeSagaMovieFromMyList(row)"
 								/>
 							</template>
 						</UTable>

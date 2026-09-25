@@ -65,7 +65,7 @@
 		v-model:page="page"
 		:total="data?.total"
 		:items-per-page="ITEMS_PER_PAGE"
-		v-show="(data?.total ?? 0) > ITEMS_PER_PAGE"
+		v-if="(data?.total ?? 0) > ITEMS_PER_PAGE"
 	/>
 </template>
 <script setup lang="ts">

@@ -97,8 +97,8 @@
 								<ToggleButton
 									variant="ghost"
 									:is-added="!!row.original.internal_season"
-									:on-add="() => addSeasonToMyList(row)"
-									:on-remove="() => removeSeasonFromMyList(row)"
+									:onClickOn="() => addSeasonToMyList(row)"
+									:onClickOff="() => removeSeasonFromMyList(row)"
 								/>
 							</template>
 						</UTable>
