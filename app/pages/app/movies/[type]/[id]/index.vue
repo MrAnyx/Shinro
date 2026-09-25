@@ -198,7 +198,7 @@ watch(myMovieCollections, (newValue) => {
 });
 
 // Derived UI state
-const genres = computed(() => tmdbMovieDetails.value?.details.genres?.flatMap((x) => x?.name?.trim() || []));
+const genres = computed(() => tmdbMovieDetails.value?.details.genres?.flatMap((x) => x?.name?.trim() || []) ?? []);
 const isLoading = computed(() => loadingDetails.value || loadingMyMovie.value || loadingMovieCollections.value);
 const isInMyList = computed(() => !!myMovieDetails.value);
 const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
@@ -209,7 +209,7 @@ const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown")
 const tabs = computed<TabsItem[]>(() => [
 	...(isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : []),
 	...(isExternal.value && hasSaga.value
-		? [{ icon: "i-lucide-list-video", label: `Saga (${sagaName.value})`, slot: "saga" }]
+		? [{ icon: "i-lucide-layers", label: `Saga (${sagaName.value})`, slot: "saga" }]
 		: []),
 ]);
 

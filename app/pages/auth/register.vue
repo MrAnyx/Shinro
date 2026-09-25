@@ -27,20 +27,7 @@ import { z } from "zod";
 
 definePageMeta({
 	layout: "auth",
-	middleware: [
-		"guest-only",
-		() => {
-			const config = useClientConfig();
-
-			if (!config.allowRegistration) {
-				return abortNavigation({
-					statusCode: 404,
-					statusMessage: "Not Found",
-					statusText: "The page you are looking for does not exist",
-				});
-			}
-		},
-	],
+	middleware: ["guest-only", "register"],
 });
 
 const toast = useStatusToast();

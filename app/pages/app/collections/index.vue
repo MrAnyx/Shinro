@@ -92,6 +92,7 @@ const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 	const result = await instance.result;
 
 	if (result) {
+		// Refresh as it may change the order
 		refresh();
 	}
 };
@@ -184,7 +185,11 @@ const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[]
 				);
 
 				if (result) {
-					refresh();
+					// Delete the selected element. No need to refresh here
+					const idx = data.value.results.findIndex((m) => m.id === row.original.id);
+					if (idx !== -1) {
+						data.value.results.splice(idx, 1);
+					}
 				}
 			},
 		},
@@ -212,10 +217,11 @@ const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) =>
 			return;
 		}
 
-		data.value = {
-			...data.value,
-			results: data.value.results.map((m) => (m.id === row.original.id ? collection : m)),
-		};
+		// Update the collection list
+		const idx = data.value.results.findIndex((m) => m.id === row.original.id);
+		if (idx !== -1) {
+			data.value.results[idx] = collection;
+		}
 
 		toast.success({
 			description: row.original.favorite

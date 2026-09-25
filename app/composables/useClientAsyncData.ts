@@ -24,6 +24,7 @@ export const useClientAsyncData = <T>(fetcher: () => Promise<T>, options?: Optio
 			}
 		},
 		{
+			deep: true,
 			...asyncDataOptions,
 			lazy: true,
 			server: false,
