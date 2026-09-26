@@ -61,7 +61,7 @@
 						:credits="credits"
 						image-provider="tmdb"
 						:loading="isLoading"
-						:show-more-to="`https://www.themoviedb.org/tv/${id}/cast`"
+						:show-more-to="`https://www.themoviedb.org/tv/${serieId}/cast`"
 						:credit-card-to-fn="(credit) => `https://www.themoviedb.org/person/${credit.id}`"
 					/>
 				</template>
@@ -131,10 +131,10 @@ const toast = useStatusToast();
 const overlay = useOverlay();
 
 const type = computed(() => route.params.type as MediaSourceType);
-const id = computed(() => route.params.serieId as string);
+const serieId = computed(() => route.params.serieId as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
-const mediaQueryParams = computed(() => (isInternal.value ? { id: id.value } : { externalId: id.value }));
+const mediaQueryParams = computed(() => (isInternal.value ? { id: serieId.value } : { externalId: serieId.value }));
 
 const rating = ref<number | undefined>();
 const selectedCollectionIds = ref<string[]>([]);
@@ -155,7 +155,7 @@ watch(mySerieDetails, (newValue) => {
 });
 
 const { data: tmdbSerieDetails, pending: loadingDetails } = useClientAsyncData(
-	() => trpc.tmdbSerie.details.query({ id: id.value }),
+	() => trpc.tmdbSerie.details.query({ id: serieId.value }),
 	{ enabled: () => isExternal.value },
 );
 
@@ -237,7 +237,7 @@ const addSerie = () =>
 			return;
 		}
 
-		mySerieDetails.value = await serieStore.createSerieFromExternal({ externalId: id.value });
+		mySerieDetails.value = await serieStore.createSerieFromExternal({ externalId: serieId.value });
 	});
 
 const editSerie = async () => {
@@ -315,6 +315,6 @@ const removeSeasonFromMyList = (row: TableRow<TmdbSerieSeasonDetailsDefaultView>
 	});
 
 const onSeasonSelected = (_event: Event, row: TableRow<TmdbSerieSeasonDetailsDefaultView>) => {
-	return navigateTo(`/app/series/${type.value}/${id.value}/season/${row.original.season_number}`);
+	return navigateTo(`/app/series/${type.value}/${serieId.value}/seasons/${row.original.season_number}`);
 };
 </script>

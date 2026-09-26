@@ -64,7 +64,7 @@
 						:credits="credits"
 						image-provider="tmdb"
 						:loading="isLoading"
-						:show-more-to="`https://www.themoviedb.org/movie/${id}/cast`"
+						:show-more-to="`https://www.themoviedb.org/movie/${movieId}/cast`"
 						:credit-card-to-fn="(credit) => `https://www.themoviedb.org/person/${credit.id}`"
 					/>
 				</template>
@@ -138,10 +138,10 @@ const overlay = useOverlay();
 
 // Route + page state
 const type = computed(() => route.params.type as MediaSourceType);
-const id = computed(() => route.params.movieId as string);
+const movieId = computed(() => route.params.movieId as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
-const mediaQueryParams = computed(() => (isInternal.value ? { id: id.value } : { externalId: id.value }));
+const mediaQueryParams = computed(() => (isInternal.value ? { id: movieId.value } : { externalId: movieId.value }));
 
 // Local reactive state
 const rating = ref<number | undefined>(undefined);
@@ -164,7 +164,7 @@ watch(myMovieDetails, (newValue) => {
 });
 
 const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
-	() => trpc.tmdbMovie.details.query({ id: id.value }),
+	() => trpc.tmdbMovie.details.query({ id: movieId.value }),
 	{ enabled: () => isExternal.value },
 );
 
@@ -268,7 +268,7 @@ const removeMovie = () =>
 
 		await movieStore.deleteMovie({ id: myMovieDetails.value!.id });
 		myMovieDetails.value = undefined;
-		updateSagaMovieInternalMovie(id.value, undefined);
+		updateSagaMovieInternalMovie(movieId.value, undefined);
 
 		if (isInternal.value) {
 			await navigateTo("/app/movies");
@@ -281,9 +281,9 @@ const addMovie = () =>
 			return;
 		}
 
-		const movie = await movieStore.createMovieFromExternal({ externalId: id.value });
+		const movie = await movieStore.createMovieFromExternal({ externalId: movieId.value });
 		myMovieDetails.value = movie;
-		updateSagaMovieInternalMovie(id.value, movie);
+		updateSagaMovieInternalMovie(movieId.value, movie);
 	});
 
 const editMovie = async () => {
@@ -335,7 +335,7 @@ const addSagaMovieToMyList = (row: TableRow<TmdbMovieCollectionPartDefaultView>)
 		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
 		updateSagaMovieInternalMovie(row.original.id, movie);
 
-		if (row.original.id === id.value) {
+		if (row.original.id === movieId.value && !!myMovieDetails.value) {
 			myMovieDetails.value = movie;
 		}
 
