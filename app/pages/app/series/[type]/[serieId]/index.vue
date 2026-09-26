@@ -212,7 +212,10 @@ const seasonColumns: TableColumn<TmdbSerieSeasonDetailsDefaultView>[] = [
 		header: "Vote",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
-	{ id: "actions", meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } } },
+	{
+		id: "actions",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
 ];
 
 const serieFormModal = overlay.create(LazySerieFormModal);
@@ -281,8 +284,28 @@ const updateRating = () =>
 		await trpc.serie.update.mutate({ id: mySerieDetails.value!.id, rating: rating.value ?? null });
 	});
 
+const updateSeasonInternalSeason = (externalId?: string, internalSeason?: SeasonWithMediaView) => {
+	if (!externalId) {
+		return;
+	}
+
+	const target = tmdbSerieDetails.value?.details?.seasons?.find((m) => m?.id === externalId);
+	if (target) {
+		target.internal_season = internalSeason;
+	}
+};
+
 const addSeasonToMyList = (row: TableRow<TmdbSerieSeasonDetailsDefaultView>) =>
 	toast.withErrorToast(async () => {
+		const movie = await serieStore.createSeasonFromExternal({ externalId: row.original.id });
+		updateSeasonInternalSeason(row.original.id, movie);
+
+		if (row.original.id === serieId.value && !!mySerieDetails.value) {
+			mySerieDetails.value = movie;
+		}
+
+		toast.success({ description: `${movie.media.name} has been added to your list` });
+
 		// if (!mySerieDetails.value || getInternalSeason(row.original)) {
 		// 	return;
 		// }

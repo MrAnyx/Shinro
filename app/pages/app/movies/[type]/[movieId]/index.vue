@@ -164,7 +164,7 @@ watch(myMovieDetails, (newValue) => {
 });
 
 const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
-	() => trpc.tmdbMovie.details.query({ id: movieId.value }),
+	() => trpc.tmdbMovie.details.query({ movieId: movieId.value }),
 	{ enabled: () => isExternal.value },
 );
 

@@ -65,7 +65,7 @@ export default router({
 	details: protectedProcedure
 		.input(
 			z.object({
-				id: ServerTmdbMovieValidation.id,
+				movieId: ServerTmdbMovieValidation.id,
 			}),
 		)
 		.output(
@@ -78,11 +78,11 @@ export default router({
 		.query(async ({ input, ctx }) => {
 			// Get the movie details and credits from TMDB in parallel
 			const [details, credits] = await Promise.all([
-				useCache(`tmdb:movie:details:${input.id}`, () =>
-					tmdb(`/movie/${input.id}`, { schema: TmdbMovieDetailsResponseSchema }),
+				useCache(`tmdb:movie:${input.movieId}:details`, () =>
+					tmdb(`/movie/${input.movieId}`, { schema: TmdbMovieDetailsResponseSchema }),
 				),
-				useCache(`tmdb:movie:credits:${input.id}`, () =>
-					tmdb(`/movie/${input.id}/credits`, { schema: TmdbMovieCreditsResponseSchema }),
+				useCache(`tmdb:movie:${input.movieId}:credits`, () =>
+					tmdb(`/movie/${input.movieId}/credits`, { schema: TmdbMovieCreditsResponseSchema }),
 				),
 			]);
 

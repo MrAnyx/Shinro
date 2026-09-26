@@ -76,10 +76,10 @@ export default router({
 		)
 		.query(async ({ input, ctx }) => {
 			const [details, credits] = await Promise.all([
-				useCache(`tmdb:serie:details:${input.id}`, () =>
+				useCache(`tmdb:serie:${input.id}:details`, () =>
 					tmdb(`/tv/${input.id}`, { schema: TmdbSerieDetailsResponseSchema }),
 				),
-				useCache(`tmdb:serie:credits:${input.id}`, () =>
+				useCache(`tmdb:serie:${input.id}:credits`, () =>
 					tmdb(`/tv/${input.id}/credits`, { schema: TmdbSerieCreditsResponseSchema }),
 				),
 			]);
