@@ -131,7 +131,7 @@ const toast = useStatusToast();
 const overlay = useOverlay();
 
 const type = computed(() => route.params.type as MediaSourceType);
-const id = computed(() => route.params.id as string);
+const id = computed(() => route.params.serieId as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
 const mediaQueryParams = computed(() => (isInternal.value ? { id: id.value } : { externalId: id.value }));
