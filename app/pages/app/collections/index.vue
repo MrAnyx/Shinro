@@ -127,14 +127,16 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 
 // Get collections query
 const total = computed(() => data.value?.total ?? 0);
+
 const { data, pending, refresh } = useClientAsyncData(
 	() => trpc.collection.getAll.query({ page: page.value, search: trimmedSearch.value }),
-	{ watch: [page] },
+	{
+		watch: [page],
+		defaultErrorMessage: "Failed to fetch the collections",
+	},
 );
 
-watchDebounced(trimmedSearch, () => refresh(), {
-	debounce: DEBOUNCE_TIMER,
-});
+watchDebounced(trimmedSearch, () => refresh(), { debounce: DEBOUNCE_TIMER });
 
 // Methods
 const collectionFormModal = overlay.create(LazyCollectionFormModal);
