@@ -22,23 +22,6 @@ export const TmdbSerieDetailsDefaultViewSchema = z.object({
 	in_production: z.boolean(),
 	number_of_seasons: z.number(),
 	number_of_episodes: z.number(),
-	seasons: z
-		.array(
-			z
-				.object({
-					air_date: z.string().nullish(),
-					episode_count: z.number(),
-					id: z.string(),
-					name: z.string().nullish(),
-					season_number: z.number(),
-					overview: z.string().nullish(),
-					poster_path: z.string().nullish(),
-					vote_average: z.number(),
-					internal_season: SeasonWithMediaViewSchema.nullish(),
-				})
-				.nullish(),
-		)
-		.nullish(),
 	overview: z.string().nullish(),
 	vote_average: z.number(),
 	vote_count: z.number(),
@@ -53,6 +36,22 @@ export const TmdbSerieDetailsDefaultViewSchema = z.object({
 		.nullish(),
 	tagline: z.string().nullish(),
 });
+
+export const TmdbSerieDetailsSeasonsDefaultViewSchema = z.array(
+	z
+		.object({
+			air_date: z.string().nullish(),
+			episode_count: z.number(),
+			id: z.string(),
+			name: z.string().nullish(),
+			season_number: z.number(),
+			overview: z.string().nullish(),
+			poster_path: z.string().nullish(),
+			vote_average: z.number(),
+			internal_season: SeasonWithMediaViewSchema.nullish(),
+		})
+		.nullish(),
+);
 
 export const TmdbSerieCreditsDefaultViewSchema = z.object({
 	cast: z

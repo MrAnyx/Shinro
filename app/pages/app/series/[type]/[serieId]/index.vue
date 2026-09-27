@@ -127,6 +127,7 @@ definePageMeta({
 const route = useRoute();
 const trpc = useTrpc();
 const serieStore = useSerieStore();
+const seasonStore = useSeasonStore();
 const toast = useStatusToast();
 const overlay = useOverlay();
 
@@ -173,7 +174,7 @@ const isLoading = computed(() => loadingDetails.value || loadingMySerie.value ||
 const isInMyList = computed(() => !!mySerieDetails.value);
 const note = computed(() => mySerieDetails.value?.media.note ?? undefined);
 const credits = computed(() => tmdbSerieDetails.value?.credits.cast?.filter((credit) => !!credit) ?? []);
-const seasons = computed(() => tmdbSerieDetails.value?.details.seasons?.filter((season) => !!season) ?? []);
+const seasons = computed(() => tmdbSerieDetails.value?.seasons?.filter((season) => !!season) ?? []);
 
 const tabs = computed<TabsItem[]>(() => [
 	...(isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : []),
@@ -289,7 +290,7 @@ const updateSeasonInternalSeason = (externalId?: string, internalSeason?: Season
 		return;
 	}
 
-	const target = tmdbSerieDetails.value?.details?.seasons?.find((m) => m?.id === externalId);
+	const target = tmdbSerieDetails.value?.seasons?.find((m) => m?.id === externalId);
 	if (target) {
 		target.internal_season = internalSeason;
 	}
@@ -297,7 +298,7 @@ const updateSeasonInternalSeason = (externalId?: string, internalSeason?: Season
 
 const addSeasonToMyList = (row: TableRow<TmdbSerieSeasonDetailsDefaultView>) =>
 	toast.withErrorToast(async () => {
-		const movie = await serieStore.createSeasonFromExternal({ externalId: row.original.id });
+		const movie = await seasonStore.createSeasonFromExternal({ externalId: row.original.id });
 		updateSeasonInternalSeason(row.original.id, movie);
 
 		if (row.original.id === serieId.value && !!mySerieDetails.value) {

@@ -71,6 +71,7 @@ export default router({
 		.output(
 			z.object({
 				details: TmdbSerieDetailsDefaultViewSchema,
+				seasons: TmdbSerieDetailsSeasonsDefaultViewSchema,
 				credits: TmdbSerieCreditsDefaultViewSchema,
 			}),
 		)
@@ -106,7 +107,7 @@ export default router({
 			const mySeasonsMap = new Map(mySeasons.map((m) => [m.media.externalId, m]));
 
 			// Merge the TMDB collection seasons with the user's seasons
-			details.seasons =
+			const seasons =
 				details.seasons
 					?.filter((x) => !!x)
 					?.sort((a, b) => a.season_number - b.season_number)
@@ -114,6 +115,7 @@ export default router({
 
 			return {
 				details,
+				seasons,
 				credits,
 			};
 		}),

@@ -10,16 +10,16 @@ export const useSerieStore = defineStore("season", {
 			this.total = count;
 		},
 
-		async createSerie(payload: TRPCProcedureInput<"season", "create">) {
-			const trpc = useTrpc();
+		// async createSeason(payload: TRPCProcedureInput<"season", "create">) {
+		// 	const trpc = useTrpc();
 
-			const season = await trpc.season.create.mutate(payload);
-			this.total += 1;
+		// 	const season = await trpc.season.create.mutate(payload);
+		// 	this.total += 1;
 
-			return season;
-		},
+		// 	return season;
+		// },
 
-		async createSerieFromExternal(payload: TRPCProcedureInput<"season", "createFromExternal">) {
+		async createSeasonFromExternal(payload: TRPCProcedureInput<"season", "createFromExternal">) {
 			const trpc = useTrpc();
 
 			const season = await trpc.season.createFromExternal.mutate(payload);

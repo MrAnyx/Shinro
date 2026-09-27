@@ -3,6 +3,7 @@ import cacheRouter from "#server/trpc/routers/cache";
 import collectionRouter from "#server/trpc/routers/collection";
 import mediaRouter from "#server/trpc/routers/media";
 import movieRouter from "#server/trpc/routers/movie";
+import seasonRouter from "#server/trpc/routers/season";
 import serieRouter from "#server/trpc/routers/serie";
 import tmdbMovieRouter from "#server/trpc/routers/tmdb/movie";
 import tmdbSeasonRouter from "#server/trpc/routers/tmdb/season";
@@ -18,6 +19,7 @@ export const appRouter = router({
 	cache: cacheRouter,
 	movie: movieRouter,
 	serie: serieRouter,
+	season: seasonRouter,
 	media: mediaRouter,
 });
 
