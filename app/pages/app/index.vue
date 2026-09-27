@@ -77,7 +77,7 @@
 						:columns="recentMediasColumns"
 						:data="recentMedias"
 						:loading="loadingRecent"
-						@select="onMediaSelect"
+						@select="(_e, row) => onMediaSelect(row.original)"
 					>
 						<template #empty>
 							<UEmpty
@@ -260,15 +260,17 @@ const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 	},
 ];
 
-const onMediaSelect = async (e: Event, row: TableRow<MediaDefaultView>) => {
-	switch (row.original.type) {
+const onMediaSelect = async (media: MediaDefaultView) => {
+	switch (media.type) {
 		case MediaType.MOVIE:
-			await navigateTo(
-				row.original.externalId
-					? `/app/movies/external/${row.original.externalId}`
-					: `/app/movies/internal/${row.original.id}`,
+			return await navigateTo(
+				media.externalId ? `/app/movies/external/${media.externalId}` : `/app/movies/internal/${media.id}`,
 			);
-			break;
+
+		case MediaType.SERIE:
+			return await navigateTo(
+				media.externalId ? `/app/series/external/${media.externalId}` : `/app/series/internal/${media.id}`,
+			);
 
 		// other types
 
