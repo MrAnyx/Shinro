@@ -14,7 +14,7 @@
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="onMovieSelected"
+			@select="(_e, row) => onMovieSelected(row.original)"
 		>
 			<template #empty>
 				<UEmpty
@@ -209,18 +209,16 @@ const emptyActions: ButtonProps[] = [
 		icon: "i-lucide-search",
 		label: "Search",
 		async onClick() {
-			await navigateTo({
-				path: "/app/movies/search",
-			});
+			await navigateTo({ path: "/app/movies/search" });
 		},
 	},
 ];
 
-const onMovieSelected = async (e: Event, row: TableRow<MovieWithMediaView>) => {
-	if (row.original.media.externalId) {
-		await navigateTo(`/app/movies/external/${row.original.media.externalId}`);
+const onMovieSelected = async (movie: MovieWithMediaView) => {
+	if (movie.media.externalId) {
+		await navigateTo(`/app/movies/external/${movie.media.externalId}`);
 	} else {
-		await navigateTo(`/app/movies/internal/${row.original.id}`);
+		await navigateTo(`/app/movies/internal/${movie.id}`);
 	}
 };
 </script>

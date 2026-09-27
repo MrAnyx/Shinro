@@ -10,7 +10,7 @@
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="onMovieSelected"
+			@select="(_e, row) => onMovieSelected(row.original)"
 		>
 			<template #empty>
 				<UEmpty
@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn, ButtonProps, TableRow } from "@nuxt/ui";
+import type { TableColumn, ButtonProps } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
 const trpc = useTrpc();
@@ -76,7 +76,7 @@ const { search, page, trimmedSearch } = useSearchPagination();
 const searchInput = useTemplateRef("searchInput");
 
 onMounted(() => {
-	focusSearchField();
+	_focusSearchField();
 });
 
 const { data, pending, refresh, clear } = useClientAsyncData(
@@ -174,52 +174,42 @@ const emptyActions: ButtonProps[] = [
 		icon: "i-lucide-search",
 		label: "Search",
 		onClick() {
-			focusSearchField();
+			_focusSearchField();
 		},
 	},
 ];
 
-const focusSearchField = () => {
+const _focusSearchField = () => {
 	searchInput.value?.inputRef?.select();
 	searchInput.value?.inputRef?.focus();
 };
 
-const updateMovieInternalId = (externalId: string, internalMovie?: MovieWithMediaView) => {
+const _updateMovieInternalId = (externalId: string, internalMovie?: MovieWithMediaView) => {
 	const target = data.value?.results.find((m) => m.id === externalId);
 	if (target) {
 		target.internal_movie = internalMovie;
 	}
 };
 
-const addMovieToMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) => {
-	try {
+const addMovieToMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
+	toast.withErrorToast(async () => {
 		const movie = await movieStore.createMovieFromExternal({ externalId: tmdbMovie.id });
-
-		updateMovieInternalId(tmdbMovie.id, movie);
-
+		_updateMovieInternalId(tmdbMovie.id, movie);
 		toast.success({ description: `${movie.media.name} has been added to your list` });
-	} catch (err: any) {
-		toast.error(err);
-	}
-};
+	});
 
-const removeMovieFromMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) => {
-	try {
+const removeMovieFromMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
+	toast.withErrorToast(async () => {
 		if (!tmdbMovie.internal_movie?.id) {
 			return;
 		}
 
 		await movieStore.deleteMovie({ id: tmdbMovie.internal_movie.id });
-
-		updateMovieInternalId(tmdbMovie.id, undefined);
-
+		_updateMovieInternalId(tmdbMovie.id, undefined);
 		toast.success({ description: `${tmdbMovie.title} has been removed from your list` });
-	} catch (err: any) {
-		toast.error(err);
-	}
-};
+	});
 
-const onMovieSelected = async (e: Event, row: TableRow<TmdbMovieSearchDefaultView>) => {
-	await navigateTo({ path: `/app/movies/external/${row.original.id}` });
+const onMovieSelected = async (tmdbMovie: TmdbMovieSearchDefaultView) => {
+	await navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
 };
 </script>
