@@ -21,7 +21,15 @@
 					description="Create your first collection"
 					variant="naked"
 					icon="i-lucide-ban"
-					:actions="emptyActions"
+					:actions="[
+						{
+							icon: 'i-lucide-plus',
+							label: 'New collection',
+							onClick() {
+								openCollectionFormModal();
+							},
+						},
+					]"
 				></UEmpty>
 			</template>
 			<template #createdAt-cell="{ row }">
@@ -76,6 +84,7 @@ import { watchDebounced } from "@vueuse/core";
 
 import { LazyCollectionFormModal } from "#components";
 
+// Composables
 const overlay = useOverlay();
 const trpc = useTrpc();
 const collectionStore = useCollectionStore();
@@ -83,22 +92,41 @@ const toast = useStatusToast();
 const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
 
-const collectionFormModal = overlay.create(LazyCollectionFormModal);
-const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
-	const instance = collectionFormModal.open({
-		id: collection?.id,
-	});
+// Table structure
+const columns: TableColumn<CollectionDefaultView>[] = [
+	{
+		header: "Name",
+		accessorKey: "name",
+		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
+	},
+	{
+		header: "Description",
+		accessorKey: "description",
+		meta: { class: { td: "max-w-[300px] truncate" } },
+	},
+	{
+		header: "Created At",
+		id: "createdAt",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		header: "Updated At",
+		id: "updatedAt",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		header: "Favorite",
+		id: "favorite",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		id: "actions",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+];
 
-	const result = await instance.result;
-
-	if (result) {
-		// Refresh as it may change the order
-		refresh();
-	}
-};
-
+// Get collections query
 const total = computed(() => data.value?.total ?? 0);
-
 const { data, pending, refresh } = useClientAsyncData(
 	() => trpc.collection.getAll.query({ page: page.value, search: trimmedSearch.value }),
 	{ watch: [page] },
@@ -108,65 +136,21 @@ watchDebounced(trimmedSearch, () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
 
-const columns: TableColumn<CollectionDefaultView>[] = [
-	{
-		header: "Name",
-		accessorKey: "name",
-		meta: {
-			class: {
-				td: "max-w-[120px] truncate font-bold text-default",
-			},
-		},
-	},
-	{
-		header: "Description",
-		accessorKey: "description",
-		meta: {
-			class: {
-				td: "max-w-[300px] truncate",
-			},
-		},
-	},
-	{
-		header: "Created At",
-		id: "createdAt",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-	{
-		header: "Updated At",
-		id: "updatedAt",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-	{
-		header: "Favorite",
-		id: "favorite",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-	{
-		id: "actions",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-];
+// Methods
+const collectionFormModal = overlay.create(LazyCollectionFormModal);
+const openCollectionFormModal = async (collection?: CollectionDefaultView) =>
+	toast.withErrorToast(async () => {
+		const instance = collectionFormModal.open({
+			id: collection?.id,
+		});
+
+		const result = await instance.result;
+
+		if (result) {
+			// Refresh as it may change the order
+			refresh();
+		}
+	});
 
 const getRowActions = (collection: CollectionDefaultView): DropdownMenuItem[][] => [
 	[
@@ -190,22 +174,11 @@ const getRowActions = (collection: CollectionDefaultView): DropdownMenuItem[][] 
 					if (result) {
 						// Delete the selected element. No need to refresh here
 						data.value.results = data.value.results.filter((m) => m.id !== collection.id);
-						toast.success({ description: `Collection ${collection.name} has been deleted` });
 					}
 				});
 			},
 		},
 	],
-];
-
-const emptyActions: ButtonProps[] = [
-	{
-		icon: "i-lucide-plus",
-		label: "New collection",
-		onClick() {
-			openCollectionFormModal();
-		},
-	},
 ];
 
 const toggleCollectionFavorite = async (collection: CollectionDefaultView) =>
