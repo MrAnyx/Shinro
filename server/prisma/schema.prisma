@@ -133,6 +133,8 @@ model Season {
     serie    Serie   @relation(fields: [serieId], references: [id], onDelete: Cascade)
 
     episodes Episode[]
+
+    @@unique([serieId, number])
 }
 
 model Episode {
@@ -143,4 +145,6 @@ model Episode {
 
     seasonId String @db.Uuid
     season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+    @@unique([seasonId, number])
 }

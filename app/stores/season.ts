@@ -1,4 +1,4 @@
-export const useSerieStore = defineStore("season", {
+export const useSeasonStore = defineStore("season", {
 	state: () => ({
 		total: 0,
 	}),

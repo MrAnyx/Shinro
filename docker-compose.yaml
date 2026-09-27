@@ -6,8 +6,7 @@ services:
             - "6379:6379"
         volumes:
             - redisdata:/data
-        environment:
-            - REDIS_ARGS=--requirepass shinro --appendonly yes
+        command: ["redis-server", "--requirepass", "shinro", "--appendonly", "yes"]
 
     db:
         image: postgres:16-alpine

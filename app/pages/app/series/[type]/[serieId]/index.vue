@@ -298,31 +298,17 @@ const updateSeasonInternalSeason = (externalId?: string, internalSeason?: Season
 
 const addSeasonToMyList = (row: TableRow<TmdbSerieSeasonDetailsDefaultView>) =>
 	toast.withErrorToast(async () => {
-		const movie = await seasonStore.createSeasonFromExternal({ externalId: row.original.id });
-		updateSeasonInternalSeason(row.original.id, movie);
+		const season = await seasonStore.createSeasonFromExternal({
+			externalSerieId: serieId.value,
+			seasonNumber: row.original.season_number,
+		});
+		updateSeasonInternalSeason(row.original.id, season);
 
 		if (row.original.id === serieId.value && !!mySerieDetails.value) {
-			mySerieDetails.value = movie;
+			mySerieDetails.value = season;
 		}
 
-		toast.success({ description: `${movie.media.name} has been added to your list` });
-
-		// if (!mySerieDetails.value || getInternalSeason(row.original)) {
-		// 	return;
-		// }
-		// const savedSeason = await trpc.season.createFromExternal.mutate({
-		// 	serieId: mySerieDetails.value.id,
-		// 	externalId: row.original.id,
-		// 	number: row.original.season_number,
-		// 	name: row.original.name ?? `Season ${row.original.season_number}`,
-		// 	imagePath: row.original.poster_path ?? null,
-		// 	overview: row.original.overview ?? null,
-		// 	status: null,
-		// 	rating: null,
-		// 	note: null,
-		// });
-		// mySeasons.value = [...(mySeasons.value ?? []), savedSeason];
-		// toast.success({ description: `${savedSeason.media.name} has been added to your list` });
+		toast.success({ description: `${season.media.name} has been added to your list` });
 	});
 
 const removeSeasonFromMyList = (row: TableRow<TmdbSerieSeasonDetailsDefaultView>) =>

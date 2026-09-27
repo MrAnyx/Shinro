@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { ImageType, MediaType, Prisma } from "#prisma/client";
+import { ImageType, MediaType } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -40,17 +40,17 @@ export default router({
 	createFromExternal: protectedProcedure
 		.input(
 			z.object({
-				serieExternalId: ServerTmdbSerieValidation.id,
+				externalSerieId: ServerTmdbSerieValidation.id,
 				seasonNumber: ServerTmdbSeasonValidation.number,
 			}),
 		)
-		.output(SerieWithMediaViewSchema)
+		.output(SeasonWithMediaViewSchema)
 		.mutation(async ({ input, ctx }) => {
-			const serieExist = await prisma.serie.findFirst({
+			const serie = await prisma.serie.findFirst({
 				where: {
 					media: {
 						ownerId: ctx.user.id,
-						externalId: input.externalId,
+						externalId: input.externalSerieId,
 					},
 				},
 				select: {
@@ -58,37 +58,62 @@ export default router({
 				},
 			});
 
-			if (serieExist) {
+			if (!serie) {
 				throw new TRPCError({
-					code: "CONFLICT",
-					message: "This serie as already been added",
+					code: "NOT_FOUND",
+					message: "Serie not found",
 				});
 			}
 
-			const tmdbSerie = await tmdb(`/tv/${input.externalId}`, {
-				schema: TmdbSerieDetailsResponseSchema,
+			const existingSeason = await prisma.season.findFirst({
+				where: {
+					serieId: serie.id,
+					number: input.seasonNumber,
+				},
+				select: {
+					id: true,
+				},
 			});
 
-			const movie = await prisma.serie.create({
+			if (existingSeason) {
+				throw new TRPCError({
+					code: "CONFLICT",
+					message: "This season has already been added",
+				});
+			}
+
+			const tmdbSeason = await useCache(
+				`tmdb:season:${input.externalSerieId}:${input.seasonNumber}:details`,
+				() =>
+					tmdb(`/tv/${input.externalSerieId}/season/${input.seasonNumber}`, {
+						schema: TmdbSeasonDetailsResponseSchema,
+					}),
+			);
+
+			return await prisma.season.create({
 				data: {
 					media: {
 						create: {
-							externalId: tmdbSerie.id,
-							name: tmdbSerie.name ?? null,
-							type: MediaType.SERIE,
+							externalId: tmdbSeason.id,
+							name: tmdbSeason.name ?? null,
+							type: MediaType.SEASON,
 							ownerId: ctx.user.id,
-							imagePath: tmdbSerie.poster_path ?? null,
+							imagePath: tmdbSeason.poster_path ?? null,
 							imageType: ImageType.TMDB,
 						},
 					},
-					overview: tmdbSerie.overview ?? null,
+					serie: {
+						connect: {
+							id: serie.id,
+						},
+					},
+					number: tmdbSeason.season_number,
+					overview: tmdbSeason.overview ?? null,
 				},
 				include: {
 					media: true,
 				},
 			});
-
-			return movie;
 		}),
 
 	// update: protectedProcedure
