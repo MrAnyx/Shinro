@@ -50,8 +50,8 @@
 				<ToggleButton
 					variant="ghost"
 					:is-added="!!row.original.internal_movie"
-					:onClickOn="() => addMovieToMyList(row)"
-					:onClickOff="() => removeMovieFromMyList(row)"
+					:onClickOn="() => addMovieToMyList(row.original)"
+					:onClickOff="() => removeMovieFromMyList(row.original)"
 				/>
 			</template>
 		</UTable>
@@ -191,11 +191,11 @@ const updateMovieInternalId = (externalId: string, internalMovie?: MovieWithMedi
 	}
 };
 
-const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
+const addMovieToMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) => {
 	try {
-		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
+		const movie = await movieStore.createMovieFromExternal({ externalId: tmdbMovie.id });
 
-		updateMovieInternalId(row.original.id, movie);
+		updateMovieInternalId(tmdbMovie.id, movie);
 
 		toast.success({ description: `${movie.media.name} has been added to your list` });
 	} catch (err: any) {
@@ -203,17 +203,17 @@ const addMovieToMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
 	}
 };
 
-const removeMovieFromMyList = async (row: TableRow<TmdbMovieSearchDefaultView>) => {
+const removeMovieFromMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) => {
 	try {
-		if (!row.original.internal_movie?.id) {
+		if (!tmdbMovie.internal_movie?.id) {
 			return;
 		}
 
-		await movieStore.deleteMovie({ id: row.original.internal_movie.id });
+		await movieStore.deleteMovie({ id: tmdbMovie.internal_movie.id });
 
-		updateMovieInternalId(row.original.id, undefined);
+		updateMovieInternalId(tmdbMovie.id, undefined);
 
-		toast.success({ description: `${row.original.title} has been removed from your list` });
+		toast.success({ description: `${tmdbMovie.title} has been removed from your list` });
 	} catch (err: any) {
 		toast.error(err);
 	}
