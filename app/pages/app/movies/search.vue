@@ -33,7 +33,7 @@
 			<template #adult-cell="{ row }">
 				<AdultBadge :adult="row.original.adult" />
 			</template>
-			<template #release_date-cell="{ row }">
+			<template #date-cell="{ row }">
 				<NuxtTime
 					v-if="row.original.release_date"
 					:datetime="row.original.release_date"
@@ -43,7 +43,7 @@
 					timezone="UTC"
 				/>
 			</template>
-			<template #vote_average-cell="{ row }">
+			<template #vote-cell="{ row }">
 				<VoteBadge :score="row.original.vote_average" :count="row.original.vote_count" />
 			</template>
 			<template #actions-cell="{ row }">
@@ -68,104 +68,52 @@
 import type { TableColumn, ButtonProps } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
+// Composables
 const trpc = useTrpc();
 const movieStore = useMovieStore();
 const toast = useStatusToast();
 const { search, page, trimmedSearch } = useSearchPagination();
-
 const searchInput = useTemplateRef("searchInput");
 
+// Lifecycle hooks
 onMounted(() => {
 	_focusSearchField();
 });
 
-const { data, pending, refresh, clear } = useClientAsyncData(
-	() => trpc.tmdbMovie.search.query({ page: page.value, search: trimmedSearch.value }),
-	{
-		enabled: () => !!trimmedSearch.value,
-		watch: [page],
-	},
-);
-
-watchDebounced(
-	trimmedSearch,
-	() => {
-		if (!trimmedSearch.value) {
-			clear();
-		} else {
-			refresh();
-		}
-	},
-	{
-		debounce: DEBOUNCE_TIMER,
-	},
-);
-
+// Table structure
 const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 	{
 		id: "image",
-		meta: {
-			class: {
-				td: "w-[60px]",
-			},
-		},
+		meta: { class: { td: "w-[60px]" } },
 	},
 	{
 		accessorFn: (row) => row.internal_movie?.media.name ?? row.title,
 		header: "Title",
-		meta: {
-			class: {
-				td: "max-w-[120px] truncate font-bold text-default",
-			},
-		},
+		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
 	},
 	{
 		accessorFn: (row) => row.internal_movie?.overview ?? row.overview,
 		header: "Synopsis",
-		meta: {
-			class: {
-				td: "max-w-[300px] truncate",
-			},
-		},
+		meta: { class: { td: "max-w-[300px] truncate" } },
 	},
 	{
 		id: "adult",
 		header: "Category",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		id: "release_date",
+		id: "date",
 		header: "Released At",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		id: "vote_average",
+		id: "vote",
 		header: "Vote",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
 		id: "actions",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 ];
 
@@ -179,6 +127,32 @@ const emptyActions: ButtonProps[] = [
 	},
 ];
 
+// Get movies query
+const total = computed(() => data.value?.total ?? 0);
+const series = computed(() => data.value?.results ?? []);
+
+const { data, pending, refresh, clear } = useClientAsyncData(
+	() => trpc.tmdbMovie.search.query({ page: page.value, search: trimmedSearch.value }),
+	{
+		enabled: () => !!trimmedSearch.value,
+		watch: [page],
+		defaultErrorMessage: "Failed to fetch the movies",
+	},
+);
+
+watchDebounced(
+	trimmedSearch,
+	() => {
+		if (!trimmedSearch.value) {
+			clear();
+		} else {
+			refresh();
+		}
+	},
+	{ debounce: DEBOUNCE_TIMER },
+);
+
+// Helper methods
 const _focusSearchField = () => {
 	searchInput.value?.inputRef?.select();
 	searchInput.value?.inputRef?.focus();
@@ -191,11 +165,11 @@ const _updateMovieInternalId = (externalId: string, internalMovie?: MovieWithMed
 	}
 };
 
+// Methods
 const addMovieToMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
 	toast.withErrorToast(async () => {
 		const movie = await movieStore.createMovieFromExternal({ externalId: tmdbMovie.id });
 		_updateMovieInternalId(tmdbMovie.id, movie);
-		toast.success({ description: `${movie.media.name} has been added to your list` });
 	});
 
 const removeMovieFromMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
@@ -206,10 +180,8 @@ const removeMovieFromMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
 
 		await movieStore.deleteMovie({ id: tmdbMovie.internal_movie.id });
 		_updateMovieInternalId(tmdbMovie.id, undefined);
-		toast.success({ description: `${tmdbMovie.title} has been removed from your list` });
 	});
 
-const onMovieSelected = async (tmdbMovie: TmdbMovieSearchDefaultView) => {
-	await navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
-};
+const onMovieSelected = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
+	navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
 </script>
