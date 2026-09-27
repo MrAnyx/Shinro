@@ -61,12 +61,7 @@
 			</template>
 		</UTable>
 	</UCard>
-	<UPagination
-		v-model:page="page"
-		:total="data?.total"
-		:items-per-page="ITEMS_PER_PAGE"
-		v-if="(data?.total ?? 0) > ITEMS_PER_PAGE"
-	/>
+	<UPagination v-model:page="page" :total="total" :items-per-page="ITEMS_PER_PAGE" v-if="total > ITEMS_PER_PAGE" />
 </template>
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, DropdownMenuItem } from "@nuxt/ui";
@@ -74,22 +69,51 @@ import { watchDebounced } from "@vueuse/core";
 
 import { LazySerieFormModal } from "#components";
 
+// Composable
 const overlay = useOverlay();
 const trpc = useTrpc();
 const serieStore = useSerieStore();
 const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
 
-const serieFormModal = overlay.create(LazySerieFormModal);
-const openSerieFormModal = async (serieId?: string) => {
-	const instance = serieFormModal.open({ id: serieId });
+const columns: TableColumn<SerieWithMediaView>[] = [
+	{
+		id: "image",
+		meta: { class: { td: "w-[60px]" } },
+	},
+	{
+		accessorFn: (x) => x.media.name,
+		header: "Title",
+		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
+	},
+	{
+		accessorKey: "overview",
+		header: "Overview",
+		meta: { class: { td: "max-w-[300px] truncate" } },
+	},
+	{
+		header: "Status",
+		id: "status",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		header: "Created At",
+		id: "createdAt",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		header: "Rating",
+		id: "rating",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		id: "actions",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+];
 
-	const result = await instance.result;
-
-	if (result?.serie) {
-		refresh();
-	}
-};
+// Get series query
+const total = computed(() => data.value?.total ?? 0);
 
 const { data, pending, refresh } = useClientAsyncData(
 	() =>
@@ -111,73 +135,17 @@ watchDebounced(trimmedSearch, () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
 
-const columns: TableColumn<SerieWithMediaView>[] = [
-	{
-		id: "image",
-		meta: {
-			class: {
-				td: "w-[60px]",
-			},
-		},
-	},
-	{
-		accessorFn: (x) => x.media.name,
-		header: "Title",
-		meta: {
-			class: {
-				td: "max-w-[120px] truncate font-bold text-default",
-			},
-		},
-	},
-	{
-		accessorKey: "overview",
-		header: "Overview",
-		meta: {
-			class: {
-				td: "max-w-[300px] truncate",
-			},
-		},
-	},
-	{
-		header: "Status",
-		id: "status",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-	{
-		header: "Created At",
-		id: "createdAt",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-	{
-		header: "Rating",
-		id: "rating",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-	{
-		id: "actions",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-];
+// Methods
+const serieFormModal = overlay.create(LazySerieFormModal);
+const openSerieFormModal = async (serieId?: string) => {
+	const instance = serieFormModal.open({ id: serieId });
+
+	const result = await instance.result;
+
+	if (result?.serie) {
+		refresh();
+	}
+};
 
 const getRowActions = (serie: SerieWithMediaView): DropdownMenuItem[][] => [
 	[
@@ -196,7 +164,8 @@ const getRowActions = (serie: SerieWithMediaView): DropdownMenuItem[][] => [
 				const result = await openConfirmationModal(() => serieStore.deleteSerie({ id: serie.id }));
 
 				if (result) {
-					refresh();
+					// Delete the selected element. No need to refresh here
+					data.value.results = data.value.results.filter((m) => m.id !== serie.id);
 				}
 			},
 		},

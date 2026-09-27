@@ -1,6 +1,7 @@
 <template>
 	<div class="flex justify-between">
 		<SearchInput v-model="search" />
+
 		<div class="flex gap-2">
 			<RefreshButton @click="refresh()" />
 			<UButton label="New collection" leading-icon="i-lucide-plus" @click="openCollectionFormModal()" />
@@ -21,15 +22,7 @@
 					description="Create your first collection"
 					variant="naked"
 					icon="i-lucide-ban"
-					:actions="[
-						{
-							icon: 'i-lucide-plus',
-							label: 'New collection',
-							onClick() {
-								openCollectionFormModal();
-							},
-						},
-					]"
+					:actions="emptyActions"
 				></UEmpty>
 			</template>
 			<template #createdAt-cell="{ row }">
@@ -71,12 +64,7 @@
 			</template>
 		</UTable>
 	</UCard>
-	<UPagination
-		v-model:page="page"
-		:total="total"
-		:items-per-page="ITEMS_PER_PAGE"
-		v-if="(total ?? 0) > ITEMS_PER_PAGE"
-	/>
+	<UPagination v-model:page="page" :total="total" :items-per-page="ITEMS_PER_PAGE" v-if="total > ITEMS_PER_PAGE" />
 </template>
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, DropdownMenuItem } from "@nuxt/ui";
@@ -200,6 +188,16 @@ const toggleCollectionFavorite = async (collection: CollectionDefaultView) =>
 			data.value.results = data.value.results.with(idx, newCollection);
 		}
 	});
+
+const emptyActions: ButtonProps[] = [
+	{
+		icon: "i-lucide-plus",
+		label: "New collection",
+		onClick() {
+			openCollectionFormModal();
+		},
+	},
+];
 
 const onCollectionSelected = async (collection: CollectionDefaultView) => {
 	// await navigateTo({ path: `/app/collections/${collection.id}` });

@@ -61,12 +61,7 @@
 			</template>
 		</UTable>
 	</UCard>
-	<UPagination
-		v-model:page="page"
-		:total="data?.total"
-		:items-per-page="ITEMS_PER_PAGE"
-		v-if="(data?.total ?? 0) > ITEMS_PER_PAGE"
-	/>
+	<UPagination v-model:page="page" :total="total" :items-per-page="ITEMS_PER_PAGE" v-if="total > ITEMS_PER_PAGE" />
 </template>
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, DropdownMenuItem } from "@nuxt/ui";
@@ -74,22 +69,53 @@ import { watchDebounced } from "@vueuse/core";
 
 import { LazyMovieFormModal } from "#components";
 
+// Composables
 const overlay = useOverlay();
 const trpc = useTrpc();
+const toast = useStatusToast();
 const movieStore = useMovieStore();
 const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
 
-const movieFormModal = overlay.create(LazyMovieFormModal);
-const openMovieFormModal = async (movieId?: string) => {
-	const instance = movieFormModal.open({ id: movieId });
+// Table structure
+const columns: TableColumn<MovieWithMediaView>[] = [
+	{
+		id: "image",
+		meta: { class: { td: "w-[60px]" } },
+	},
+	{
+		accessorFn: (x) => x.media.name,
+		header: "Title",
+		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
+	},
+	{
+		accessorKey: "overview",
+		header: "Overview",
+		meta: { class: { td: "max-w-[300px] truncate" } },
+	},
+	{
+		header: "Status",
+		id: "status",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		header: "Created At",
+		id: "createdAt",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		header: "Rating",
+		id: "rating",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		id: "actions",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+];
 
-	const result = await instance.result;
-
-	if (result?.movie) {
-		refresh();
-	}
-};
+// Get movies query
+const total = computed(() => data.value?.total ?? 0);
 
 const { data, pending, refresh } = useClientAsyncData(
 	() =>
@@ -111,73 +137,19 @@ watchDebounced(trimmedSearch, () => refresh(), {
 	debounce: DEBOUNCE_TIMER,
 });
 
-const columns: TableColumn<MovieWithMediaView>[] = [
-	{
-		id: "image",
-		meta: {
-			class: {
-				td: "w-[60px]",
-			},
-		},
-	},
-	{
-		accessorFn: (x) => x.media.name,
-		header: "Title",
-		meta: {
-			class: {
-				td: "max-w-[120px] truncate font-bold text-default",
-			},
-		},
-	},
-	{
-		accessorKey: "overview",
-		header: "Overview",
-		meta: {
-			class: {
-				td: "max-w-[300px] truncate",
-			},
-		},
-	},
-	{
-		header: "Status",
-		id: "status",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-	{
-		header: "Created At",
-		id: "createdAt",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-	{
-		header: "Rating",
-		id: "rating",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-	{
-		id: "actions",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
-	},
-];
+// Methods
+const movieFormModal = overlay.create(LazyMovieFormModal);
+const openMovieFormModal = async (movieId?: string) =>
+	toast.withErrorToast(async () => {
+		const instance = movieFormModal.open({ id: movieId });
+
+		const result = await instance.result;
+
+		if (result?.movie) {
+			// Refresh as it may change the order
+			refresh();
+		}
+	});
 
 const getRowActions = (movie: MovieWithMediaView): DropdownMenuItem[][] => [
 	[
