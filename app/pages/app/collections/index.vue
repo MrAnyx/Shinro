@@ -84,28 +84,28 @@ const collectionFormModal = overlay.create(LazyCollectionFormModal);
 // Table structure
 const columns: TableColumn<CollectionDefaultView>[] = [
 	{
-		header: "Name",
 		accessorKey: "name",
+		header: "Name",
 		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
 	},
 	{
-		header: "Description",
 		accessorKey: "description",
+		header: "Description",
 		meta: { class: { td: "max-w-[300px] truncate" } },
 	},
 	{
-		header: "Created At",
 		id: "createdAt",
+		header: "Created At",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		header: "Updated At",
 		id: "updatedAt",
+		header: "Updated At",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		header: "Favorite",
 		id: "favorite",
+		header: "Favorite",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{

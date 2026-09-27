@@ -96,18 +96,18 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 		meta: { class: { td: "max-w-[300px] truncate" } },
 	},
 	{
-		header: "Status",
 		id: "status",
+		header: "Status",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		header: "Created At",
 		id: "createdAt",
+		header: "Created At",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		header: "Rating",
 		id: "rating",
+		header: "Rating",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{

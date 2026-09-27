@@ -213,50 +213,27 @@ const { data: favoriteCollections, pending: loadingCollections } = useClientAsyn
 const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 	{
 		id: "image",
-		meta: {
-			class: {
-				td: "w-[60px]",
-			},
-		},
+		meta: { class: { td: "w-[60px]" } },
 	},
 	{
 		header: "Name",
 		accessorKey: "name",
-		meta: {
-			class: {
-				td: "max-w-[120px] truncate font-bold text-default",
-			},
-		},
+		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
 	},
 	{
-		header: "Type",
 		id: "type",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		header: "Type",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		header: "Status",
 		id: "status",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		header: "Status",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		header: "Created At",
 		id: "date",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		header: "Created At",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 ];
 
@@ -282,61 +259,33 @@ const onMediaSelect = async (media: MediaDefaultView) => {
 const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 	{
 		id: "image",
-		meta: {
-			class: {
-				td: "w-[60px]",
-			},
-		},
+		meta: { class: { td: "w-[60px]" } },
 	},
 	{
 		id: "name",
 		header: "Name",
 		cell: ({ row }) => row.original.media.name,
-		meta: {
-			class: {
-				td: "max-w-[120px] truncate font-bold text-default",
-			},
-		},
+		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
 	},
 	{
-		header: "Type",
 		id: "type",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		header: "Type",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		header: "Status",
 		id: "status",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		header: "Status",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		header: "Created At",
 		id: "createdAt",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		header: "Created At",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		header: "Added At",
 		id: "addedAt",
-		meta: {
-			class: {
-				th: "w-0 whitespace-nowrap",
-				td: "w-0 whitespace-nowrap",
-			},
-		},
+		header: "Added At",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 ];
 </script>
