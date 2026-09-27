@@ -79,6 +79,7 @@ const collectionStore = useCollectionStore();
 const toast = useStatusToast();
 const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
+const collectionFormModal = overlay.create(LazyCollectionFormModal);
 
 // Table structure
 const columns: TableColumn<CollectionDefaultView>[] = [
@@ -137,7 +138,6 @@ const { data, pending, refresh } = useClientAsyncData(
 watchDebounced(trimmedSearch, () => refresh(), { debounce: DEBOUNCE_TIMER });
 
 // Methods
-const collectionFormModal = overlay.create(LazyCollectionFormModal);
 const openCollectionFormModal = async (collection?: CollectionDefaultView) =>
 	toast.withErrorToast(async () => {
 		const instance = collectionFormModal.open({

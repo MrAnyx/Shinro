@@ -289,8 +289,9 @@ const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
 		},
 	},
 	{
+		id: "name",
 		header: "Name",
-		accessorFn: (x) => x.media.name,
+		cell: ({ row }) => row.original.media.name,
 		meta: {
 			class: {
 				td: "max-w-[120px] truncate font-bold text-default",

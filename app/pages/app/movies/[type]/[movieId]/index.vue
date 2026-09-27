@@ -7,7 +7,7 @@
 			:external="isExternal"
 			:in-my-list="isInMyList"
 			image-provider="tmdb"
-			:image="tmdbMovieDetails?.details.poster_path ?? undefined"
+			:image="image"
 			v-model:rating="rating"
 			v-model:status="status"
 			v-model:collections="selectedCollectionIds"
@@ -22,11 +22,7 @@
 		<!-- Main section -->
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
 			<!-- Title and tagline -->
-			<DetailsTitleHeader
-				:loading="isLoading"
-				:title="myMovieDetails?.media.name ?? tmdbMovieDetails?.details.title ?? undefined"
-				:subtitle="tmdbMovieDetails?.details.tagline ?? undefined"
-			/>
+			<DetailsTitleHeader :loading="isLoading" :title="title" :subtitle="tagline" />
 
 			<!-- Details badges -->
 			<div class="flex gap-2 flex-wrap" v-if="isExternal">
@@ -57,9 +53,9 @@
 			<!-- Note -->
 			<DetailsPersonalNote :description="note" v-if="note && !isLoading" />
 
-			<!-- Credits -->
 			<UTabs :items="tabs" variant="link">
 				<template #credits>
+					<!-- Credits -->
 					<DetailsCreditCards
 						:credits="credits"
 						image-provider="tmdb"
@@ -75,8 +71,8 @@
 							:columns="sagaColumns"
 							@select="(_e, row) => onSagaMovieSelected(row.original)"
 						>
-							<template #title-cell="{ row }">
-								<span>{{ row.original.internal_movie?.media.name ?? row.original.title }}</span>
+							<template #empty>
+								<UEmpty title="No movie found" variant="naked" icon="i-lucide-ban" />
 							</template>
 							<template #image-cell="{ row }">
 								<ImageFallback
@@ -90,7 +86,7 @@
 							<template #adult-cell="{ row }">
 								<AdultBadge :adult="row.original.adult" />
 							</template>
-							<template #release_date-cell="{ row }">
+							<template #date-cell="{ row }">
 								<NuxtTime
 									v-if="row.original.release_date"
 									:datetime="row.original.release_date"
@@ -100,7 +96,7 @@
 									timezone="UTC"
 								/>
 							</template>
-							<template #vote_average-cell="{ row }">
+							<template #vote-cell="{ row }">
 								<VoteBadge :score="row.original.vote_average" :count="row.original.vote_count" />
 							</template>
 							<template #actions-cell="{ row }">
@@ -139,8 +135,9 @@ const trpc = useTrpc();
 const movieStore = useMovieStore();
 const toast = useStatusToast();
 const overlay = useOverlay();
+const movieFormModal = overlay.create(LazyMovieFormModal);
 
-// Route + page state
+// Page computed
 const type = computed(() => route.params.type as MediaSourceType);
 const movieId = computed(() => route.params.movieId as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
@@ -152,10 +149,17 @@ const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);
 const status = ref<MediaStatus | undefined>(undefined);
 
-// Async data loading
+// Get the movie from my list
+const isInMyList = computed(() => !!myMovieDetails.value);
+const internalId = computed(() => myMovieDetails.value?.id);
+const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
+const title = computed(() => myMovieDetails.value?.media.name ?? tmdbMovieDetails.value?.details.title ?? undefined);
+
 const { data: myMovieDetails, pending: loadingMyMovie } = useClientAsyncData(
 	async () => (mediaQueryParams.value ? trpc.movie.getById.query(mediaQueryParams.value) : undefined),
-	{ ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND" },
+	{
+		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
+	},
 );
 
 watch(myMovieDetails, (newValue) => {
@@ -167,14 +171,28 @@ watch(myMovieDetails, (newValue) => {
 	}
 });
 
+// Get the tmdb movie details
+const image = computed(() => tmdbMovieDetails.value?.details.poster_path ?? undefined);
+const tagline = computed(() => tmdbMovieDetails.value?.details.tagline ?? undefined);
+const genres = computed(() => tmdbMovieDetails.value?.details.genres);
+const credits = computed(() => tmdbMovieDetails.value?.credits);
+const hasSaga = computed(() => !!tmdbMovieDetails.value?.saga && tmdbMovieDetails.value?.saga.movies.length > 1);
+const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown");
+const sagaMovies = computed(() => tmdbMovieDetails.value?.saga?.movies);
+
 const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
 	() => trpc.tmdbMovie.details.query({ movieId: movieId.value }),
-	{ enabled: () => isExternal.value },
+	{
+		enabled: () => isExternal.value,
+	},
 );
 
+// Get the movie collections
 const { data: myMovieCollections, pending: loadingMovieCollections } = useClientAsyncData(
 	async () => (mediaQueryParams.value ? trpc.media.getCollections.query(mediaQueryParams.value) : undefined),
-	{ ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND" },
+	{
+		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
+	},
 );
 
 watch(myMovieCollections, (newValue) => {
@@ -182,15 +200,7 @@ watch(myMovieCollections, (newValue) => {
 });
 
 // Derived UI state
-const genres = computed(() => tmdbMovieDetails.value?.details.genres);
 const isLoading = computed(() => loadingDetails.value || loadingMyMovie.value || loadingMovieCollections.value);
-const isInMyList = computed(() => !!myMovieDetails.value);
-const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
-const credits = computed(() => tmdbMovieDetails.value?.credits);
-const hasSaga = computed(() => !!tmdbMovieDetails.value?.saga && tmdbMovieDetails.value?.saga.movies.length > 1);
-const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown");
-const sagaMovies = computed(() => tmdbMovieDetails.value?.saga?.movies);
-
 const tabs = computed<TabsItem[]>(() => [
 	...(isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : []),
 	...(isExternal.value && hasSaga.value
@@ -198,17 +208,22 @@ const tabs = computed<TabsItem[]>(() => [
 		: []),
 ]);
 
-// Table config
+// Saga table structure
 const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
-	{ id: "image", meta: { class: { td: "w-[60px]" } } },
+	{
+		id: "image",
+		meta: { class: { td: "w-[60px]" } },
+	},
 	{
 		id: "title",
 		header: "Title",
+		cell: ({ row }) => row.original.internal_movie?.media.name ?? row.original.title,
 		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
 	},
 	{
-		accessorFn: (x) => x.internal_movie?.overview ?? x.overview,
+		id: "synopsis",
 		header: "Synopsis",
+		cell: ({ row }) => row.original.internal_movie?.overview ?? row.original.overview,
 		meta: { class: { td: "max-w-[300px] truncate" } },
 	},
 	{
@@ -217,12 +232,12 @@ const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		id: "release_date",
+		id: "date",
 		header: "Released At",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		id: "vote_average",
+		id: "vote",
 		header: "Vote",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
@@ -232,7 +247,7 @@ const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
 	},
 ];
 
-// Saga helpers
+// Helper methods
 const _updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: MovieWithMediaView) => {
 	if (!externalId) {
 		return;
@@ -244,9 +259,7 @@ const _updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: Movi
 	}
 };
 
-// Movie lifecycle actions
-const movieFormModal = overlay.create(LazyMovieFormModal);
-
+// Methods
 const removeMovie = () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
@@ -257,6 +270,7 @@ const removeMovie = () =>
 		myMovieDetails.value = undefined;
 		_updateSagaMovieInternalMovie(movieId.value, undefined);
 
+		// Go back to the main movies page in the current movie is internal
 		if (isInternal.value) {
 			await navigateTo("/app/movies");
 		}
@@ -294,7 +308,10 @@ const updateStatus = (newStatus?: MediaStatus) =>
 		if (!isInMyList.value) {
 			return;
 		}
-		await trpc.movie.update.mutate({ id: myMovieDetails.value!.id, status: newStatus ?? null });
+		await trpc.movie.update.mutate({
+			id: internalId.value!,
+			status: newStatus ?? null,
+		});
 	});
 
 const updateCollections = () =>
@@ -303,7 +320,7 @@ const updateCollections = () =>
 			return;
 		}
 		await trpc.media.updateCollections.mutate({
-			id: myMovieDetails.value!.id,
+			id: internalId.value!,
 			collectionIds: selectedCollectionIds.value,
 		});
 	});
@@ -313,39 +330,49 @@ const updateRating = () =>
 		if (!isInMyList.value) {
 			return;
 		}
-		await trpc.movie.update.mutate({ id: myMovieDetails.value!.id, rating: rating.value ?? null });
+		await trpc.movie.update.mutate({
+			id: internalId.value!,
+			rating: rating.value ?? null,
+		});
 	});
 
 // Saga table actions
 const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieCollectionPartDefaultView) =>
 	toast.withErrorToast(async () => {
-		const movie = await movieStore.createMovieFromExternal({ externalId: tmdbSagaMovie.id });
+		// If already in my list
+		if (tmdbSagaMovie.internal_movie?.id) {
+			return;
+		}
+
+		const movie = await movieStore.createMovieFromExternal({
+			externalId: tmdbSagaMovie.id,
+		});
+
 		_updateSagaMovieInternalMovie(tmdbSagaMovie.id, movie);
 
+		// If the saga movie is the current movie details
 		if (tmdbSagaMovie.id === movieId.value && !!myMovieDetails.value) {
 			myMovieDetails.value = movie;
 		}
-
-		toast.success({ description: `${movie.media.name} has been added to your list` });
 	});
 
 const removeSagaMovieFromMyList = (tmdbSagaMovie: TmdbMovieCollectionPartDefaultView) =>
 	toast.withErrorToast(async () => {
+		// If not in my list
 		if (!tmdbSagaMovie.internal_movie?.id) {
 			return;
 		}
 
 		await movieStore.deleteMovie({ id: tmdbSagaMovie.internal_movie.id });
 
+		_updateSagaMovieInternalMovie(tmdbSagaMovie.id, undefined);
+
+		// If the saga movie is the current movie details
 		if (tmdbSagaMovie.internal_movie.id === myMovieDetails.value?.id) {
 			myMovieDetails.value = undefined;
 		}
-
-		_updateSagaMovieInternalMovie(String(tmdbSagaMovie.id), undefined);
-
-		toast.success({ description: `${tmdbSagaMovie.title} has been removed from your list` });
 	});
 
-const onSagaMovieSelected = async (tmdbMovie: TmdbMovieCollectionPartDefaultView) =>
-	await navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
+const onSagaMovieSelected = (tmdbMovie: TmdbMovieCollectionPartDefaultView) =>
+	navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
 </script>

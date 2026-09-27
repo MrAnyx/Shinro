@@ -87,13 +87,15 @@ const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
 		meta: { class: { td: "w-[60px]" } },
 	},
 	{
-		accessorFn: (row) => row.internal_movie?.media.name ?? row.title,
+		id: "title",
 		header: "Title",
+		cell: ({ row }) => row.original.internal_movie?.media.name ?? row.original.title,
 		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
 	},
 	{
-		accessorFn: (row) => row.internal_movie?.overview ?? row.overview,
+		id: "synopsis",
 		header: "Synopsis",
+		cell: ({ row }) => row.original.internal_movie?.overview ?? row.original.overview,
 		meta: { class: { td: "max-w-[300px] truncate" } },
 	},
 	{

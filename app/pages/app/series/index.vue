@@ -75,6 +75,7 @@ const trpc = useTrpc();
 const serieStore = useSerieStore();
 const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
+const serieFormModal = overlay.create(LazySerieFormModal);
 
 const columns: TableColumn<SerieWithMediaView>[] = [
 	{
@@ -82,8 +83,9 @@ const columns: TableColumn<SerieWithMediaView>[] = [
 		meta: { class: { td: "w-[60px]" } },
 	},
 	{
-		accessorFn: (x) => x.media.name,
+		id: "title",
 		header: "Title",
+		cell: ({ row }) => row.original.media.name,
 		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
 	},
 	{
@@ -146,7 +148,6 @@ watchDebounced(trimmedSearch, () => refresh(), {
 });
 
 // Methods
-const serieFormModal = overlay.create(LazySerieFormModal);
 const openSerieFormModal = async (serieId?: string) => {
 	const instance = serieFormModal.open({ id: serieId });
 

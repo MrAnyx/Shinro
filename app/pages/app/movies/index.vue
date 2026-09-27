@@ -76,6 +76,7 @@ const toast = useStatusToast();
 const movieStore = useMovieStore();
 const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
+const movieFormModal = overlay.create(LazyMovieFormModal);
 
 // Table structure
 const columns: TableColumn<MovieWithMediaView>[] = [
@@ -84,8 +85,9 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 		meta: { class: { td: "w-[60px]" } },
 	},
 	{
-		accessorFn: (x) => x.media.name,
+		id: "title",
 		header: "Title",
+		cell: ({ row }) => row.original.media.name,
 		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
 	},
 	{
@@ -148,7 +150,6 @@ watchDebounced(trimmedSearch, () => refresh(), {
 });
 
 // Methods
-const movieFormModal = overlay.create(LazyMovieFormModal);
 const openMovieFormModal = async (movieId?: string) =>
 	toast.withErrorToast(async () => {
 		const instance = movieFormModal.open({ id: movieId });

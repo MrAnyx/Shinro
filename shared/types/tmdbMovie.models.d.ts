@@ -6,7 +6,7 @@ export type TmdbMovieCreditsDefaultView = z.infer<typeof TmdbMovieCreditsDefault
 export type TmdbMovieCreditsCastDefaultView = NonNullable<
 	NonNullable<z.infer<typeof TmdbMovieCreditsDefaultViewSchema>["cast"]>[number]
 >;
-export type TmdbMovieCollectionDefaultView = z.infer<typeof TmdbMovieCollectionDefaultViewSchema>;
+export type TmdbMovieCollectionDefaultView = z.infer<typeof TmdbMovieSagaDefaultViewSchema>;
 export type TmdbMovieCollectionPartDefaultView = NonNullable<
-	NonNullable<z.infer<typeof TmdbMovieCollectionDefaultViewSchema>["parts"]>[number]
+	NonNullable<z.infer<typeof TmdbMovieSagaDefaultViewSchema>["movies"]>[number]
 >;

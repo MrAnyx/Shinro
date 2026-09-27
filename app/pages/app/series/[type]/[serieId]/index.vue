@@ -1,12 +1,13 @@
 <template>
 	<div class="flex gap-8 w-full">
+		<!-- Side bar with image and actions -->
 		<DetailsAside
 			class="w-80"
 			:loading="isLoading"
 			:external="isExternal"
 			:in-my-list="isInMyList"
 			image-provider="tmdb"
-			:image="tmdbSerieDetails?.details.poster_path ?? undefined"
+			:image="image"
 			v-model:rating="rating"
 			v-model:status="status"
 			v-model:collections="selectedCollectionIds"
@@ -21,11 +22,7 @@
 		<!-- Main section -->
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
 			<!-- Title and tagline -->
-			<DetailsTitleHeader
-				:loading="isLoading"
-				:title="mySerieDetails?.media.name ?? tmdbSerieDetails?.details.name ?? undefined"
-				:subtitle="tmdbSerieDetails?.details.tagline ?? undefined"
-			/>
+			<DetailsTitleHeader :loading="isLoading" :title="title" :subtitle="tagline" />
 
 			<!-- Details badges -->
 			<div class="flex gap-2 flex-wrap" v-if="isExternal">
@@ -48,15 +45,21 @@
 				</template>
 			</div>
 
+			<!-- Synopsis -->
 			<DetailsOverview
 				:loading="isLoading"
 				:overview="mySerieDetails?.overview ?? tmdbSerieDetails?.details.overview ?? undefined"
 			/>
+
+			<!-- Genres -->
 			<DetailsGenreBadges :loading="isLoading" v-if="isExternal" :genres="genres" />
+
+			<!-- Note -->
 			<DetailsPersonalNote :description="note" v-if="note && !isLoading" />
 
 			<UTabs v-if="isExternal" :items="tabs" variant="link">
 				<template #credits>
+					<!-- Credits -->
 					<DetailsCreditCards
 						:credits="credits"
 						image-provider="tmdb"
@@ -67,7 +70,12 @@
 				</template>
 				<template #seasons>
 					<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
-						<UTable :data="seasons" :columns="seasonColumns" sticky @select="onSeasonSelected">
+						<UTable
+							:data="seasons"
+							:columns="seasonColumns"
+							sticky
+							@select="(_e, row) => onSeasonSelected(row.original)"
+						>
 							<template #empty>
 								<UEmpty title="No seasons found" variant="naked" icon="i-lucide-ban" />
 							</template>
@@ -80,7 +88,7 @@
 									:src="row.original.poster_path"
 								/>
 							</template>
-							<template #air_date-cell="{ row }">
+							<template #date-cell="{ row }">
 								<NuxtTime
 									v-if="row.original.air_date"
 									:datetime="row.original.air_date"
@@ -90,7 +98,7 @@
 									timezone="UTC"
 								/>
 							</template>
-							<template #vote_average-cell="{ row }">
+							<template #vote-cell="{ row }">
 								<VoteBadge :score="row.original.vote_average" />
 							</template>
 							<template #actions-cell="{ row }">
@@ -124,26 +132,38 @@ definePageMeta({
 	},
 });
 
+// Composables
 const route = useRoute();
 const trpc = useTrpc();
 const serieStore = useSerieStore();
 const seasonStore = useSeasonStore();
 const toast = useStatusToast();
 const overlay = useOverlay();
+const serieFormModal = overlay.create(LazySerieFormModal);
 
+// Page computed
 const type = computed(() => route.params.type as MediaSourceType);
 const serieId = computed(() => route.params.serieId as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
 const mediaQueryParams = computed(() => (isInternal.value ? { id: serieId.value } : { externalId: serieId.value }));
 
+// Local reactive state
 const rating = ref<number | undefined>();
 const selectedCollectionIds = ref<string[]>([]);
 const status = ref<MediaStatus | undefined>();
 
+// Get the serie from my list
+const isInMyList = computed(() => !!mySerieDetails.value);
+const internalId = computed(() => mySerieDetails.value?.id);
+const note = computed(() => mySerieDetails.value?.media.note ?? undefined);
+const title = computed(() => mySerieDetails.value?.media.name ?? tmdbSerieDetails.value?.details.name ?? undefined);
+
 const { data: mySerieDetails, pending: loadingMySerie } = useClientAsyncData(
 	async () => (mediaQueryParams.value ? trpc.serie.getById.query(mediaQueryParams.value) : undefined),
-	{ ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND" },
+	{
+		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
+	},
 );
 
 watch(mySerieDetails, (newValue) => {
@@ -155,42 +175,53 @@ watch(mySerieDetails, (newValue) => {
 	}
 });
 
+// Get the tmdb serie details
+const image = computed(() => tmdbSerieDetails.value?.details.poster_path ?? undefined);
+const tagline = computed(() => tmdbSerieDetails.value?.details.tagline ?? undefined);
+const genres = computed(() => tmdbSerieDetails.value?.details.genres?.flatMap((genre) => genre?.name?.trim() || []));
+const credits = computed(() => tmdbSerieDetails.value?.credits.cast?.filter((credit) => !!credit) ?? []);
+const seasons = computed(() => tmdbSerieDetails.value?.seasons?.filter((season) => !!season) ?? []);
+const hasSeasons = computed(() => seasons.value.length > 0);
+
 const { data: tmdbSerieDetails, pending: loadingDetails } = useClientAsyncData(
 	() => trpc.tmdbSerie.details.query({ id: serieId.value }),
-	{ enabled: () => isExternal.value },
+	{
+		enabled: () => isExternal.value,
+	},
 );
 
+// Get the serie collections
 const { data: mySerieCollections, pending: loadingSerieCollections } = useClientAsyncData(
 	async () => (mediaQueryParams.value ? trpc.media.getCollections.query(mediaQueryParams.value) : undefined),
-	{ ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND" },
+	{
+		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
+	},
 );
 
 watch(mySerieCollections, (newValue) => {
 	selectedCollectionIds.value = newValue?.map((collection) => collection.id) ?? [];
 });
 
-const genres = computed(() => tmdbSerieDetails.value?.details.genres?.flatMap((genre) => genre?.name?.trim() || []));
+// Derived UI state
 const isLoading = computed(() => loadingDetails.value || loadingMySerie.value || loadingSerieCollections.value);
-const isInMyList = computed(() => !!mySerieDetails.value);
-const note = computed(() => mySerieDetails.value?.media.note ?? undefined);
-const credits = computed(() => tmdbSerieDetails.value?.credits.cast?.filter((credit) => !!credit) ?? []);
-const seasons = computed(() => tmdbSerieDetails.value?.seasons?.filter((season) => !!season) ?? []);
-
 const tabs = computed<TabsItem[]>(() => [
 	...(isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : []),
-	...(isExternal.value
+	...(isExternal.value && hasSeasons.value
 		? [{ icon: "i-lucide-layers", label: `Seasons (${seasons.value.length})`, slot: "seasons" }]
 		: []),
 ]);
 
+// Seasons table structure
 const seasonColumns: TableColumn<TmdbSerieSeasonDetailsDefaultView>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },
 	},
 	{
-		accessorFn: (season) => season.name ?? `Season ${season.season_number}`,
+		id: "title",
 		header: "Title",
+		cell: ({ row }) =>
+			row.original.name ?? `${title.value} - S${String(row.original.season_number).padStart(2, "0")}`,
 		meta: { class: { td: "max-w-[160px] truncate font-bold text-default" } },
 	},
 	{
@@ -204,12 +235,12 @@ const seasonColumns: TableColumn<TmdbSerieSeasonDetailsDefaultView>[] = [
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		id: "air_date",
+		id: "date",
 		header: "Released At",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{
-		id: "vote_average",
+		id: "vote",
 		header: "Vote",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
@@ -218,8 +249,6 @@ const seasonColumns: TableColumn<TmdbSerieSeasonDetailsDefaultView>[] = [
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 ];
-
-const serieFormModal = overlay.create(LazySerieFormModal);
 
 const removeSerie = () =>
 	toast.withErrorToast(async () => {
@@ -324,7 +353,6 @@ const removeSeasonFromMyList = (row: TableRow<TmdbSerieSeasonDetailsDefaultView>
 		// });
 	});
 
-const onSeasonSelected = (_event: Event, row: TableRow<TmdbSerieSeasonDetailsDefaultView>) => {
-	return navigateTo(`/app/series/${type.value}/${serieId.value}/seasons/${row.original.season_number}`);
-};
+const onSeasonSelected = (tmdbSerie: TmdbSerieSeasonDetailsDefaultView) =>
+	navigateTo(`/app/series/${type.value}/${serieId.value}/seasons/${tmdbSerie.season_number}`);
 </script>

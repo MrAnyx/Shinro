@@ -87,13 +87,15 @@ const columns: TableColumn<TmdbSerieSearchDefaultView>[] = [
 		meta: { class: { td: "w-[60px]" } },
 	},
 	{
-		accessorFn: (row) => row.internal_serie?.media.name ?? row.name,
+		id: "title",
 		header: "Title",
+		cell: ({ row }) => row.original.internal_serie?.media.name ?? row.original.name,
 		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
 	},
 	{
-		accessorFn: (row) => row.internal_serie?.overview ?? row.overview,
+		id: "synopsis",
 		header: "Synopsis",
+		cell: ({ row }) => row.original.internal_serie?.overview ?? row.original.overview,
 		meta: { class: { td: "max-w-[300px] truncate" } },
 	},
 	{
