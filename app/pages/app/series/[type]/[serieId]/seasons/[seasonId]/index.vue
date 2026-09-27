@@ -1,4 +1,4 @@
-<template>{{ data?.name }}</template>
+<template></template>
 
 <script setup lang="ts">
 definePageMeta({
@@ -16,11 +16,4 @@ const trpc = useTrpc();
 const type = computed(() => route.params.type as MediaSourceType);
 const serieId = computed(() => route.params.serieId as string);
 const seasonId = computed(() => route.params.seasonId as string);
-
-const { data, pending } = useClientAsyncData(
-	() => trpc.tmdbSeason.details.query({ serieId: serieId.value, seasonNumber: seasonId.value }),
-	{
-		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
-	},
-);
 </script>
