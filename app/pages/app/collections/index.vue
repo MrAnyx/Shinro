@@ -13,7 +13,7 @@
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="(e, row) => onCollectionSelected(row)"
+			@select="(e, row) => onCollectionSelected(row.original)"
 		>
 			<template #empty>
 				<UEmpty
@@ -52,26 +52,26 @@
 					on-color="warning"
 					off-color="neutral"
 					:is-added="row.original.favorite"
-					:onClickOn="() => toggleCollectionFavorite(row)"
-					:onClickOff="() => toggleCollectionFavorite(row)"
+					:onClickOn="() => toggleCollectionFavorite(row.original)"
+					:onClickOff="() => toggleCollectionFavorite(row.original)"
 				/>
 			</template>
 			<template #actions-cell="{ row }">
-				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row)">
-					<UButton variant="ghost" icon="i-lucide-ellipsis-vertical" color="neutral"> </UButton>
+				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row.original)">
+					<UButton variant="ghost" icon="i-lucide-ellipsis-vertical" color="neutral" />
 				</UDropdownMenu>
 			</template>
 		</UTable>
 	</UCard>
 	<UPagination
 		v-model:page="page"
-		:total="data?.total"
+		:total="total"
 		:items-per-page="ITEMS_PER_PAGE"
-		v-if="(data?.total ?? 0) > ITEMS_PER_PAGE"
+		v-if="(total ?? 0) > ITEMS_PER_PAGE"
 	/>
 </template>
 <script setup lang="ts">
-import type { TableColumn, ButtonProps, TableRow, DropdownMenuItem } from "@nuxt/ui";
+import type { TableColumn, ButtonProps, DropdownMenuItem } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
 import { LazyCollectionFormModal } from "#components";
@@ -96,6 +96,8 @@ const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
 		refresh();
 	}
 };
+
+const total = computed(() => data.value?.total ?? 0);
 
 const { data, pending, refresh } = useClientAsyncData(
 	() => trpc.collection.getAll.query({ page: page.value, search: trimmedSearch.value }),
@@ -166,13 +168,13 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 	},
 ];
 
-const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[][] => [
+const getRowActions = (collection: CollectionDefaultView): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
 			icon: "i-lucide-square-pen",
 			onSelect() {
-				openCollectionFormModal(row.original);
+				openCollectionFormModal(collection);
 			},
 		},
 		{
@@ -182,13 +184,13 @@ const getRowActions = (row: TableRow<CollectionDefaultView>): DropdownMenuItem[]
 			async onSelect() {
 				toast.withErrorToast(async () => {
 					const result = await openConfirmationModal(() =>
-						collectionStore.deleteCollection({ id: row.original.id }),
+						collectionStore.deleteCollection({ id: collection.id }),
 					);
 
 					if (result) {
 						// Delete the selected element. No need to refresh here
-						data.value.results = data.value.results.filter((m) => m.id !== row.original.id);
-						toast.success({ description: `Collection ${row.original.name} has been deleted` });
+						data.value.results = data.value.results.filter((m) => m.id !== collection.id);
+						toast.success({ description: `Collection ${collection.name} has been deleted` });
 					}
 				});
 			},
@@ -206,7 +208,7 @@ const emptyActions: ButtonProps[] = [
 	},
 ];
 
-const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) =>
+const toggleCollectionFavorite = async (collection: CollectionDefaultView) =>
 	toast.withErrorToast(async () => {
 		const collection = await trpc.collection.update.mutate({
 			id: row.original.id,
@@ -230,7 +232,7 @@ const toggleCollectionFavorite = async (row: TableRow<CollectionDefaultView>) =>
 		});
 	});
 
-const onCollectionSelected = async (row: TableRow<CollectionDefaultView>) => {
-	await navigateTo({ path: `/app/collections/${row.original.id}` });
+const onCollectionSelected = async (collection: CollectionDefaultView) => {
+	await navigateTo({ path: `/app/collections/${collection.id}` });
 };
 </script>
