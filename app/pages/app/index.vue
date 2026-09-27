@@ -184,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn, TableRow } from "@nuxt/ui";
+import type { TableColumn } from "@nuxt/ui";
 import { MediaType } from "~~/lib/prisma/enums";
 
 definePageMeta({

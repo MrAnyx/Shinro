@@ -119,7 +119,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type { TabsItem, TableColumn, TableRow } from "@nuxt/ui";
+import type { TabsItem, TableColumn } from "@nuxt/ui";
 
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";

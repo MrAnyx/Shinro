@@ -14,7 +14,7 @@
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="onSerieSelected"
+			@select="(_e, row) => onSerieSelected(row.original)"
 		>
 			<template #empty>
 				<UEmpty
@@ -55,7 +55,7 @@
 				<VoteBadge :score="row.original.media.rating ?? undefined" />
 			</template>
 			<template #actions-cell="{ row }">
-				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row)">
+				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row.original)">
 					<UButton variant="ghost" icon="i-lucide-ellipsis-vertical" color="neutral" />
 				</UDropdownMenu>
 			</template>
@@ -81,8 +81,8 @@ const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
 
 const serieFormModal = overlay.create(LazySerieFormModal);
-const openSerieFormModal = async (serie?: SerieWithMediaView) => {
-	const instance = serieFormModal.open({ id: serie?.id });
+const openSerieFormModal = async (serieId?: string) => {
+	const instance = serieFormModal.open({ id: serieId });
 
 	const result = await instance.result;
 
@@ -179,13 +179,13 @@ const columns: TableColumn<SerieWithMediaView>[] = [
 	},
 ];
 
-const getRowActions = (row: TableRow<SerieWithMediaView>): DropdownMenuItem[][] => [
+const getRowActions = (serie: SerieWithMediaView): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
 			icon: "i-lucide-square-pen",
 			onSelect() {
-				openSerieFormModal(row.original);
+				openSerieFormModal(serie.id);
 			},
 		},
 		{
@@ -193,7 +193,7 @@ const getRowActions = (row: TableRow<SerieWithMediaView>): DropdownMenuItem[][] 
 			icon: "i-lucide-trash",
 			color: "error",
 			async onSelect() {
-				const result = await openConfirmationModal(() => serieStore.deleteSerie({ id: row.original.id }));
+				const result = await openConfirmationModal(() => serieStore.deleteSerie({ id: serie.id }));
 
 				if (result) {
 					refresh();
@@ -215,11 +215,11 @@ const emptyActions: ButtonProps[] = [
 	},
 ];
 
-const onSerieSelected = async (e: Event, row: TableRow<SerieWithMediaView>) => {
-	if (row.original.media.externalId) {
-		await navigateTo(`/app/series/external/${row.original.media.externalId}`);
+const onSerieSelected = async (serie: SerieWithMediaView) => {
+	if (serie.media.externalId) {
+		await navigateTo(`/app/series/external/${serie.media.externalId}`);
 	} else {
-		await navigateTo(`/app/series/internal/${row.original.id}`);
+		await navigateTo(`/app/series/internal/${serie.id}`);
 	}
 };
 </script>
