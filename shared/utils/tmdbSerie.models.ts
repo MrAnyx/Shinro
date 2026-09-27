@@ -25,47 +25,27 @@ export const TmdbSerieDetailsDefaultViewSchema = z.object({
 	overview: z.string().nullish(),
 	vote_average: z.number(),
 	vote_count: z.number(),
-	genres: z
-		.array(
-			z
-				.object({
-					name: z.string().nullish(),
-				})
-				.nullish(),
-		)
-		.nullish(),
+	genres: z.array(z.string()),
 	tagline: z.string().nullish(),
 });
 
-export const TmdbSerieDetailsSeasonsDefaultViewSchema = z.array(
-	z
-		.object({
-			air_date: z.string().nullish(),
-			episode_count: z.number(),
-			id: z.string(),
-			name: z.string().nullish(),
-			season_number: z.number(),
-			overview: z.string().nullish(),
-			poster_path: z.string().nullish(),
-			vote_average: z.number(),
-			internal_season: SeasonWithMediaViewSchema.nullish(),
-		})
-		.nullish(),
-);
+export const TmdbSerieDetailsSeasonDefaultViewSchema = z.object({
+	air_date: z.string().nullish(),
+	episode_count: z.number(),
+	id: z.string(),
+	name: z.string().nullish(),
+	season_number: z.number(),
+	overview: z.string().nullish(),
+	poster_path: z.string().nullish(),
+	vote_average: z.number(),
+	internal_season: SeasonWithMediaViewSchema.nullish(),
+});
 
-export const TmdbSerieCreditsDefaultViewSchema = z.object({
-	cast: z
-		.array(
-			z
-				.object({
-					id: z.string(),
-					name: z.string().nullish(),
-					profile_path: z.string().nullish(),
-					character: z.string().nullish(),
-				})
-				.nullish(),
-		)
-		.nullish(),
+export const TmdbSerieCreditDefaultViewSchema = z.object({
+	id: z.string(),
+	name: z.string().nullish(),
+	profile_path: z.string().nullish(),
+	character: z.string().nullish(),
 });
 
 export const TmdbSerieSeasonDetailsDefaultViewSchema = z.object({
@@ -77,21 +57,17 @@ export const TmdbSerieSeasonDetailsDefaultViewSchema = z.object({
 	overview: z.string().nullish(),
 	poster_path: z.string().nullish(),
 	vote_average: z.number(),
-	episodes: z
-		.array(
-			z
-				.object({
-					air_date: z.string().nullish(),
-					episode_number: z.number(),
-					id: z.string(),
-					name: z.string().nullish(),
-					overview: z.string().nullish(),
-					runtime: z.number(),
-					still_path: z.string().nullish(),
-					vote_average: z.number(),
-					vote_count: z.number(),
-				})
-				.nullish(),
-		)
-		.nullish(),
+	episodes: z.array(
+		z.object({
+			air_date: z.string().nullish(),
+			episode_number: z.number(),
+			id: z.string(),
+			name: z.string().nullish(),
+			overview: z.string().nullish(),
+			runtime: z.number(),
+			still_path: z.string().nullish(),
+			vote_average: z.number(),
+			vote_count: z.number(),
+		}),
+	),
 });

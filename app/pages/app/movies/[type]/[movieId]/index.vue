@@ -319,6 +319,7 @@ const updateCollections = () =>
 		if (!isInMyList.value) {
 			return;
 		}
+
 		await trpc.media.updateCollections.mutate({
 			id: internalId.value!,
 			collectionIds: selectedCollectionIds.value,

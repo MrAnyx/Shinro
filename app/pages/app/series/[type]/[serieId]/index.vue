@@ -105,8 +105,8 @@
 								<ToggleButton
 									variant="ghost"
 									:is-added="!!row.original.internal_season"
-									:onClickOn="() => addSeasonToMyList(row)"
-									:onClickOff="() => removeSeasonFromMyList(row)"
+									:onClickOn="() => addSeasonToMyList(row.original)"
+									:onClickOff="() => removeSeasonFromMyList(row.original)"
 								/>
 							</template>
 						</UTable>
@@ -118,7 +118,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn, TableRow, TabsItem } from "@nuxt/ui";
+import type { TableColumn, TabsItem } from "@nuxt/ui";
 
 import { LazySerieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
@@ -178,9 +178,9 @@ watch(mySerieDetails, (newValue) => {
 // Get the tmdb serie details
 const image = computed(() => tmdbSerieDetails.value?.details.poster_path ?? undefined);
 const tagline = computed(() => tmdbSerieDetails.value?.details.tagline ?? undefined);
-const genres = computed(() => tmdbSerieDetails.value?.details.genres?.flatMap((genre) => genre?.name?.trim() || []));
-const credits = computed(() => tmdbSerieDetails.value?.credits.cast?.filter((credit) => !!credit) ?? []);
-const seasons = computed(() => tmdbSerieDetails.value?.seasons?.filter((season) => !!season) ?? []);
+const genres = computed(() => tmdbSerieDetails.value?.details.genres ?? []);
+const credits = computed(() => tmdbSerieDetails.value?.credits ?? []);
+const seasons = computed(() => tmdbSerieDetails.value?.seasons ?? []);
 const hasSeasons = computed(() => seasons.value.length > 0);
 
 const { data: tmdbSerieDetails, pending: loadingDetails } = useClientAsyncData(
@@ -212,7 +212,7 @@ const tabs = computed<TabsItem[]>(() => [
 ]);
 
 // Seasons table structure
-const seasonColumns: TableColumn<TmdbSerieSeasonDetailsDefaultView>[] = [
+const seasonColumns: TableColumn<TmdbSerieDetailsSeasonDefaultView>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },
@@ -250,13 +250,26 @@ const seasonColumns: TableColumn<TmdbSerieSeasonDetailsDefaultView>[] = [
 	},
 ];
 
+// Helper methods
+const _updateSeasonInternalSeason = (externalId?: string, internalSeason?: SeasonWithMediaView) => {
+	if (!externalId) {
+		return;
+	}
+
+	const target = tmdbSerieDetails.value?.seasons?.find((m) => m?.id === externalId);
+	if (target) {
+		target.internal_season = internalSeason;
+	}
+};
+
+// Methods
 const removeSerie = () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
 		}
 
-		await serieStore.deleteSerie({ id: mySerieDetails.value!.id });
+		await serieStore.deleteSerie({ id: internalId.value! });
 		mySerieDetails.value = undefined;
 
 		if (isInternal.value) {
@@ -270,7 +283,8 @@ const addSerie = () =>
 			return;
 		}
 
-		mySerieDetails.value = await serieStore.createSerieFromExternal({ externalId: serieId.value });
+		const serie = await serieStore.createSerieFromExternal({ externalId: serieId.value });
+		mySerieDetails.value = serie;
 	});
 
 const editSerie = async () => {
@@ -278,7 +292,7 @@ const editSerie = async () => {
 		return;
 	}
 
-	const instance = serieFormModal.open({ id: mySerieDetails.value!.id });
+	const instance = serieFormModal.open({ id: internalId.value! });
 	const result = await instance.result;
 
 	if (result) {
@@ -292,7 +306,11 @@ const updateStatus = (newStatus?: MediaStatus) =>
 		if (!isInMyList.value) {
 			return;
 		}
-		await trpc.serie.update.mutate({ id: mySerieDetails.value!.id, status: newStatus ?? null });
+
+		await trpc.serie.update.mutate({
+			id: internalId.value!,
+			status: newStatus ?? null,
+		});
 	});
 
 const updateCollections = () =>
@@ -300,8 +318,9 @@ const updateCollections = () =>
 		if (!isInMyList.value) {
 			return;
 		}
+
 		await trpc.media.updateCollections.mutate({
-			id: mySerieDetails.value!.id,
+			id: internalId.value!,
 			collectionIds: selectedCollectionIds.value,
 		});
 	});
@@ -311,48 +330,43 @@ const updateRating = () =>
 		if (!isInMyList.value) {
 			return;
 		}
-		await trpc.serie.update.mutate({ id: mySerieDetails.value!.id, rating: rating.value ?? null });
+
+		await trpc.serie.update.mutate({ id: internalId.value!, rating: rating.value ?? null });
 	});
 
-const updateSeasonInternalSeason = (externalId?: string, internalSeason?: SeasonWithMediaView) => {
-	if (!externalId) {
-		return;
-	}
-
-	const target = tmdbSerieDetails.value?.seasons?.find((m) => m?.id === externalId);
-	if (target) {
-		target.internal_season = internalSeason;
-	}
-};
-
-const addSeasonToMyList = (row: TableRow<TmdbSerieSeasonDetailsDefaultView>) =>
+const addSeasonToMyList = (tmdbSeason: TmdbSerieDetailsSeasonDefaultView) =>
 	toast.withErrorToast(async () => {
-		const season = await seasonStore.createSeasonFromExternal({
-			externalSerieId: serieId.value,
-			seasonNumber: row.original.season_number,
-		});
-		updateSeasonInternalSeason(row.original.id, season);
-
-		if (row.original.id === serieId.value && !!mySerieDetails.value) {
-			mySerieDetails.value = season;
+		// If already in my list
+		if (tmdbSeason.internal_season?.id) {
+			return;
 		}
 
-		toast.success({ description: `${season.media.name} has been added to your list` });
+		const season = await seasonStore.createSeasonFromExternal({
+			externalSerieId: serieId.value,
+			seasonNumber: tmdbSeason.season_number,
+		});
+
+		_updateSeasonInternalSeason(tmdbSeason.id, season);
+
+		if (tmdbSeason.id === serieId.value && !!mySerieDetails.value) {
+			mySerieDetails.value = season;
+		}
 	});
 
-const removeSeasonFromMyList = (row: TableRow<TmdbSerieSeasonDetailsDefaultView>) =>
+const removeSeasonFromMyList = (tmdbSeason: TmdbSerieDetailsSeasonDefaultView) =>
 	toast.withErrorToast(async () => {
-		// const savedSeason = getInternalSeason(row.original);
-		// if (!savedSeason) {
-		// 	return;
-		// }
-		// await trpc.season.delete.mutate({ id: savedSeason.id });
-		// mySeasons.value = mySeasons.value?.filter((season) => season.id !== savedSeason.id) ?? [];
-		// toast.success({
-		// 	description: `${row.original.name ?? `Season ${row.original.season_number}`} has been removed from your list`,
-		// });
+		// If already in my list
+		if (!tmdbSeason.internal_season?.id) {
+			return;
+		}
+
+		await seasonStore.deleteSerie({
+			id: tmdbSeason.internal_season.id,
+		});
+
+		_updateSeasonInternalSeason(tmdbSeason.id, undefined);
 	});
 
-const onSeasonSelected = (tmdbSerie: TmdbSerieSeasonDetailsDefaultView) =>
+const onSeasonSelected = (tmdbSerie: TmdbSerieDetailsSeasonDefaultView) =>
 	navigateTo(`/app/series/${type.value}/${serieId.value}/seasons/${tmdbSerie.season_number}`);
 </script>

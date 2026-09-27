@@ -71,12 +71,13 @@ export default router({
 		.output(
 			z.object({
 				details: TmdbSerieDetailsDefaultViewSchema,
-				seasons: TmdbSerieDetailsSeasonsDefaultViewSchema,
-				credits: TmdbSerieCreditsDefaultViewSchema,
+				credits: z.array(TmdbSerieCreditDefaultViewSchema),
+				seasons: z.array(TmdbSerieDetailsSeasonDefaultViewSchema),
 			}),
 		)
 		.query(async ({ input, ctx }) => {
-			const [details, credits] = await Promise.all([
+			// Get the serie details and credits from TMDB in parallel
+			const [detailsResponse, creditsResponse] = await Promise.all([
 				useCache(`tmdb:serie:${input.id}:details`, () =>
 					tmdb(`/tv/${input.id}`, { schema: TmdbSerieDetailsResponseSchema }),
 				),
@@ -85,8 +86,18 @@ export default router({
 				),
 			]);
 
+			// Compute the details and credits responses to filter and format the properties
+			const credits = creditsResponse.cast?.filter((x) => !!x) ?? [];
+			const details = {
+				...detailsResponse,
+				genres:
+					detailsResponse.genres
+						?.filter((x): x is NonNullable<typeof x> & { name: string } => !!x?.name?.trim())
+						.map((x) => x.name.trim()) ?? [],
+			};
+
 			// Get the external IDs of the season in the collection
-			const externalIds = details.seasons?.filter((x) => !!x).map((x) => x.id) ?? [];
+			const externalIds = detailsResponse.seasons?.filter((x) => !!x).map((x) => x.id) ?? [];
 
 			// Get the seasons that belong to the user and have the same external IDs
 			const mySeasons = await prisma.season.findMany({
@@ -108,8 +119,8 @@ export default router({
 
 			// Merge the TMDB collection seasons with the user's seasons
 			const seasons =
-				details.seasons
-					?.filter((x) => !!x)
+				detailsResponse.seasons
+					?.filter((x): x is NonNullable<typeof x> => !!x)
 					?.sort((a, b) => a.season_number - b.season_number)
 					?.map((x) => Object.assign(x, { internal_season: mySeasonsMap.get(x.id) })) ?? [];
 
