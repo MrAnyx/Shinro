@@ -182,31 +182,14 @@ watch(myMovieCollections, (newValue) => {
 });
 
 // Derived UI state
-const genres = computed(() => tmdbMovieDetails.value?.details.genres?.flatMap((x) => x?.name?.trim() || []) ?? []);
+const genres = computed(() => tmdbMovieDetails.value?.details.genres);
 const isLoading = computed(() => loadingDetails.value || loadingMyMovie.value || loadingMovieCollections.value);
 const isInMyList = computed(() => !!myMovieDetails.value);
 const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
-const credits = computed(() => tmdbMovieDetails.value?.credits.cast?.filter((x) => !!x) ?? []);
-const hasSaga = computed(() => !!tmdbMovieDetails.value?.saga);
+const credits = computed(() => tmdbMovieDetails.value?.credits);
+const hasSaga = computed(() => !!tmdbMovieDetails.value?.saga && tmdbMovieDetails.value?.saga.movies.length > 1);
 const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown");
-const sagaMovies = computed(
-	() =>
-		tmdbMovieDetails.value?.saga?.parts
-			?.filter((p) => !!p)
-			?.filter((p) => p.media_type === "movie")
-			?.sort((a, b) => {
-				if (!a.release_date && !b.release_date) {
-					return 0;
-				}
-				if (!a.release_date) {
-					return 1;
-				}
-				if (!b.release_date) {
-					return -1;
-				}
-				return a.release_date.localeCompare(b.release_date);
-			}) ?? [],
-);
+const sagaMovies = computed(() => tmdbMovieDetails.value?.saga?.movies);
 
 const tabs = computed<TabsItem[]>(() => [
 	...(isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : []),
@@ -255,7 +238,7 @@ const _updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: Movi
 		return;
 	}
 
-	const target = tmdbMovieDetails.value?.saga?.parts?.find((m) => m?.id === externalId);
+	const target = tmdbMovieDetails.value?.saga?.movies?.find((m) => m?.id === externalId);
 	if (target) {
 		target.internal_movie = internalMovie;
 	}

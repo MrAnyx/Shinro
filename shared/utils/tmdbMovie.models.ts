@@ -22,56 +22,33 @@ export const TmdbMovieDetailsDefaultViewSchema = z.object({
 	release_date: z.string().nullish(),
 	vote_average: z.number(),
 	vote_count: z.number(),
-	genres: z
-		.array(
-			z
-				.object({
-					name: z.string().nullish(),
-				})
-				.nullish(),
-		)
-		.nullish(),
+	genres: z.array(z.string()),
 	tagline: z.string().nullish(),
-	belongs_to_collection: z
-		.object({
-			name: z.string().nullish(),
-		})
-		.nullish(),
 });
 
-export const TmdbMovieCreditsDefaultViewSchema = z.object({
-	cast: z
-		.array(
-			z
-				.object({
-					id: z.string(),
-					name: z.string().nullish(),
-					profile_path: z.string().nullish(),
-					character: z.string().nullish(),
-				})
-				.nullish(),
-		)
-		.nullish(),
-});
+export const TmdbMovieCreditsDefaultViewSchema = z.array(
+	z.object({
+		id: z.string(),
+		name: z.string().nullish(),
+		profile_path: z.string().nullish(),
+		character: z.string().nullish(),
+	}),
+);
 
-export const TmdbMovieCollectionDefaultViewSchema = z.object({
+export const TmdbMovieSagaDefaultViewSchema = z.object({
 	name: z.string().nullish(),
-	parts: z
-		.array(
-			z
-				.object({
-					adult: z.boolean(),
-					id: z.string(),
-					title: z.string().nullish(),
-					overview: z.string().nullish(),
-					poster_path: z.string().nullish(),
-					media_type: z.string().nullish(),
-					release_date: z.string().nullish(),
-					vote_average: z.number(),
-					vote_count: z.number(),
-					internal_movie: MovieWithMediaViewSchema.nullish(),
-				})
-				.nullish(),
-		)
-		.nullish(),
+	movies: z.array(
+		z.object({
+			adult: z.boolean(),
+			id: z.string(),
+			title: z.string().nullish(),
+			overview: z.string().nullish(),
+			poster_path: z.string().nullish(),
+			media_type: z.string().nullish(),
+			release_date: z.string().nullish(),
+			vote_average: z.number(),
+			vote_count: z.number(),
+			internal_movie: MovieWithMediaViewSchema.nullish(),
+		}),
+	),
 });

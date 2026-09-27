@@ -8,7 +8,7 @@
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 		<UTable
-			:data="data?.results"
+			:data="collections"
 			:columns="columns"
 			:loading="pending"
 			sticky
@@ -82,6 +82,8 @@ const collectionStore = useCollectionStore();
 const toast = useStatusToast();
 const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
+
+const collections = computed(() => data.value?.results ?? []);
 
 const collectionFormModal = overlay.create(LazyCollectionFormModal);
 const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
@@ -210,9 +212,9 @@ const emptyActions: ButtonProps[] = [
 
 const toggleCollectionFavorite = async (collection: CollectionDefaultView) =>
 	toast.withErrorToast(async () => {
-		const collection = await trpc.collection.update.mutate({
-			id: row.original.id,
-			favorite: !row.original.favorite,
+		const newCollection = await trpc.collection.update.mutate({
+			id: collection.id,
+			favorite: !collection.favorite,
 		});
 
 		if (!data.value) {
@@ -220,16 +222,10 @@ const toggleCollectionFavorite = async (collection: CollectionDefaultView) =>
 		}
 
 		// Update the collection list
-		const idx = data.value.results.findIndex((m) => m.id === row.original.id);
+		const idx = data.value.results.findIndex((m) => m.id === collection.id);
 		if (idx !== -1) {
-			data.value.results = data.value.results.with(idx, collection);
+			data.value.results = data.value.results.with(idx, newCollection);
 		}
-
-		toast.success({
-			description: row.original.favorite
-				? "Collection removed from your favorites"
-				: "Collection added to your favorites",
-		});
 	});
 
 const onCollectionSelected = async (collection: CollectionDefaultView) => {
