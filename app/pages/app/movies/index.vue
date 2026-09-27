@@ -55,7 +55,7 @@
 				<VoteBadge :score="row.original.media.rating ?? undefined" />
 			</template>
 			<template #actions-cell="{ row }">
-				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row)">
+				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row.original)">
 					<UButton variant="ghost" icon="i-lucide-ellipsis-vertical" color="neutral" />
 				</UDropdownMenu>
 			</template>
@@ -81,8 +81,8 @@ const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
 
 const movieFormModal = overlay.create(LazyMovieFormModal);
-const openMovieFormModal = async (movie?: MovieWithMediaView) => {
-	const instance = movieFormModal.open({ id: movie?.id });
+const openMovieFormModal = async (movieId?: string) => {
+	const instance = movieFormModal.open({ id: movieId });
 
 	const result = await instance.result;
 
@@ -179,13 +179,13 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 	},
 ];
 
-const getRowActions = (row: TableRow<MovieWithMediaView>): DropdownMenuItem[][] => [
+const getRowActions = (movie: MovieWithMediaView): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
 			icon: "i-lucide-square-pen",
 			onSelect() {
-				openMovieFormModal(row.original);
+				openMovieFormModal(movie.id);
 			},
 		},
 		{
@@ -193,11 +193,11 @@ const getRowActions = (row: TableRow<MovieWithMediaView>): DropdownMenuItem[][] 
 			icon: "i-lucide-trash",
 			color: "error",
 			async onSelect() {
-				const result = await openConfirmationModal(() => movieStore.deleteMovie({ id: row.original.id }));
+				const result = await openConfirmationModal(() => movieStore.deleteMovie({ id: movie.id }));
 
 				if (result) {
 					// Delete the selected element. No need to refresh here
-					data.value.results = data.value.results.filter((m) => m.id !== row.original.id);
+					data.value.results = data.value.results.filter((m) => m.id !== movie.id);
 				}
 			},
 		},
