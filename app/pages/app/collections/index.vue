@@ -8,12 +8,12 @@
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 		<UTable
-			:data="collections"
+			:data="data?.results"
 			:columns="columns"
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="(e, row) => onCollectionSelected(row.original)"
+			@select="(_e, row) => onCollectionSelected(row.original)"
 		>
 			<template #empty>
 				<UEmpty
@@ -82,8 +82,6 @@ const collectionStore = useCollectionStore();
 const toast = useStatusToast();
 const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
-
-const collections = computed(() => data.value?.results ?? []);
 
 const collectionFormModal = overlay.create(LazyCollectionFormModal);
 const openCollectionFormModal = async (collection?: CollectionDefaultView) => {
@@ -229,6 +227,6 @@ const toggleCollectionFavorite = async (collection: CollectionDefaultView) =>
 	});
 
 const onCollectionSelected = async (collection: CollectionDefaultView) => {
-	await navigateTo({ path: `/app/collections/${collection.id}` });
+	// await navigateTo({ path: `/app/collections/${collection.id}` });
 };
 </script>

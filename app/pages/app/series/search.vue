@@ -10,7 +10,7 @@
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="onSerieSelected"
+			@select="(_e, row) => onSerieSelected(row.original)"
 		>
 			<template #empty>
 				<UEmpty
@@ -50,8 +50,8 @@
 				<ToggleButton
 					variant="ghost"
 					:is-added="!!row.original.internal_serie"
-					:onClickOn="() => addSerieToMyList(row)"
-					:onClickOff="() => removeSerieFromMyList(row)"
+					:onClickOn="() => addSerieToMyList(row.original)"
+					:onClickOff="() => removeSerieFromMyList(row.original)"
 				/>
 			</template>
 		</UTable>
@@ -191,32 +191,29 @@ const updateSerieInternalId = (externalId: string, internalSerie?: SerieWithMedi
 	}
 };
 
-const addSerieToMyList = async (row: TableRow<TmdbSerieSearchDefaultView>) => {
+const addSerieToMyList = async (serie: TmdbSerieSearchDefaultView) => {
 	try {
-		const serie = await serieStore.createSerieFromExternal({ externalId: row.original.id });
-		updateSerieInternalId(row.original.id, serie);
-		toast.success({ description: `${serie.media.name} has been added to your list` });
+		const newSerie = await serieStore.createSerieFromExternal({ externalId: serie.id });
+		updateSerieInternalId(serie.id, newSerie);
 	} catch (err: any) {
 		toast.error(err);
 	}
 };
 
-const removeSerieFromMyList = async (row: TableRow<TmdbSerieSearchDefaultView>) => {
+const removeSerieFromMyList = async (serie: TmdbSerieSearchDefaultView) => {
 	try {
-		if (!row.original.internal_serie?.id) {
+		if (!serie.internal_serie?.id) {
 			return;
 		}
 
-		await serieStore.deleteSerie({ id: row.original.internal_serie.id });
-		updateSerieInternalId(row.original.id, undefined);
-
-		toast.success({ description: `${row.original.name} has been removed from your list` });
+		await serieStore.deleteSerie({ id: serie.internal_serie.id });
+		updateSerieInternalId(serie.id, undefined);
 	} catch (err: any) {
 		toast.error(err);
 	}
 };
 
-const onSerieSelected = async (e: Event, row: TableRow<TmdbSerieSearchDefaultView>) => {
-	await navigateTo({ path: `/app/series/external/${row.original.id}` });
+const onSerieSelected = async (serie: TmdbSerieSearchDefaultView) => {
+	await navigateTo({ path: `/app/series/external/${serie.id}` });
 };
 </script>
