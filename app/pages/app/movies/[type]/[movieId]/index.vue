@@ -70,7 +70,11 @@
 				</template>
 				<template #saga>
 					<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
-						<UTable :data="sagaMovies" :columns="sagaColumns" @select="onSagaMovieSelected">
+						<UTable
+							:data="sagaMovies"
+							:columns="sagaColumns"
+							@select="(_e, row) => onSagaMovieSelected(row.original)"
+						>
 							<template #title-cell="{ row }">
 								<span>{{ row.original.internal_movie?.media.name ?? row.original.title }}</span>
 							</template>
@@ -103,8 +107,8 @@
 								<ToggleButton
 									variant="ghost"
 									:is-added="!!row.original.internal_movie"
-									:onClickOn="() => addSagaMovieToMyList(row)"
-									:onClickOff="() => removeSagaMovieFromMyList(row)"
+									:onClickOn="() => addSagaMovieToMyList(row.original)"
+									:onClickOff="() => removeSagaMovieFromMyList(row.original)"
 								/>
 							</template>
 						</UTable>
@@ -246,7 +250,7 @@ const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
 ];
 
 // Saga helpers
-const updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: MovieWithMediaView) => {
+const _updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: MovieWithMediaView) => {
 	if (!externalId) {
 		return;
 	}
@@ -268,7 +272,7 @@ const removeMovie = () =>
 
 		await movieStore.deleteMovie({ id: myMovieDetails.value!.id });
 		myMovieDetails.value = undefined;
-		updateSagaMovieInternalMovie(movieId.value, undefined);
+		_updateSagaMovieInternalMovie(movieId.value, undefined);
 
 		if (isInternal.value) {
 			await navigateTo("/app/movies");
@@ -283,7 +287,7 @@ const addMovie = () =>
 
 		const movie = await movieStore.createMovieFromExternal({ externalId: movieId.value });
 		myMovieDetails.value = movie;
-		updateSagaMovieInternalMovie(movieId.value, movie);
+		_updateSagaMovieInternalMovie(movieId.value, movie);
 	});
 
 const editMovie = async () => {
@@ -297,7 +301,7 @@ const editMovie = async () => {
 	if (result) {
 		myMovieDetails.value = result.movie;
 		selectedCollectionIds.value = result.collections.map((c) => c.id);
-		updateSagaMovieInternalMovie(result.movie.media.externalId ?? undefined, result.movie);
+		_updateSagaMovieInternalMovie(result.movie.media.externalId ?? undefined, result.movie);
 	}
 };
 
@@ -330,35 +334,35 @@ const updateRating = () =>
 	});
 
 // Saga table actions
-const addSagaMovieToMyList = (row: TableRow<TmdbMovieCollectionPartDefaultView>) =>
+const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieCollectionPartDefaultView) =>
 	toast.withErrorToast(async () => {
-		const movie = await movieStore.createMovieFromExternal({ externalId: row.original.id });
-		updateSagaMovieInternalMovie(row.original.id, movie);
+		const movie = await movieStore.createMovieFromExternal({ externalId: tmdbSagaMovie.id });
+		_updateSagaMovieInternalMovie(tmdbSagaMovie.id, movie);
 
-		if (row.original.id === movieId.value && !!myMovieDetails.value) {
+		if (tmdbSagaMovie.id === movieId.value && !!myMovieDetails.value) {
 			myMovieDetails.value = movie;
 		}
 
 		toast.success({ description: `${movie.media.name} has been added to your list` });
 	});
 
-const removeSagaMovieFromMyList = (row: TableRow<TmdbMovieCollectionPartDefaultView>) =>
+const removeSagaMovieFromMyList = (tmdbSagaMovie: TmdbMovieCollectionPartDefaultView) =>
 	toast.withErrorToast(async () => {
-		if (!row.original.internal_movie?.id) {
+		if (!tmdbSagaMovie.internal_movie?.id) {
 			return;
 		}
 
-		await movieStore.deleteMovie({ id: row.original.internal_movie.id });
+		await movieStore.deleteMovie({ id: tmdbSagaMovie.internal_movie.id });
 
-		if (row.original.internal_movie.id === myMovieDetails.value?.id) {
+		if (tmdbSagaMovie.internal_movie.id === myMovieDetails.value?.id) {
 			myMovieDetails.value = undefined;
 		}
 
-		updateSagaMovieInternalMovie(String(row.original.id), undefined);
+		_updateSagaMovieInternalMovie(String(tmdbSagaMovie.id), undefined);
 
-		toast.success({ description: `${row.original.title} has been removed from your list` });
+		toast.success({ description: `${tmdbSagaMovie.title} has been removed from your list` });
 	});
 
-const onSagaMovieSelected = (_event: Event, row: TableRow<TmdbMovieCollectionPartDefaultView>) =>
-	navigateTo({ path: `/app/movies/external/${row.original.id}` });
+const onSagaMovieSelected = async (tmdbMovie: TmdbMovieCollectionPartDefaultView) =>
+	await navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
 </script>
