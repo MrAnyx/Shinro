@@ -5,7 +5,7 @@
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 		<UTable
-			:data="data?.results"
+			:data="series"
 			:columns="columns"
 			:loading="pending"
 			sticky
@@ -58,9 +58,9 @@
 	</UCard>
 	<UPagination
 		v-model:page="page"
-		:total="data?.total"
+		:total="total"
 		:items-per-page="TMDB_ITEMS_PER_PAGE"
-		v-if="(data?.total ?? 0) > TMDB_ITEMS_PER_PAGE"
+		v-if="total > TMDB_ITEMS_PER_PAGE"
 	/>
 </template>
 
@@ -170,6 +170,10 @@ const _updateMovieInternalId = (externalId: string, internalMovie?: MovieWithMed
 // Methods
 const addMovieToMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
 	toast.withErrorToast(async () => {
+		if (tmdbMovie.internal_movie?.id) {
+			return;
+		}
+
 		const movie = await movieStore.createMovieFromExternal({ externalId: tmdbMovie.id });
 		_updateMovieInternalId(tmdbMovie.id, movie);
 	});

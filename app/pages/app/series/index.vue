@@ -9,7 +9,7 @@
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 		<UTable
-			:data="data?.results"
+			:data="series"
 			:columns="columns"
 			:loading="pending"
 			sticky
@@ -126,6 +126,7 @@ const emptyActions: ButtonProps[] = [
 
 // Get series query
 const total = computed(() => data.value?.total ?? 0);
+const series = computed(() => data.value?.results ?? []);
 
 const { data, pending, refresh } = useClientAsyncData(
 	() =>

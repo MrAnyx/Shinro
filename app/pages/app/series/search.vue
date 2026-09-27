@@ -167,22 +167,26 @@ const _updateSerieInternalSerie = (externalId: string, internalSerie?: SerieWith
 };
 
 // Methods
-
-const addSerieToMyList = async (serie: TmdbSerieSearchDefaultView) =>
+const addSerieToMyList = async (tmdbSerie: TmdbSerieSearchDefaultView) =>
 	toast.withErrorToast(async () => {
-		const newSerie = await serieStore.createSerieFromExternal({ externalId: serie.id });
-		_updateSerieInternalSerie(serie.id, newSerie);
-	});
-
-const removeSerieFromMyList = async (serie: TmdbSerieSearchDefaultView) =>
-	toast.withErrorToast(async () => {
-		if (!serie.internal_serie?.id) {
+		if (tmdbSerie.internal_serie?.id) {
 			return;
 		}
 
-		await serieStore.deleteSerie({ id: serie.internal_serie.id });
-		_updateSerieInternalSerie(serie.id, undefined);
+		const newSerie = await serieStore.createSerieFromExternal({ externalId: tmdbSerie.id });
+		_updateSerieInternalSerie(tmdbSerie.id, newSerie);
 	});
 
-const onSerieSelected = (serie: TmdbSerieSearchDefaultView) => navigateTo({ path: `/app/series/external/${serie.id}` });
+const removeSerieFromMyList = async (tmdbSerie: TmdbSerieSearchDefaultView) =>
+	toast.withErrorToast(async () => {
+		if (!tmdbSerie.internal_serie?.id) {
+			return;
+		}
+
+		await serieStore.deleteSerie({ id: tmdbSerie.internal_serie.id });
+		_updateSerieInternalSerie(tmdbSerie.id, undefined);
+	});
+
+const onSerieSelected = (tmdbSerie: TmdbSerieSearchDefaultView) =>
+	navigateTo({ path: `/app/series/external/${tmdbSerie.id}` });
 </script>

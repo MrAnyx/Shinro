@@ -9,7 +9,7 @@
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 		<UTable
-			:data="data?.results"
+			:data="movies"
 			:columns="columns"
 			:loading="pending"
 			sticky
@@ -63,6 +63,7 @@
 	</UCard>
 	<UPagination v-model:page="page" :total="total" :items-per-page="ITEMS_PER_PAGE" v-if="total > ITEMS_PER_PAGE" />
 </template>
+
 <script setup lang="ts">
 import type { TableColumn, ButtonProps, DropdownMenuItem } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
@@ -128,6 +129,7 @@ const emptyActions: ButtonProps[] = [
 
 // Get movies query
 const total = computed(() => data.value?.total ?? 0);
+const movies = computed(() => data.value?.results ?? []);
 
 const { data, pending, refresh } = useClientAsyncData(
 	() =>
