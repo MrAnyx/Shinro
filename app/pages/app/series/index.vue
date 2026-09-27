@@ -112,6 +112,16 @@ const columns: TableColumn<SerieWithMediaView>[] = [
 	},
 ];
 
+const emptyActions: ButtonProps[] = [
+	{
+		icon: "i-lucide-search",
+		label: "Search",
+		async onClick() {
+			await navigateTo({ path: "/app/series/search" });
+		},
+	},
+];
+
 // Get series query
 const total = computed(() => data.value?.total ?? 0);
 
@@ -170,18 +180,6 @@ const getRowActions = (serie: SerieWithMediaView): DropdownMenuItem[][] => [
 			},
 		},
 	],
-];
-
-const emptyActions: ButtonProps[] = [
-	{
-		icon: "i-lucide-search",
-		label: "Search",
-		async onClick() {
-			await navigateTo({
-				path: "/app/series/search",
-			});
-		},
-	},
 ];
 
 const onSerieSelected = async (serie: SerieWithMediaView) => {

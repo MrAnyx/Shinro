@@ -113,6 +113,16 @@ const columns: TableColumn<CollectionDefaultView>[] = [
 	},
 ];
 
+const emptyActions: ButtonProps[] = [
+	{
+		icon: "i-lucide-plus",
+		label: "New collection",
+		onClick() {
+			openCollectionFormModal();
+		},
+	},
+];
+
 // Get collections query
 const total = computed(() => data.value?.total ?? 0);
 
@@ -188,16 +198,6 @@ const toggleCollectionFavorite = async (collection: CollectionDefaultView) =>
 			data.value.results = data.value.results.with(idx, newCollection);
 		}
 	});
-
-const emptyActions: ButtonProps[] = [
-	{
-		icon: "i-lucide-plus",
-		label: "New collection",
-		onClick() {
-			openCollectionFormModal();
-		},
-	},
-];
 
 const onCollectionSelected = async (collection: CollectionDefaultView) => {
 	// await navigateTo({ path: `/app/collections/${collection.id}` });

@@ -114,6 +114,16 @@ const columns: TableColumn<MovieWithMediaView>[] = [
 	},
 ];
 
+const emptyActions: ButtonProps[] = [
+	{
+		icon: "i-lucide-search",
+		label: "Search",
+		async onClick() {
+			await navigateTo({ path: "/app/movies/search" });
+		},
+	},
+];
+
 // Get movies query
 const total = computed(() => data.value?.total ?? 0);
 
@@ -174,16 +184,6 @@ const getRowActions = (movie: MovieWithMediaView): DropdownMenuItem[][] => [
 			},
 		},
 	],
-];
-
-const emptyActions: ButtonProps[] = [
-	{
-		icon: "i-lucide-search",
-		label: "Search",
-		async onClick() {
-			await navigateTo({ path: "/app/movies/search" });
-		},
-	},
 ];
 
 const onMovieSelected = async (movie: MovieWithMediaView) => {
