@@ -11,7 +11,11 @@
 		/>
 
 		<template #content>
-			<ClearableRating v-model="rating" />
+			<ClearableRating
+				v-model="rating"
+				:loading="props.loading || props.popupLoading"
+				:disabled="props.disabled || props.popupDisabled"
+			/>
 		</template>
 	</UPopover>
 </template>
@@ -21,7 +25,12 @@ import type { ButtonProps } from "@nuxt/ui";
 
 const rating = defineModel<number>();
 
-const props = defineProps<{} & Pick<ButtonProps, "loading" | "disabled" | "variant" | "color">>();
+const props = defineProps<
+	{
+		popupLoading?: boolean;
+		popupDisabled?: boolean;
+	} & Pick<ButtonProps, "loading" | "disabled" | "variant" | "color">
+>();
 
 const ratingButtonLabel = computed(() =>
 	rating.value

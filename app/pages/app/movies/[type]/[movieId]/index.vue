@@ -54,12 +54,14 @@
 							variant="subtle"
 							v-model="selectedCollectionIds"
 							@update:model-value="updateCollections"
+							:loading="isUpdatingCollections"
 						/>
 						<DetailsRatingPopover
 							variant="subtle"
 							color="neutral"
 							v-model="rating"
 							@update:model-value="updateRating"
+							:popup-disabled="isUpdatingRating"
 						/>
 					</template>
 				</template>
@@ -373,7 +375,7 @@ const _updateStatus = (newStatus?: MediaStatus) =>
 
 const { loading: isUpdatingStatus, execute: updateStatus } = useLoadingWrapper(_updateStatus);
 
-const updateCollections = () =>
+const _updateCollections = () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
@@ -385,16 +387,21 @@ const updateCollections = () =>
 		});
 	});
 
-const updateRating = () =>
+const { loading: isUpdatingCollections, execute: updateCollections } = useLoadingWrapper(_updateCollections);
+
+const _updateRating = () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
 		}
+
 		await trpc.movie.update.mutate({
 			id: internalId.value!,
 			rating: rating.value ?? null,
 		});
 	});
+
+const { loading: isUpdatingRating, execute: updateRating } = useLoadingWrapper(_updateRating);
 
 // Saga table actions
 const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieCollectionPartDefaultView) =>
