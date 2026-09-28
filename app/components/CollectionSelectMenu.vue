@@ -4,7 +4,9 @@
 		v-model="selectedCollections"
 		:loading="internalLoading"
 		:variant="props.variant"
-		:disabled="props.disabled"
+		:highlight="props.highlight"
+		:color="props.color"
+		:disabled="props.disabled || internalLoading"
 		multiple
 		value-key="id"
 		placeholder="Select some collections"
@@ -20,7 +22,7 @@ const trpc = useTrpc();
 
 const selectedCollections = defineModel<string[]>();
 
-const props = defineProps<{} & Pick<SelectMenuProps, "variant" | "disabled" | "loading">>();
+const props = defineProps<{} & Pick<SelectMenuProps, "variant" | "disabled" | "loading" | "color" | "highlight">>();
 
 const internalLoading = computed(() => props.loading || loadingCollections.value);
 const internalCollections = computed(

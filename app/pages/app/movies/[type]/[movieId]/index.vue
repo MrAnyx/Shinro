@@ -1,23 +1,70 @@
 <template>
 	<div class="flex gap-8 w-full">
 		<!-- Side bar with image and actions -->
-		<DetailsAside
-			class="w-80"
-			:loading="isLoading"
-			:external="isExternal"
-			:in-my-list="isInMyList"
-			image-provider="tmdb"
-			:image="image"
-			v-model:rating="rating"
-			v-model:status="status"
-			v-model:collections="selectedCollectionIds"
-			@add="addMovie"
-			@remove="removeMovie"
-			@edit="editMovie"
-			@update:status="updateStatus"
-			@update:collections="updateCollections"
-			@update:rating="updateRating"
-		/>
+		<aside>
+			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle" class="w-80">
+				<!-- Image -->
+				<ImageFallback provider="tmdb" :src="image" :height="400" class="rounded-md" :loading="isLoading" />
+
+				<!-- Actions -->
+				<template v-if="isLoading">
+					<USkeleton class="w-full h-[32px] rounded-sm" />
+					<USkeleton class="w-full h-[32px] rounded-sm" />
+				</template>
+				<template v-else>
+					<UButton
+						label="Add to My List"
+						block
+						leading-icon="i-lucide-plus"
+						variant="subtle"
+						color="success"
+						v-if="!isInMyList && isExternal"
+						:loading="isAddingMovie"
+						@click="addMovie"
+					/>
+
+					<template v-else-if="isInMyList">
+						<UButton
+							label="Remove from My List"
+							block
+							leading-icon="i-lucide-trash"
+							variant="subtle"
+							color="error"
+							:loading="isRemovingMovie"
+							@click="removeMovie"
+						/>
+
+						<UButton
+							label="Edit the movie"
+							block
+							leading-icon="i-lucide-square-pen"
+							variant="subtle"
+							color="info"
+							:loading="isEditingMovie"
+							@click="editMovie"
+						/>
+
+						<StatusSelectMenu
+							variant="subtle"
+							v-model="status"
+							@update:model-value="updateStatus"
+							:loading="isUpdatingStatus"
+						/>
+						<CollectionSelectMenu
+							variant="subtle"
+							v-model="selectedCollectionIds"
+							@update:model-value="updateCollections"
+						/>
+						<DetailsRatingPopover
+							variant="subtle"
+							color="neutral"
+							v-model="rating"
+							@update:model-value="updateRating"
+						/>
+					</template>
+				</template>
+			</UCard>
+		</aside>
 
 		<!-- Main section -->
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
@@ -116,6 +163,8 @@
 </template>
 <script setup lang="ts">
 import type { TabsItem, TableColumn } from "@nuxt/ui";
+import { useDebounceFn } from "@vueuse/core";
+import { tuple } from "zod";
 
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
@@ -260,7 +309,7 @@ const _updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: Movi
 };
 
 // Methods
-const removeMovie = () =>
+const _removeMovie = () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
@@ -276,7 +325,9 @@ const removeMovie = () =>
 		}
 	});
 
-const addMovie = () =>
+const { loading: isRemovingMovie, execute: removeMovie } = useLoadingWrapper(_removeMovie);
+
+const _addMovie = () =>
 	toast.withErrorToast(async () => {
 		if (isInMyList.value) {
 			return;
@@ -287,32 +338,40 @@ const addMovie = () =>
 		_updateSagaMovieInternalMovie(movieId.value, movie);
 	});
 
-const editMovie = async () => {
-	if (!isInMyList.value) {
-		return;
-	}
+const { loading: isAddingMovie, execute: addMovie } = useLoadingWrapper(_addMovie);
 
-	const instance = movieFormModal.open({ id: myMovieDetails.value!.id });
-	const result = await instance.result;
-
-	if (result) {
-		myMovieDetails.value = result.movie;
-		selectedCollectionIds.value = result.collections.map((c) => c.id);
-		_updateSagaMovieInternalMovie(result.movie.media.externalId ?? undefined, result.movie);
-	}
-};
-
-// Metadata updates
-const updateStatus = (newStatus?: MediaStatus) =>
+const _editMovie = async () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
 		}
+
+		const instance = movieFormModal.open({ id: myMovieDetails.value!.id });
+		const result = await instance.result;
+
+		if (result) {
+			myMovieDetails.value = result.movie;
+			selectedCollectionIds.value = result.collections.map((c) => c.id);
+			_updateSagaMovieInternalMovie(result.movie.media.externalId ?? undefined, result.movie);
+		}
+	});
+
+const { loading: isEditingMovie, execute: editMovie } = useLoadingWrapper(_editMovie);
+
+// Metadata updates
+const _updateStatus = (newStatus?: MediaStatus) =>
+	toast.withErrorToast(async () => {
+		if (!isInMyList.value) {
+			return;
+		}
+
 		await trpc.movie.update.mutate({
 			id: internalId.value!,
 			status: newStatus ?? null,
 		});
 	});
+
+const { loading: isUpdatingStatus, execute: updateStatus } = useLoadingWrapper(_updateStatus);
 
 const updateCollections = () =>
 	toast.withErrorToast(async () => {

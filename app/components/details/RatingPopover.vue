@@ -1,9 +1,10 @@
 <template>
 	<UPopover :ui="{ content: 'p-3!' }">
 		<UButton
-			color="neutral"
-			variant="subtle"
+			:color="props.color"
+			:variant="props.variant"
 			:loading="props.loading"
+			:disabled="props.loading || props.disabled"
 			block
 			:label="ratingButtonLabel"
 			leading-icon="i-lucide-user-star"
@@ -16,11 +17,11 @@
 </template>
 
 <script setup lang="ts">
+import type { ButtonProps } from "@nuxt/ui";
+
 const rating = defineModel<number>();
 
-const props = defineProps<{
-	loading?: boolean;
-}>();
+const props = defineProps<{} & Pick<ButtonProps, "loading" | "disabled" | "variant" | "color">>();
 
 const ratingButtonLabel = computed(() =>
 	rating.value
