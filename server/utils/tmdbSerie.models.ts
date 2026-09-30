@@ -27,6 +27,11 @@ export const TmdbSerieDetailsResponseSchema = z.object({
 	adult: z.boolean(),
 	first_air_date: z.string().nullish(),
 	last_air_date: z.string().nullish(),
+	next_episode_to_air: z
+		.object({
+			air_date: z.string().nullish(),
+		})
+		.nullish(),
 	in_production: z.boolean(),
 	number_of_seasons: z.number(),
 	number_of_episodes: z.number(),

@@ -79,11 +79,8 @@
 				</template>
 				<template v-else>
 					<AdultBadge :adult="tmdbSerieDetails?.details.adult" />
-					<DetailsDateBadge :date="tmdbSerieDetails?.details.first_air_date ?? undefined" />
-					<DetailsReleaseBadge
-						:start-date="tmdbSerieDetails?.details.first_air_date ?? undefined"
-						:end-date="tmdbSerieDetails?.details.last_air_date ?? undefined"
-					/>
+					<DetailsDateBadge :date="earliestSerieAirDate" />
+					<DetailsReleaseBadge :start-date="earliestSerieAirDate" :end-date="latestSerieAirDate" />
 					<DetailsSeasonCountBadge :count="tmdbSerieDetails?.details.number_of_seasons" />
 					<DetailsEpisodeCountBadge :count="tmdbSerieDetails?.details.number_of_episodes" />
 					<VoteBadge
@@ -232,6 +229,24 @@ const genres = computed(() => tmdbSerieDetails.value?.details.genres ?? []);
 const credits = computed(() => tmdbSerieDetails.value?.credits ?? []);
 const seasons = computed(() => tmdbSerieDetails.value?.seasons ?? []);
 const hasSeasons = computed(() => seasons.value.length > 0);
+const latestSerieAirDate = computed(() => {
+	const details = tmdbSerieDetails.value?.details;
+	const dates = [
+		details?.next_episode_to_air?.air_date,
+		details?.last_air_date,
+		...seasons.value.map((season) => season.air_date),
+	].filter((date): date is string => !!date);
+
+	return dates.sort().at(-1);
+});
+const earliestSerieAirDate = computed(() => {
+	const dates = [
+		tmdbSerieDetails.value?.details.first_air_date,
+		...seasons.value.map((season) => season.air_date),
+	].filter((date): date is string => !!date);
+
+	return dates.sort()[0];
+});
 
 const { data: tmdbSerieDetails, pending: loadingDetails } = useClientAsyncData(
 	() => trpc.tmdbSerie.details.query({ id: serieId.value }),
