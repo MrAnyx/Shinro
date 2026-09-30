@@ -78,7 +78,7 @@ const toast = useStatusToast();
 const trpc = useTrpc();
 const form = useTemplateRef("form");
 
-const REVERIFY_WINDOW_MS = 15 * 60 * 1000;
+const REVERIFY_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 const lastVerifiedAt = useState<number | null>("confirmation:lastPasswordVerifiedAt", () => null);
 
 const recentlyVerified = computed(() => {

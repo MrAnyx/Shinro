@@ -88,6 +88,7 @@
 					class="self-end"
 					color="warning"
 					variant="subtle"
+					:loading="isLoadingCache"
 					@click="clearCache"
 				/>
 			</SettingsParameterItem>
@@ -104,6 +105,7 @@
 					class="self-end"
 					color="error"
 					variant="subtle"
+					:loading="isLoadingDeleteAccount"
 					@click="deleteAccount"
 				/>
 			</SettingsParameterItem>
@@ -183,9 +185,13 @@ const onSavePassword = async (payload: FormSubmitEvent<PasswordSchema>) => {
 	}
 };
 
-const deleteAccount = async () => {
+const _deleteAccount = async () => {
 	const result = await openConfirmationModal(() => userStore.deleteMe(), {
 		requirePassword: true,
+		title: "Permanently delete my account",
+		icon: "i-lucide-user-x",
+		confirmLabel: "Delete my account",
+		confirmIcon: "i-lucide-trash",
 		message:
 			"This will permanently delete your account, including all collections, saved media, and related data. This action cannot be undone. Please confirm your password to continue.",
 	});
@@ -196,11 +202,15 @@ const deleteAccount = async () => {
 	}
 };
 
-const clearCache = async () => {
+const { loading: isLoadingDeleteAccount, execute: deleteAccount } = useLoadingWrapper(_deleteAccount);
+
+const _clearCache = async () => {
 	const result = await openConfirmationModal(() => trpc.cache.clear.mutate(), { color: "warning" });
 
 	if (result) {
 		toast.success({ description: "Cache has been cleared" });
 	}
 };
+
+const { loading: isLoadingCache, execute: clearCache } = useLoadingWrapper(_clearCache);
 </script>
