@@ -61,7 +61,6 @@
 							color="neutral"
 							v-model="rating"
 							@update:model-value="updateRating"
-							:popup-disabled="isUpdatingRating"
 						/>
 					</template>
 				</template>
@@ -166,7 +165,6 @@
 <script setup lang="ts">
 import type { TabsItem, TableColumn } from "@nuxt/ui";
 import { useDebounceFn } from "@vueuse/core";
-import { tuple } from "zod";
 
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
@@ -401,7 +399,7 @@ const _updateRating = () =>
 		});
 	});
 
-const { loading: isUpdatingRating, execute: updateRating } = useLoadingWrapper(_updateRating);
+const updateRating = useDebounceFn(_updateRating, DEBOUNCE_TIMER);
 
 // Saga table actions
 const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieCollectionPartDefaultView) =>
