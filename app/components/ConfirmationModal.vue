@@ -1,5 +1,12 @@
 <template>
-	<UModal title="Confirmation" :dismissible="!isLoading" :close="!isLoading">
+	<UModal :dismissible="!isLoading" :close="!isLoading">
+		<template #title>
+			<div class="flex items-center gap-x-2">
+				<UIcon class="size-5" :name="props.icon" v-if="props.icon" />
+				<span>{{ props.title ?? "Confirmation" }}</span>
+			</div>
+		</template>
+
 		<template #body>
 			<UForm
 				ref="form"
@@ -26,8 +33,21 @@
 		</template>
 
 		<template #footer>
-			<UButton label="Cancel" variant="ghost" color="neutral" :disabled="isLoading" @click="onCancel" />
-			<UButton label="Confirm" :color="props.color ?? 'error'" :loading="isLoading" @click="onConfirm" />
+			<UButton
+				:label="props.cancelLabel ?? 'Cancel'"
+				variant="ghost"
+				color="neutral"
+				:leading-icon="props.cancelIcon"
+				:disabled="isLoading"
+				@click="onCancel"
+			/>
+			<UButton
+				:label="props.confirmLabel ?? 'Confirm'"
+				:color="props.color ?? 'error'"
+				:leading-icon="props.confirmIcon"
+				:loading="isLoading"
+				@click="onConfirm"
+			/>
 		</template>
 	</UModal>
 </template>
@@ -40,7 +60,13 @@ const props = defineProps<{
 	callback?: () => Promise<void> | void;
 	color?: AppColor;
 	requirePassword?: boolean;
+	icon?: string;
+	title?: string;
 	message?: string;
+	confirmLabel?: string;
+	confirmIcon?: string;
+	cancelLabel?: string;
+	cancelIcon?: string;
 }>();
 
 const emit = defineEmits<{

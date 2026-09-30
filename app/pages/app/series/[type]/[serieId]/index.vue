@@ -1,23 +1,71 @@
 <template>
 	<div class="flex gap-8 w-full">
 		<!-- Side bar with image and actions -->
-		<DetailsAside
-			class="w-80"
-			:loading="isLoading"
-			:external="isExternal"
-			:in-my-list="isInMyList"
-			image-provider="tmdb"
-			:image="image"
-			v-model:rating="rating"
-			v-model:status="status"
-			v-model:collections="selectedCollectionIds"
-			@add="addSerie"
-			@remove="removeSerie"
-			@edit="editSerie"
-			@update:status="updateStatus"
-			@update:collections="updateCollections"
-			@update:rating="updateRating"
-		/>
+		<aside>
+			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle" class="w-80">
+				<!-- Image -->
+				<ImageFallback provider="tmdb" :src="image" :height="400" class="rounded-md" :loading="isLoading" />
+
+				<!-- Actions -->
+				<template v-if="isLoading">
+					<USkeleton class="w-full h-[32px] rounded-sm" />
+					<USkeleton class="w-full h-[32px] rounded-sm" />
+				</template>
+				<template v-else>
+					<UButton
+						label="Add to My List"
+						block
+						leading-icon="i-lucide-plus"
+						variant="subtle"
+						color="success"
+						v-if="!isInMyList && isExternal"
+						:loading="isAddingSerie"
+						@click="addSerie"
+					/>
+
+					<template v-else-if="isInMyList">
+						<UButton
+							label="Remove from My List"
+							block
+							leading-icon="i-lucide-trash"
+							variant="subtle"
+							color="error"
+							:loading="isRemovingSerie"
+							@click="removeSerie"
+						/>
+
+						<UButton
+							label="Edit the serie"
+							block
+							leading-icon="i-lucide-square-pen"
+							variant="subtle"
+							color="info"
+							:loading="isEditingSerie"
+							@click="editSerie"
+						/>
+
+						<StatusSelectMenu
+							variant="subtle"
+							v-model="status"
+							@update:model-value="updateStatus"
+							:loading="isUpdatingStatus"
+						/>
+						<CollectionSelectMenu
+							variant="subtle"
+							v-model="selectedCollectionIds"
+							@update:model-value="updateCollections"
+							:loading="isUpdatingCollections"
+						/>
+						<DetailsRatingPopover
+							variant="subtle"
+							color="neutral"
+							v-model="rating"
+							@update:model-value="updateRating"
+						/>
+					</template>
+				</template>
+			</UCard>
+		</aside>
 
 		<!-- Main section -->
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
@@ -119,6 +167,7 @@
 
 <script setup lang="ts">
 import type { TableColumn, TabsItem } from "@nuxt/ui";
+import { useDebounceFn } from "@vueuse/core";
 
 import { LazySerieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
@@ -140,6 +189,7 @@ const seasonStore = useSeasonStore();
 const toast = useStatusToast();
 const overlay = useOverlay();
 const serieFormModal = overlay.create(LazySerieFormModal);
+const { openConfirmationModal } = useConfirmation();
 
 // Page computed
 const type = computed(() => route.params.type as MediaSourceType);
@@ -263,13 +313,27 @@ const _updateSeasonInternalSeason = (externalId?: string, internalSeason?: Seaso
 };
 
 // Methods
-const removeSerie = () =>
+const _removeSerie = () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
 		}
 
-		await serieStore.deleteSerie({ id: internalId.value! });
+		const result = await openConfirmationModal(
+			async () => {
+				await serieStore.deleteSerie({ id: internalId.value! });
+			},
+			{
+				icon: "i-lucide-trash",
+				title: "Delete this serie",
+				message: "You are about to delete this serie from your list. Press confirm to proceed",
+			},
+		);
+
+		if (!result) {
+			return;
+		}
+
 		mySerieDetails.value = undefined;
 
 		if (isInternal.value) {
@@ -277,7 +341,9 @@ const removeSerie = () =>
 		}
 	});
 
-const addSerie = () =>
+const { loading: isRemovingSerie, execute: removeSerie } = useLoadingWrapper(_removeSerie);
+
+const _addSerie = () =>
 	toast.withErrorToast(async () => {
 		if (isInMyList.value) {
 			return;
@@ -287,7 +353,9 @@ const addSerie = () =>
 		mySerieDetails.value = serie;
 	});
 
-const editSerie = async () => {
+const { loading: isAddingSerie, execute: addSerie } = useLoadingWrapper(_addSerie);
+
+const _editSerie = async () => {
 	if (!isInMyList.value) {
 		return;
 	}
@@ -301,7 +369,9 @@ const editSerie = async () => {
 	}
 };
 
-const updateStatus = (newStatus?: MediaStatus) =>
+const { loading: isEditingSerie, execute: editSerie } = useLoadingWrapper(_editSerie);
+
+const _updateStatus = (newStatus?: MediaStatus) =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
@@ -313,7 +383,9 @@ const updateStatus = (newStatus?: MediaStatus) =>
 		});
 	});
 
-const updateCollections = () =>
+const { loading: isUpdatingStatus, execute: updateStatus } = useLoadingWrapper(_updateStatus);
+
+const _updateCollections = () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
@@ -325,7 +397,9 @@ const updateCollections = () =>
 		});
 	});
 
-const updateRating = () =>
+const { loading: isUpdatingCollections, execute: updateCollections } = useLoadingWrapper(_updateCollections);
+
+const _updateRating = () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
@@ -333,6 +407,8 @@ const updateRating = () =>
 
 		await trpc.serie.update.mutate({ id: internalId.value!, rating: rating.value ?? null });
 	});
+
+const updateRating = useDebounceFn(_updateRating, DEBOUNCE_TIMER);
 
 const addSeasonToMyList = (tmdbSeason: TmdbSerieDetailsSeasonDefaultView) =>
 	toast.withErrorToast(async () => {

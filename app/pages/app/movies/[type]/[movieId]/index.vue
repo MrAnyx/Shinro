@@ -165,6 +165,7 @@
 <script setup lang="ts">
 import type { TabsItem, TableColumn } from "@nuxt/ui";
 import { useDebounceFn } from "@vueuse/core";
+import { Result } from "pg";
 
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
@@ -185,6 +186,7 @@ const movieStore = useMovieStore();
 const toast = useStatusToast();
 const overlay = useOverlay();
 const movieFormModal = overlay.create(LazyMovieFormModal);
+const { openConfirmationModal } = useConfirmation();
 
 // Page computed
 const type = computed(() => route.params.type as MediaSourceType);
@@ -315,7 +317,22 @@ const _removeMovie = () =>
 			return;
 		}
 
-		await movieStore.deleteMovie({ id: myMovieDetails.value!.id });
+		// Confirm the deletion of the movie
+		const result = await openConfirmationModal(
+			async () => {
+				await movieStore.deleteMovie({ id: myMovieDetails.value!.id });
+			},
+			{
+				icon: "i-lucide-trash",
+				title: "Delete this movie",
+				message: "You are about to delete this movie from your list. Press confirm to proceed",
+			},
+		);
+
+		if (!result) {
+			return;
+		}
+
 		myMovieDetails.value = undefined;
 		_updateSagaMovieInternalMovie(movieId.value, undefined);
 
