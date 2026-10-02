@@ -18,8 +18,14 @@ export const useInitializationStore = defineStore("initialization", {
 				const collectionStore = useCollectionStore();
 				const movieStore = useMovieStore();
 				const serieStore = useSerieStore();
+				const seasonStore = useSeasonStore();
 
-				await Promise.all([collectionStore.initialize(), movieStore.initialize(), serieStore.initialize()]);
+				await Promise.all([
+					collectionStore.initialize(),
+					movieStore.initialize(),
+					serieStore.initialize(),
+					seasonStore.initialize(),
+				]);
 
 				this.isReady = true;
 			} finally {

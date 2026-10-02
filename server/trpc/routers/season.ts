@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { ImageType, MediaType } from "#prisma/client";
+import { ImageType, MediaType, Prisma } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -239,48 +239,48 @@ export default router({
 			});
 		}),
 
-	// getAll: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			page: ServerPaginationValidation.page,
-	// 			search: ServerPaginationValidation.search,
-	// 			force: ServerPaginationValidation.force,
-	// 			orderBy: SortableSchema(ServerSerieValidation.sort),
-	// 		}),
-	// 	)
-	// 	.output(PaginatedSchema(SerieWithMediaViewSchema))
-	// 	.query(async ({ input, ctx }) => {
-	// 		const skip = (input.page - 1) * ITEMS_PER_PAGE;
-	// 		const orderBy = buildPrismaOrderBy<Prisma.SerieOrderByWithRelationInput>(input.orderBy);
+	getAll: protectedProcedure
+		.input(
+			z.object({
+				page: ServerPaginationValidation.page,
+				search: ServerPaginationValidation.search,
+				force: ServerPaginationValidation.force,
+				orderBy: SortableSchema(ServerSeasonValidation.sort),
+			}),
+		)
+		.output(PaginatedSchema(SeasonWithMediaViewSchema))
+		.query(async ({ input, ctx }) => {
+			const skip = (input.page - 1) * ITEMS_PER_PAGE;
+			const orderBy = buildPrismaOrderBy<Prisma.SeasonOrderByWithRelationInput>(input.orderBy);
 
-	// 		const where: Prisma.SerieWhereInput = {
-	// 			media: {
-	// 				ownerId: ctx.user.id,
-	// 			},
-	// 			...(input.search
-	// 				? {
-	// 						OR: [
-	// 							{ media: { name: { contains: input.search, mode: "insensitive" } } },
-	// 							{ overview: { contains: input.search, mode: "insensitive" } },
-	// 						],
-	// 					}
-	// 				: {}),
-	// 		};
+			const where: Prisma.SeasonWhereInput = {
+				media: {
+					ownerId: ctx.user.id,
+				},
+				...(input.search
+					? {
+							OR: [
+								{ media: { name: { contains: input.search, mode: "insensitive" } } },
+								{ overview: { contains: input.search, mode: "insensitive" } },
+							],
+						}
+					: {}),
+			};
 
-	// 		const [total, results] = await Promise.all([
-	// 			prisma.serie.count({ where }),
-	// 			prisma.serie.findMany({
-	// 				where,
-	// 				orderBy,
-	// 				...(input.force ? {} : { skip, take: ITEMS_PER_PAGE }),
-	// 				include: {
-	// 					media: true,
-	// 				},
-	// 			}),
-	// 		]);
+			const [total, results] = await Promise.all([
+				prisma.season.count({ where }),
+				prisma.season.findMany({
+					where,
+					orderBy,
+					...(input.force ? {} : { skip, take: ITEMS_PER_PAGE }),
+					include: {
+						media: true,
+					},
+				}),
+			]);
 
-	// 		return { total, results };
-	// 	}),
+			return { total, results };
+		}),
 
 	// getById: protectedProcedure
 	// 	.input(
