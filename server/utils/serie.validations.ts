@@ -8,7 +8,7 @@ type SerieSortFields = SerieSortField | MediaSortField;
 
 export const ServerSerieValidation = {
 	id: SerieIdSchemaBase,
-	overview: SerieOverviewSchemaBase.nullable().transform((val) => (val === "" ? null : val)),
+	overview: SerieOverSchemaBase.nullable().transform((val) => (val === "" ? null : val)),
 
 	sort: z.enum([
 		...Object.values(Prisma.SerieScalarFieldEnum),

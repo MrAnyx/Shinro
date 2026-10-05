@@ -13,7 +13,7 @@ export default router({
 				favorite: ServerCollectionValidation.favorite,
 			}),
 		)
-		.output(CollectionDefaultViewSchema)
+		.output(CollectionSchema)
 		.mutation(async ({ input, ctx }) => {
 			const collection = await prisma.collection.create({
 				data: {
@@ -36,7 +36,7 @@ export default router({
 				favorite: ServerCollectionValidation.favorite.optional(),
 			}),
 		)
-		.output(CollectionDefaultViewSchema)
+		.output(CollectionSchema)
 		.mutation(async ({ input, ctx }) => {
 			const existingCollection = await prisma.collection.findFirst({
 				where: {
@@ -132,7 +132,7 @@ export default router({
 
 	getFavoritesWithMedias: protectedProcedure
 		.input(z.void())
-		.output(z.array(CollectionWithMediasViewSchema))
+		.output(z.array(CollectionWithMediasSchema))
 		.query(async ({ ctx }) => {
 			return await prisma.collection.findMany({
 				where: {
@@ -160,7 +160,7 @@ export default router({
 				orderBy: SortableSchema(ServerCollectionValidation.sort),
 			}),
 		)
-		.output(PaginatedSchema(CollectionDefaultViewSchema))
+		.output(PaginatedSchema(CollectionSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 			const orderBy: Prisma.CollectionOrderByWithRelationInput[] = input.orderBy.map(({ sort, order }) => ({
@@ -197,7 +197,7 @@ export default router({
 				id: ServerCollectionValidation.id,
 			}),
 		)
-		.output(CollectionDefaultViewSchema)
+		.output(CollectionSchema)
 		.query(async ({ input, ctx }) => {
 			const collection = await prisma.collection.findFirst({
 				where: {

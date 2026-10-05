@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const TmdbMovieSearchDefaultViewSchema = z.object({
+export const TmdbMovieSearchSchema = z.object({
 	id: z.string(),
 	title: z.string().nullish(),
 	overview: z.string().nullish(),
@@ -9,10 +9,10 @@ export const TmdbMovieSearchDefaultViewSchema = z.object({
 	adult: z.boolean(),
 	vote_average: z.number(),
 	vote_count: z.number(),
-	internal_movie: MovieWithMediaViewSchema.nullish(),
+	internal_movie: MovieWithMediaSchema.nullish(),
 });
 
-export const TmdbMovieDetailsDefaultViewSchema = z.object({
+export const TmdbMovieDetailsSchema = z.object({
 	id: z.string(),
 	title: z.string().nullish(),
 	poster_path: z.string().nullish(),
@@ -26,16 +26,14 @@ export const TmdbMovieDetailsDefaultViewSchema = z.object({
 	tagline: z.string().nullish(),
 });
 
-export const TmdbMovieCreditsDefaultViewSchema = z.array(
-	z.object({
-		id: z.string(),
-		name: z.string().nullish(),
-		profile_path: z.string().nullish(),
-		character: z.string().nullish(),
-	}),
-);
+export const TmdbMovieCreditSchema = z.object({
+	id: z.string(),
+	name: z.string().nullish(),
+	profile_path: z.string().nullish(),
+	character: z.string().nullish(),
+});
 
-export const TmdbMovieSagaDefaultViewSchema = z.object({
+export const TmdbMovieSagaSchema = z.object({
 	name: z.string().nullish(),
 	movies: z.array(
 		z.object({
@@ -48,7 +46,7 @@ export const TmdbMovieSagaDefaultViewSchema = z.object({
 			release_date: z.string().nullish(),
 			vote_average: z.number(),
 			vote_count: z.number(),
-			internal_movie: MovieWithMediaViewSchema.nullish(),
+			internal_movie: MovieWithMediaSchema.nullish(),
 		}),
 	),
 });

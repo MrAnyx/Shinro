@@ -60,7 +60,7 @@ import { z } from "zod";
 const props = defineProps<{ id?: string }>();
 
 const emit = defineEmits<{
-	close: [value?: CollectionDefaultView];
+	close: [value?: Collection];
 }>();
 
 const isSubmitting = ref(false);

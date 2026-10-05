@@ -81,7 +81,7 @@ onMounted(() => {
 });
 
 // Table structure
-const columns: TableColumn<TmdbSerieSearchDefaultView>[] = [
+const columns: TableColumn<TmdbSerieSearch>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },
@@ -159,7 +159,7 @@ const _focusSearchField = () => {
 	searchInput.value?.inputRef?.focus();
 };
 
-const _updateSerieInternalSerie = (externalId: string, internalSerie?: SerieWithMediaView) => {
+const _updateSerieInternalSerie = (externalId: string, internalSerie?: SerieWithMedia) => {
 	const target = data.value?.results.find((m) => m.id === externalId);
 	if (target) {
 		target.internal_serie = internalSerie;
@@ -167,7 +167,7 @@ const _updateSerieInternalSerie = (externalId: string, internalSerie?: SerieWith
 };
 
 // Methods
-const addSerieToMyList = async (tmdbSerie: TmdbSerieSearchDefaultView) =>
+const addSerieToMyList = async (tmdbSerie: TmdbSerieSearch) =>
 	toast.withErrorToast(async () => {
 		if (tmdbSerie.internal_serie?.id) {
 			return;
@@ -177,7 +177,7 @@ const addSerieToMyList = async (tmdbSerie: TmdbSerieSearchDefaultView) =>
 		_updateSerieInternalSerie(tmdbSerie.id, newSerie);
 	});
 
-const removeSerieFromMyList = async (tmdbSerie: TmdbSerieSearchDefaultView) =>
+const removeSerieFromMyList = async (tmdbSerie: TmdbSerieSearch) =>
 	toast.withErrorToast(async () => {
 		if (!tmdbSerie.internal_serie?.id) {
 			return;
@@ -187,6 +187,5 @@ const removeSerieFromMyList = async (tmdbSerie: TmdbSerieSearchDefaultView) =>
 		_updateSerieInternalSerie(tmdbSerie.id, undefined);
 	});
 
-const onSerieSelected = (tmdbSerie: TmdbSerieSearchDefaultView) =>
-	navigateTo({ path: `/app/series/external/${tmdbSerie.id}` });
+const onSerieSelected = (tmdbSerie: TmdbSerieSearch) => navigateTo({ path: `/app/series/external/${tmdbSerie.id}` });
 </script>

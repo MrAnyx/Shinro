@@ -1,4 +1,4 @@
 import { z } from "zod";
 
-export type SerieDefaultView = z.infer<typeof SerieDefaultViewSchema>;
-export type SerieWithMediaView = z.infer<typeof SerieWithMediaViewSchema>;
+export type Serie = z.infer<typeof SerieSchema>;
+export type SerieWithMedia = z.infer<typeof SerieWithMediaSchema>;

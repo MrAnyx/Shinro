@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const TmdbSerieSearchDefaultViewSchema = z.object({
+export const TmdbSerieSearchSchema = z.object({
 	id: z.string(),
 	adult: z.boolean(),
 	name: z.string().nullish(),
@@ -9,10 +9,10 @@ export const TmdbSerieSearchDefaultViewSchema = z.object({
 	first_air_date: z.string().nullish(),
 	vote_average: z.number(),
 	vote_count: z.number(),
-	internal_serie: SerieWithMediaViewSchema.nullish(),
+	internal_serie: SerieWithMediaSchema.nullish(),
 });
 
-export const TmdbSerieDetailsDefaultViewSchema = z.object({
+export const TmdbSerieDetailsSchema = z.object({
 	id: z.string(),
 	name: z.string().nullish(),
 	poster_path: z.string().nullish(),
@@ -34,7 +34,7 @@ export const TmdbSerieDetailsDefaultViewSchema = z.object({
 	tagline: z.string().nullish(),
 });
 
-export const TmdbSerieDetailsSeasonDefaultViewSchema = z.object({
+export const TmdbSerieDetailsSeasonSchema = z.object({
 	air_date: z.string().nullish(),
 	episode_count: z.number(),
 	id: z.string(),
@@ -43,17 +43,17 @@ export const TmdbSerieDetailsSeasonDefaultViewSchema = z.object({
 	overview: z.string().nullish(),
 	poster_path: z.string().nullish(),
 	vote_average: z.number(),
-	internal_season: SeasonWithMediaViewSchema.nullish(),
+	internal_season: SeasonWithMediaSchema.nullish(),
 });
 
-export const TmdbSerieCreditDefaultViewSchema = z.object({
+export const TmdbSerieCreditSchema = z.object({
 	id: z.string(),
 	name: z.string().nullish(),
 	profile_path: z.string().nullish(),
 	character: z.string().nullish(),
 });
 
-export const TmdbSerieSeasonDetailsDefaultViewSchema = z.object({
+export const TmdbSerieSeasonDetailsSchema = z.object({
 	air_date: z.string().nullish(),
 	episode_count: z.number(),
 	id: z.string(),
@@ -62,17 +62,5 @@ export const TmdbSerieSeasonDetailsDefaultViewSchema = z.object({
 	overview: z.string().nullish(),
 	poster_path: z.string().nullish(),
 	vote_average: z.number(),
-	episodes: z.array(
-		z.object({
-			air_date: z.string().nullish(),
-			episode_number: z.number(),
-			id: z.string(),
-			name: z.string().nullish(),
-			overview: z.string().nullish(),
-			runtime: z.number(),
-			still_path: z.string().nullish(),
-			vote_average: z.number(),
-			vote_count: z.number(),
-		}),
-	),
+	episodes: z.number(),
 });

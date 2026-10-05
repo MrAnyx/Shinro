@@ -109,7 +109,7 @@
 						image-provider="tmdb"
 						:loading="isLoading"
 						:show-more-to="`https://www.themoviedb.org/movie/${movieId}/cast`"
-						:credit-card-to-fn="(credit) => `https://www.themoviedb.org/person/${credit.id}`"
+						:credit-card-to-fn="(c: TmdbCredit) => `https://www.themoviedb.org/person/${c.id}`"
 					/>
 				</template>
 				<template #saga>
@@ -169,6 +169,7 @@ import { Result } from "pg";
 
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
+import type { TmdbCredit } from "~/types/tmdb";
 
 definePageMeta({
 	validate(route) {
@@ -260,7 +261,7 @@ const tabs = computed<TabsItem[]>(() => [
 ]);
 
 // Saga table structure
-const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
+const sagaColumns: TableColumn<TmdbMovieSagaMovie>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },
@@ -299,7 +300,7 @@ const sagaColumns: TableColumn<TmdbMovieCollectionPartDefaultView>[] = [
 ];
 
 // Helper methods
-const _updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: MovieWithMediaView) => {
+const _updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: MovieWithMedia) => {
 	if (!externalId) {
 		return;
 	}
@@ -419,7 +420,7 @@ const _updateRating = () =>
 const updateRating = useDebounceFn(_updateRating, DEBOUNCE_TIMER);
 
 // Saga table actions
-const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieCollectionPartDefaultView) =>
+const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 	toast.withErrorToast(async () => {
 		// If already in my list
 		if (tmdbSagaMovie.internal_movie?.id) {
@@ -438,7 +439,7 @@ const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieCollectionPartDefaultView)
 		}
 	});
 
-const removeSagaMovieFromMyList = (tmdbSagaMovie: TmdbMovieCollectionPartDefaultView) =>
+const removeSagaMovieFromMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 	toast.withErrorToast(async () => {
 		// If not in my list
 		if (!tmdbSagaMovie.internal_movie?.id) {
@@ -455,6 +456,6 @@ const removeSagaMovieFromMyList = (tmdbSagaMovie: TmdbMovieCollectionPartDefault
 		}
 	});
 
-const onSagaMovieSelected = (tmdbMovie: TmdbMovieCollectionPartDefaultView) =>
+const onSagaMovieSelected = (tmdbMovie: TmdbMovieSagaMovie) =>
 	navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
 </script>

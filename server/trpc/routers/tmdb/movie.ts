@@ -10,7 +10,7 @@ export default router({
 				page: ServerPaginationValidation.page,
 			}),
 		)
-		.output(PaginatedSchema(TmdbMovieSearchDefaultViewSchema))
+		.output(PaginatedSchema(TmdbMovieSearchSchema))
 		.query(async ({ input, ctx }) => {
 			if (!input.search) {
 				return {
@@ -70,9 +70,9 @@ export default router({
 		)
 		.output(
 			z.object({
-				details: TmdbMovieDetailsDefaultViewSchema,
-				credits: TmdbMovieCreditsDefaultViewSchema,
-				saga: TmdbMovieSagaDefaultViewSchema.optional(),
+				details: TmdbMovieDetailsSchema,
+				credits: z.array(TmdbMovieCreditSchema),
+				saga: TmdbMovieSagaSchema.optional(),
 			}),
 		)
 		.query(async ({ input, ctx }) => {

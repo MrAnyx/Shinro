@@ -1,4 +1,4 @@
 import { z } from "zod";
 
-export type CollectionDefaultView = z.infer<typeof CollectionDefaultViewSchema>;
-export type CollectionWithMediasView = z.infer<typeof CollectionWithMediasViewSchema>;
+export type Collection = z.infer<typeof CollectionSchema>;
+export type CollectionWithMedias = z.infer<typeof CollectionWithMediasSchema>;

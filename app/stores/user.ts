@@ -1,6 +1,6 @@
 export const useUserStore = defineStore("user", {
 	state: () => ({
-		user: null as UserDefaultView | null,
+		user: null as User | null,
 	}),
 	getters: {
 		isAuthenticated: (state) => !!state.user,

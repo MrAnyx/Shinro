@@ -77,7 +77,7 @@ const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
 const serieFormModal = overlay.create(LazySerieFormModal);
 
-const columns: TableColumn<SerieWithMediaView>[] = [
+const columns: TableColumn<SerieWithMedia>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },
@@ -159,7 +159,7 @@ const openSerieFormModal = async (serieId?: string) => {
 	}
 };
 
-const getRowActions = (serie: SerieWithMediaView): DropdownMenuItem[][] => [
+const getRowActions = (serie: SerieWithMedia): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
@@ -184,7 +184,7 @@ const getRowActions = (serie: SerieWithMediaView): DropdownMenuItem[][] => [
 	],
 ];
 
-const onSerieSelected = async (serie: SerieWithMediaView) => {
+const onSerieSelected = async (serie: SerieWithMedia) => {
 	if (serie.media.externalId) {
 		await navigateTo(`/app/series/external/${serie.media.externalId}`);
 	} else {

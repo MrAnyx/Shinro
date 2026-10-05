@@ -1,2 +1,4 @@
-export type SeasonDefaultView = z.infer<typeof SeasonDefaultViewSchema>;
-export type SeasonWithMediaView = z.infer<typeof SeasonWithMediaViewSchema>;
+import { z } from "zod";
+
+export type Season = z.infer<typeof SeasonSchema>;
+export type SeasonWithMedia = z.infer<typeof SeasonWithMediaSchema>;

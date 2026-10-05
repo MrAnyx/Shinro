@@ -1,7 +1,7 @@
 import { z } from "zod";
 
-export type TmdbSerieSearchDefaultView = z.infer<typeof TmdbSerieSearchDefaultViewSchema>;
-export type TmdbSerieDetailsDefaultView = z.infer<typeof TmdbSerieDetailsDefaultViewSchema>;
-export type TmdbSerieDetailsSeasonDefaultView = z.infer<typeof TmdbSerieDetailsSeasonDefaultViewSchema>;
-export type TmdbSerieCreditDefaultView = z.infer<typeof TmdbSerieCreditDefaultViewSchema>;
-export type TmdbSerieSeasonDetailsDefaultView = z.infer<typeof TmdbSerieSeasonDetailsDefaultViewSchema>;
+export type TmdbSerieSearch = z.infer<typeof TmdbSerieSearchSchema>;
+export type TmdbSerieDetails = z.infer<typeof TmdbSerieDetailsSchema>;
+export type TmdbSerieDetailsSeason = z.infer<typeof TmdbSerieDetailsSeasonSchema>;
+export type TmdbSerieCredit = z.infer<typeof TmdbSerieCreditSchema>;
+export type TmdbSerieSeasonDetails = z.infer<typeof TmdbSerieSeasonDetailsSchema>;

@@ -9,7 +9,7 @@ type SeasonSortFields = SeasonSortField | MediaSortField;
 export const ServerSeasonValidation = {
 	id: SeasonIdSchemaBase,
 	number: SeasonNumberSchemaBase,
-	overview: SeasonOverviewSchemaBase.nullable().transform((val) => (val === "" ? null : val)),
+	overview: SeasonOverSchemaBase.nullable().transform((val) => (val === "" ? null : val)),
 
 	sort: z.enum([
 		...Object.values(Prisma.SeasonScalarFieldEnum),

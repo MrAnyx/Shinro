@@ -210,7 +210,7 @@ const { data: favoriteCollections, pending: loadingCollections } = useClientAsyn
 	trpc.collection.getFavoritesWithMedias.query(),
 );
 
-const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
+const recentMediasColumns: TableColumn<Media>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },
@@ -237,7 +237,7 @@ const recentMediasColumns: TableColumn<MediaDefaultView>[] = [
 	},
 ];
 
-const onMediaSelect = async (media: MediaDefaultView) => {
+const onMediaSelect = async (media: Media) => {
 	switch (media.type) {
 		case MediaType.MOVIE:
 			return await navigateTo(
@@ -256,7 +256,7 @@ const onMediaSelect = async (media: MediaDefaultView) => {
 	}
 };
 
-const favoriteCollectionColumns: TableColumn<CollectionMediaWithMediaView>[] = [
+const favoriteCollectionColumns: TableColumn<CollectionMediaWithMedia>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },

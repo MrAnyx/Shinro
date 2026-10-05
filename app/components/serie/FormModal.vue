@@ -87,7 +87,7 @@ import { z } from "zod";
 const props = defineProps<{ id?: string }>();
 
 const emit = defineEmits<{
-	close: [value?: { serie: SerieWithMediaView; collections: CollectionDefaultView[] }];
+	close: [value?: { serie: SerieWithMedia; collections: Collection[] }];
 }>();
 
 const isSubmitting = ref(false);

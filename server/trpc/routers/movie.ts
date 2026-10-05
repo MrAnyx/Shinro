@@ -15,7 +15,7 @@ export default router({
 				note: ServerMediaValidation.note,
 			}),
 		)
-		.output(MovieWithMediaViewSchema)
+		.output(MovieWithMediaSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.movie.create({
 				data: {
@@ -43,7 +43,7 @@ export default router({
 				externalId: ServerTmdbMovieValidation.id,
 			}),
 		)
-		.output(MovieWithMediaViewSchema)
+		.output(MovieWithMediaSchema)
 		.mutation(async ({ input, ctx }) => {
 			const movieExist = await prisma.movie.findFirst({
 				where: {
@@ -101,7 +101,7 @@ export default router({
 				note: ServerMediaValidation.note.optional(),
 			}),
 		)
-		.output(MovieWithMediaViewSchema)
+		.output(MovieWithMediaSchema)
 		.mutation(async ({ input, ctx }) => {
 			const existingMovie = await prisma.movie.findFirst({
 				where: {
@@ -221,7 +221,7 @@ export default router({
 				orderBy: SortableSchema(ServerMovieValidation.sort),
 			}),
 		)
-		.output(PaginatedSchema(MovieWithMediaViewSchema))
+		.output(PaginatedSchema(MovieWithMediaSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 			const orderBy = buildPrismaOrderBy<Prisma.MovieOrderByWithRelationInput>(input.orderBy);
@@ -262,7 +262,7 @@ export default router({
 				externalId: ServerTmdbMovieValidation.id.optional(),
 			}),
 		)
-		.output(MovieWithMediaViewSchema)
+		.output(MovieWithMediaSchema)
 		.query(async ({ input, ctx }) => {
 			if (!input.id && !input.externalId) {
 				throw new TRPCError({

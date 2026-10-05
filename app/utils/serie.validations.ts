@@ -1,4 +1,4 @@
 export const ClientSerieValidation = {
 	id: SerieIdSchemaBase,
-	overview: SerieOverviewSchemaBase,
+	overview: SerieOverSchemaBase,
 };

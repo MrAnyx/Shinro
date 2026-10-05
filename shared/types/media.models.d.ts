@@ -1,7 +1,9 @@
 import { z } from "zod";
 
-export type MediaDefaultView = z.infer<typeof MediaDefaultViewSchema>;
+export type Media = z.infer<typeof MediaSchema>;
 
-export type MovieMediaView = z.infer<typeof MovieMediaViewSchema>;
-export type SerieMediaView = z.infer<typeof SerieMediaViewSchema>;
-export type AnyMediaView = z.infer<typeof AnyMediaViewSchema>;
+export type MovieMedia = z.infer<typeof MovieMediaSchema>;
+export type SerieMedia = z.infer<typeof SerieMediaSchema>;
+export type SeasonMedia = z.infer<typeof SeasonMediaSchema>;
+
+export type AnyMedia = z.infer<typeof AnyMediaSchema>;

@@ -8,7 +8,7 @@ type MovieSortFields = MovieSortField | MediaSortField;
 
 export const ServerMovieValidation = {
 	id: MovieIdSchemaBase,
-	overview: MovieOverviewSchemaBase.nullable().transform((val) => (val === "" ? null : val)),
+	overview: MovieOverSchemaBase.nullable().transform((val) => (val === "" ? null : val)),
 
 	sort: z.enum([
 		...Object.values(Prisma.MovieScalarFieldEnum),

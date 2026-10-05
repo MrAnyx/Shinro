@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { Role } from "#prisma/enums";
 
-export const UserDefaultViewSchema = z.object({
+export const UserSchema = z.object({
 	id: z.uuid(),
 	username: z.string(),
 	role: z.enum(Role),

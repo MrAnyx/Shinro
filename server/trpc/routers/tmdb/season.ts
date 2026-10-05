@@ -10,7 +10,7 @@ export default router({
 				seasonNumber: ServerTmdbSeasonValidation.number,
 			}),
 		)
-		.output(TmdbSeasonDetailsDefaultViewSchema)
+		.output(TmdbSeasonDetailsSchema)
 		.query(async ({ input, ctx }) => {
 			const details = await useCache(`tmdb:serie:${input.serieId}:season:${input.seasonNumber}:details`, () =>
 				tmdb(`/tv/${input.serieId}/season/${input.seasonNumber}`, { schema: TmdbSeasonDetailsResponseSchema }),

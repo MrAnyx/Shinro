@@ -110,7 +110,7 @@
 						image-provider="tmdb"
 						:loading="isLoading"
 						:show-more-to="`https://www.themoviedb.org/tv/${serieId}/cast`"
-						:credit-card-to-fn="(credit) => `https://www.themoviedb.org/person/${credit.id}`"
+						:credit-card-to-fn="(c: TmdbCredit) => `https://www.themoviedb.org/person/${c.id}`"
 					/>
 				</template>
 				<template #seasons>
@@ -168,6 +168,7 @@ import { useDebounceFn } from "@vueuse/core";
 
 import { LazySerieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";
+import type { TmdbCredit } from "~/types/tmdb";
 
 definePageMeta({
 	validate(route) {
@@ -277,7 +278,7 @@ const tabs = computed<TabsItem[]>(() => [
 ]);
 
 // Seasons table structure
-const seasonColumns: TableColumn<TmdbSerieDetailsSeasonDefaultView>[] = [
+const seasonColumns: TableColumn<TmdbSerieDetailsSeason>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },
@@ -316,7 +317,7 @@ const seasonColumns: TableColumn<TmdbSerieDetailsSeasonDefaultView>[] = [
 ];
 
 // Helper methods
-const _updateSeasonInternalSeason = (externalId?: string, internalSeason?: SeasonWithMediaView) => {
+const _updateSeasonInternalSeason = (externalId?: string, internalSeason?: SeasonWithMedia) => {
 	if (!externalId) {
 		return;
 	}
@@ -425,7 +426,7 @@ const _updateRating = () =>
 
 const updateRating = useDebounceFn(_updateRating, DEBOUNCE_TIMER);
 
-const addSeasonToMyList = (tmdbSeason: TmdbSerieDetailsSeasonDefaultView) =>
+const addSeasonToMyList = (tmdbSeason: TmdbSerieDetailsSeason) =>
 	toast.withErrorToast(async () => {
 		// If already in my list
 		if (tmdbSeason.internal_season?.id) {
@@ -444,7 +445,7 @@ const addSeasonToMyList = (tmdbSeason: TmdbSerieDetailsSeasonDefaultView) =>
 		}
 	});
 
-const removeSeasonFromMyList = (tmdbSeason: TmdbSerieDetailsSeasonDefaultView) =>
+const removeSeasonFromMyList = (tmdbSeason: TmdbSerieDetailsSeason) =>
 	toast.withErrorToast(async () => {
 		// If already in my list
 		if (!tmdbSeason.internal_season?.id) {
@@ -458,6 +459,6 @@ const removeSeasonFromMyList = (tmdbSeason: TmdbSerieDetailsSeasonDefaultView) =
 		_updateSeasonInternalSeason(tmdbSeason.id, undefined);
 	});
 
-const onSeasonSelected = (tmdbSerie: TmdbSerieDetailsSeasonDefaultView) =>
+const onSeasonSelected = (tmdbSerie: TmdbSerieDetailsSeason) =>
 	navigateTo(`/app/series/${type.value}/${serieId.value}/seasons/${tmdbSerie.season_number}`);
 </script>

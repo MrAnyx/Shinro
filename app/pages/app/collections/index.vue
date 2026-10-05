@@ -83,7 +83,7 @@ const { search, page, trimmedSearch } = useSearchPagination();
 const collectionFormModal = overlay.create(LazyCollectionFormModal);
 
 // Table structure
-const columns: TableColumn<CollectionDefaultView>[] = [
+const columns: TableColumn<Collection>[] = [
 	{
 		accessorKey: "name",
 		header: "Name",
@@ -140,7 +140,7 @@ const { data, pending, refresh } = useClientAsyncData(
 watchDebounced(trimmedSearch, () => refresh(), { debounce: DEBOUNCE_TIMER });
 
 // Methods
-const openCollectionFormModal = async (collection?: CollectionDefaultView) =>
+const openCollectionFormModal = async (collection?: Collection) =>
 	toast.withErrorToast(async () => {
 		const instance = collectionFormModal.open({
 			id: collection?.id,
@@ -154,7 +154,7 @@ const openCollectionFormModal = async (collection?: CollectionDefaultView) =>
 		}
 	});
 
-const getRowActions = (collection: CollectionDefaultView): DropdownMenuItem[][] => [
+const getRowActions = (collection: Collection): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
@@ -183,7 +183,7 @@ const getRowActions = (collection: CollectionDefaultView): DropdownMenuItem[][] 
 	],
 ];
 
-const toggleCollectionFavorite = async (collection: CollectionDefaultView) =>
+const toggleCollectionFavorite = async (collection: Collection) =>
 	toast.withErrorToast(async () => {
 		const newCollection = await trpc.collection.update.mutate({
 			id: collection.id,
@@ -201,7 +201,7 @@ const toggleCollectionFavorite = async (collection: CollectionDefaultView) =>
 		}
 	});
 
-const onCollectionSelected = async (collection: CollectionDefaultView) => {
+const onCollectionSelected = async (collection: Collection) => {
 	// await navigateTo({ path: `/app/collections/${collection.id}` });
 };
 </script>

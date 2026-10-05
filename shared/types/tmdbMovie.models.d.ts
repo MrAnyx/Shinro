@@ -1,12 +1,7 @@
 import { z } from "zod";
 
-export type TmdbMovieSearchDefaultView = z.infer<typeof TmdbMovieSearchDefaultViewSchema>;
-export type TmdbMovieDetailsDefaultView = z.infer<typeof TmdbMovieDetailsDefaultViewSchema>;
-export type TmdbMovieCreditsDefaultView = z.infer<typeof TmdbMovieCreditsDefaultViewSchema>;
-export type TmdbMovieCreditsCastDefaultView = NonNullable<
-	NonNullable<z.infer<typeof TmdbMovieCreditsDefaultViewSchema>["cast"]>[number]
->;
-export type TmdbMovieCollectionDefaultView = z.infer<typeof TmdbMovieSagaDefaultViewSchema>;
-export type TmdbMovieCollectionPartDefaultView = NonNullable<
-	NonNullable<z.infer<typeof TmdbMovieSagaDefaultViewSchema>["movies"]>[number]
->;
+export type TmdbMovieSearch = z.infer<typeof TmdbMovieSearchSchema>;
+export type TmdbMovieDetails = z.infer<typeof TmdbMovieDetailsSchema>;
+export type TmdbMovieCredit = z.infer<typeof TmdbMovieCreditSchema>;
+export type TmdbMovieSaga = z.infer<typeof TmdbMovieSagaSchema>;
+export type TmdbMovieSagaMovie = NonNullable<NonNullable<z.infer<typeof TmdbMovieSagaSchema>["movies"]>[number]>;

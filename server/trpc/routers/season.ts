@@ -15,7 +15,7 @@ export default router({
 	// 			note: ServerMediaValidation.note,
 	// 		}),
 	// 	)
-	// 	.output(SerieWithMediaViewSchema)
+	// 	.output(SerieWithMediaSchema)
 	// 	.mutation(async ({ input, ctx }) => {
 	// 		return await prisma.serie.create({
 	// 			data: {
@@ -44,7 +44,7 @@ export default router({
 				seasonNumber: ServerTmdbSeasonValidation.number,
 			}),
 		)
-		.output(SeasonWithMediaViewSchema)
+		.output(SeasonWithMediaSchema)
 		.mutation(async ({ input, ctx }) => {
 			const serie = await prisma.serie.findFirst({
 				where: {
@@ -127,7 +127,7 @@ export default router({
 	// 			note: ServerMediaValidation.note.optional(),
 	// 		}),
 	// 	)
-	// 	.output(SerieWithMediaViewSchema)
+	// 	.output(SerieWithMediaSchema)
 	// 	.mutation(async ({ input, ctx }) => {
 	// 		const existingSerie = await prisma.serie.findFirst({
 	// 			where: {
@@ -248,7 +248,7 @@ export default router({
 				orderBy: SortableSchema(ServerSeasonValidation.sort),
 			}),
 		)
-		.output(PaginatedSchema(SeasonWithMediaViewSchema))
+		.output(PaginatedSchema(SeasonWithMediaSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 			const orderBy = buildPrismaOrderBy<Prisma.SeasonOrderByWithRelationInput>(input.orderBy);
@@ -289,7 +289,7 @@ export default router({
 	// 			externalId: ServerTmdbSerieValidation.id.optional(),
 	// 		}),
 	// 	)
-	// 	.output(SerieWithMediaViewSchema)
+	// 	.output(SerieWithMediaSchema)
 	// 	.query(async ({ input, ctx }) => {
 	// 		if (!input.id && !input.externalId) {
 	// 			throw new TRPCError({

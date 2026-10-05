@@ -81,7 +81,7 @@ onMounted(() => {
 });
 
 // Table structure
-const columns: TableColumn<TmdbMovieSearchDefaultView>[] = [
+const columns: TableColumn<TmdbMovieSearch>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },
@@ -160,7 +160,7 @@ const _focusSearchField = () => {
 	searchInput.value?.inputRef?.focus();
 };
 
-const _updateMovieInternalId = (externalId: string, internalMovie?: MovieWithMediaView) => {
+const _updateMovieInternalId = (externalId: string, internalMovie?: MovieWithMedia) => {
 	const target = data.value?.results.find((m) => m.id === externalId);
 	if (target) {
 		target.internal_movie = internalMovie;
@@ -168,7 +168,7 @@ const _updateMovieInternalId = (externalId: string, internalMovie?: MovieWithMed
 };
 
 // Methods
-const addMovieToMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
+const addMovieToMyList = async (tmdbMovie: TmdbMovieSearch) =>
 	toast.withErrorToast(async () => {
 		if (tmdbMovie.internal_movie?.id) {
 			return;
@@ -178,7 +178,7 @@ const addMovieToMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
 		_updateMovieInternalId(tmdbMovie.id, movie);
 	});
 
-const removeMovieFromMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
+const removeMovieFromMyList = async (tmdbMovie: TmdbMovieSearch) =>
 	toast.withErrorToast(async () => {
 		if (!tmdbMovie.internal_movie?.id) {
 			return;
@@ -188,6 +188,6 @@ const removeMovieFromMyList = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
 		_updateMovieInternalId(tmdbMovie.id, undefined);
 	});
 
-const onMovieSelected = async (tmdbMovie: TmdbMovieSearchDefaultView) =>
+const onMovieSelected = async (tmdbMovie: TmdbMovieSearch) =>
 	navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
 </script>

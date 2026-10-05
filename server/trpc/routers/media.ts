@@ -14,7 +14,7 @@ export default router({
 				orderBy: SortableSchema(ServerMediaValidation.sort),
 			}),
 		)
-		.output(PaginatedSchema(MediaDefaultViewSchema))
+		.output(PaginatedSchema(MediaSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 			const orderBy = buildPrismaOrderBy<Prisma.MediaOrderByWithRelationInput>(input.orderBy);
@@ -50,7 +50,7 @@ export default router({
 				externalId: ServerMediaValidation.externalId.optional(),
 			}),
 		)
-		.output(z.array(CollectionDefaultViewSchema))
+		.output(z.array(CollectionSchema))
 		.query(async ({ input, ctx }) => {
 			if (!input.id && !input.externalId) {
 				throw new TRPCError({
@@ -103,7 +103,7 @@ export default router({
 				collectionIds: z.array(ServerCollectionValidation.id),
 			}),
 		)
-		.output(z.array(CollectionDefaultViewSchema))
+		.output(z.array(CollectionSchema))
 		.mutation(async ({ input, ctx }) => {
 			const media = await prisma.media.findFirst({
 				where: {

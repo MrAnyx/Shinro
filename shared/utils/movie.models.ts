@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-export const MovieDefaultViewSchema = z.object({
+export const MovieSchema = z.object({
 	id: z.uuid(),
 	overview: z.string().nullable(),
 });
 
-export const MovieWithMediaViewSchema = MovieDefaultViewSchema.extend({
-	media: z.lazy(() => MediaDefaultViewSchema),
+export const MovieWithMediaSchema = MovieSchema.extend({
+	media: z.lazy(() => MediaSchema),
 });

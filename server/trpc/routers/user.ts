@@ -14,7 +14,7 @@ export default router({
 				password: ServerUserValidation.password,
 			}),
 		)
-		.output(UserDefaultViewSchema)
+		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
 			// Combine count and existence check in parallel
 			const [totalUsers, userExist] = await Promise.all([
@@ -74,7 +74,7 @@ export default router({
 				password: ServerUserValidation.password,
 			}),
 		)
-		.output(UserDefaultViewSchema)
+		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
 			const user = await prisma.user.findUnique({
 				where: {
@@ -133,7 +133,7 @@ export default router({
 
 	me: protectedProcedure
 		.input(z.void())
-		.output(UserDefaultViewSchema)
+		.output(UserSchema)
 		.query(async ({ ctx }) => {
 			const user = await prisma.user.findUnique({
 				where: {
@@ -162,7 +162,7 @@ export default router({
 					message: "At least one profile field must be provided",
 				}),
 		)
-		.output(UserDefaultViewSchema)
+		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
 			const user = await prisma.user.findUnique({
 				where: {

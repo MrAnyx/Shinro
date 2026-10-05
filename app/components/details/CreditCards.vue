@@ -37,18 +37,12 @@
 import type { ConfiguredImageProviders } from "@nuxt/image";
 
 import type { RouteLocationAsRelativeGeneric, RouteLocationAsPathGeneric } from "#vue-router";
-
-interface Credit {
-	id: string;
-	profile_path?: string | null;
-	name?: string | null;
-	character?: string | null;
-}
+import type { TmdbCredit } from "~/types/tmdb";
 
 const props = defineProps<{
-	credits?: Credit[];
+	credits?: TmdbCredit[];
 	imageProvider?: keyof ConfiguredImageProviders;
-	creditCardToFn: (credit: Credit) => string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric;
+	creditCardToFn: (credit: TmdbCredit) => string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric;
 	loading?: boolean;
 	showMoreTo?: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric;
 }>();

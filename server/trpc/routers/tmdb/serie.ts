@@ -10,7 +10,7 @@ export default router({
 				page: ServerPaginationValidation.page,
 			}),
 		)
-		.output(PaginatedSchema(TmdbSerieSearchDefaultViewSchema))
+		.output(PaginatedSchema(TmdbSerieSearchSchema))
 		.query(async ({ input, ctx }) => {
 			if (!input.search) {
 				return {
@@ -70,9 +70,9 @@ export default router({
 		)
 		.output(
 			z.object({
-				details: TmdbSerieDetailsDefaultViewSchema,
-				credits: z.array(TmdbSerieCreditDefaultViewSchema),
-				seasons: z.array(TmdbSerieDetailsSeasonDefaultViewSchema),
+				details: TmdbSerieDetailsSchema,
+				credits: z.array(TmdbSerieCreditSchema),
+				seasons: z.array(TmdbSerieDetailsSeasonSchema),
 			}),
 		)
 		.query(async ({ input, ctx }) => {

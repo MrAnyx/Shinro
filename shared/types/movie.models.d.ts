@@ -1,4 +1,4 @@
 import { z } from "zod";
 
-export type MovieDefaultView = z.infer<typeof MovieDefaultViewSchema>;
-export type MovieWithMediaView = z.infer<typeof MovieWithMediaViewSchema>;
+export type Movie = z.infer<typeof MovieSchema>;
+export type MovieWithMedia = z.infer<typeof MovieWithMediaSchema>;
