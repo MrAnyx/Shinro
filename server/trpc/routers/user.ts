@@ -91,7 +91,7 @@ export default router({
 
 			const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
 
-			if (isPasswordValid) {
+			if (!isPasswordValid) {
 				throw new TRPCError({
 					code: "UNAUTHORIZED",
 					message: "Username or password are not valid",
