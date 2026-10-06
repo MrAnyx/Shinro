@@ -35,13 +35,13 @@ const status = defineModel<MediaStatus>();
 
 const props = defineProps<{} & Pick<SelectMenuProps, "variant" | "loading" | "disabled" | "color" | "highlight">>();
 
-const statuses = computed<SelectMenuItem[]>(() => {
-	return Object.values(MediaStatus).map((status) => ({
+const statuses = computed<SelectMenuItem[]>(() =>
+	Object.values(MediaStatus).map((status) => ({
 		value: status,
 		label: MOVIE_STATUS_LABELS[status],
 		chip: {
 			color: STATUS_COLORS[status],
 		},
-	}));
-});
+	})),
+);
 </script>

@@ -165,7 +165,6 @@
 <script setup lang="ts">
 import type { TabsItem, TableColumn } from "@nuxt/ui";
 import { useDebounceFn } from "@vueuse/core";
-import { Result } from "pg";
 
 import { LazyMovieFormModal } from "#components";
 import { MediaStatus } from "#prisma/enums";

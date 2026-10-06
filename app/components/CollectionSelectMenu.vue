@@ -9,6 +9,7 @@
 		:disabled="props.disabled || internalLoading"
 		multiple
 		value-key="id"
+		by="id"
 		placeholder="Select some collections"
 		leading-icon="i-lucide-folder"
 		clear
@@ -25,13 +26,14 @@ const selectedCollections = defineModel<string[]>();
 const props = defineProps<{} & Pick<SelectMenuProps, "variant" | "disabled" | "loading" | "color" | "highlight">>();
 
 const internalLoading = computed(() => props.loading || loadingCollections.value);
-const internalCollections = computed(
+const internalCollections = computed<SelectMenuItem[]>(
 	() =>
 		collections.value?.results.map(
 			(x) =>
 				({
 					label: x.name,
 					id: x.id,
+					collection: x,
 					icon: x.favorite ? "i-ph-star-fill" : undefined,
 					ui: {
 						itemLeadingIcon: x.favorite ? "text-warning" : undefined,
