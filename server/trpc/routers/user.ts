@@ -16,27 +16,27 @@ export default router({
 		)
 		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
-			// Combine count and existence check in parallel
-			const [totalUsers, userExist] = await Promise.all([
-				prisma.user.count({ take: 1 }),
-				prisma.user.findUnique({
-					where: { username: input.username },
-					select: { id: true },
-				}),
-			]);
-
-			if (userExist) {
-				throw new TRPCError({
-					code: "CONFLICT",
-					message: "Choose a different username to create your account",
-				});
-			}
-
-			const isFirstUser = totalUsers === 0;
-			const passwordHash = await bcrypt.hash(input.password, 10);
 			const sessionId = generateRandomString(255);
 
 			const user = await prisma.$transaction(async (tx) => {
+				const [totalUsers, userExist] = await Promise.all([
+					tx.user.count({ take: 1 }),
+					tx.user.findUnique({
+						where: { username: input.username },
+						select: { id: true },
+					}),
+				]);
+
+				if (userExist) {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "Choose a different username to create your account",
+					});
+				}
+
+				const isFirstUser = totalUsers === 0;
+				const passwordHash = await bcrypt.hash(input.password, 10);
+
 				const newUser = await tx.user.create({
 					data: {
 						passwordHash,
@@ -76,36 +76,40 @@ export default router({
 		)
 		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
-			const user = await prisma.user.findUnique({
-				where: {
-					username: input.username,
-				},
-			});
-
-			if (!user) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "User not found",
-				});
-			}
-
-			const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
-
-			if (!isPasswordValid) {
-				throw new TRPCError({
-					code: "UNAUTHORIZED",
-					message: "Username or password are not valid",
-				});
-			}
-
 			const sessionId = generateRandomString(255);
 
-			await prisma.session.create({
-				data: {
-					expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
-					sessionId: sessionId,
-					userId: user.id,
-				},
+			const user = await prisma.$transaction(async (tx) => {
+				const user = await tx.user.findUnique({
+					where: {
+						username: input.username,
+					},
+				});
+
+				if (!user) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "User not found",
+					});
+				}
+
+				const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
+
+				if (!isPasswordValid) {
+					throw new TRPCError({
+						code: "UNAUTHORIZED",
+						message: "Username or password are not valid",
+					});
+				}
+
+				await tx.session.create({
+					data: {
+						expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
+						sessionId: sessionId,
+						userId: user.id,
+					},
+				});
+
+				return user;
 			});
 
 			setCookie(ctx.event, "session_id", sessionId, {
@@ -164,50 +168,52 @@ export default router({
 		)
 		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
-			const user = await prisma.user.findUnique({
-				where: {
-					id: ctx.user.id,
-				},
-				select: {
-					id: true,
-				},
-			});
-
-			if (!user) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "User not found",
-				});
-			}
-
-			if (input.username) {
-				const usernameExist = await prisma.user.findUnique({
+			return await prisma.$transaction(async (tx) => {
+				const user = await tx.user.findUnique({
 					where: {
-						username: input.username,
+						id: ctx.user.id,
 					},
 					select: {
 						id: true,
 					},
 				});
 
-				if (usernameExist && usernameExist.id !== user.id) {
+				if (!user) {
 					throw new TRPCError({
-						code: "CONFLICT",
-						message: "Username already exist",
+						code: "NOT_FOUND",
+						message: "User not found",
 					});
 				}
-			}
 
-			const password = input.password ? await bcrypt.hash(input.password, 10) : undefined;
+				if (input.username) {
+					const usernameExist = await tx.user.findUnique({
+						where: {
+							username: input.username,
+						},
+						select: {
+							id: true,
+						},
+					});
 
-			return await prisma.user.update({
-				where: {
-					id: ctx.user.id,
-				},
-				data: {
-					username: input.username ?? Prisma.skip,
-					passwordHash: password ?? Prisma.skip,
-				},
+					if (usernameExist && usernameExist.id !== user.id) {
+						throw new TRPCError({
+							code: "CONFLICT",
+							message: "Username already exist",
+						});
+					}
+				}
+
+				const password = input.password ? await bcrypt.hash(input.password, 10) : undefined;
+
+				return await tx.user.update({
+					where: {
+						id: ctx.user.id,
+					},
+					data: {
+						username: input.username ?? Prisma.skip,
+						passwordHash: password ?? Prisma.skip,
+					},
+				});
 			});
 		}),
 

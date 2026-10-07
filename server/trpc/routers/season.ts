@@ -5,37 +5,83 @@ import { ImageType, MediaType, Prisma } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
-	// create: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			name: ServerMediaValidation.name,
-	// 			overview: ServerSerieValidation.overview,
-	// 			status: ServerMediaValidation.status,
-	// 			rating: ServerMediaValidation.rating,
-	// 			note: ServerMediaValidation.note,
-	// 		}),
-	// 	)
-	// 	.output(SerieWithMediaSchema)
-	// 	.mutation(async ({ input, ctx }) => {
-	// 		return await prisma.serie.create({
-	// 			data: {
-	// 				media: {
-	// 					create: {
-	// 						name: input.name,
-	// 						type: MediaType.SERIE,
-	// 						status: input.status,
-	// 						ownerId: ctx.user.id,
-	// 						rating: input.rating,
-	// 						note: input.note,
-	// 					},
-	// 				},
-	// 				overview: input.overview,
-	// 			},
-	// 			include: {
-	// 				media: true,
-	// 			},
-	// 		});
-	// 	}),
+	create: protectedProcedure
+		.input(
+			z.object({
+				name: ServerMediaValidation.name,
+				status: ServerMediaValidation.status,
+				rating: ServerMediaValidation.rating,
+				note: ServerMediaValidation.note,
+				overview: ServerSeasonValidation.overview,
+				number: ServerSeasonValidation.number,
+				serieId: ServerSerieValidation.id,
+			}),
+		)
+		.output(SeasonWithMediaSchema)
+		.mutation(async ({ input, ctx }) => {
+			return await prisma.$transaction(async (tx) => {
+				const serie = await tx.serie.findFirst({
+					where: {
+						id: input.serieId,
+						media: {
+							ownerId: ctx.user.id,
+						},
+					},
+					select: {
+						id: true,
+					},
+				});
+
+				if (!serie) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Serie not found",
+					});
+				}
+
+				const existingSeason = await tx.season.findFirst({
+					where: {
+						serieId: input.serieId,
+						number: input.number,
+					},
+					select: {
+						id: true,
+					},
+				});
+
+				if (existingSeason) {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "This season has already been added",
+					});
+				}
+
+				return await tx.season.create({
+					data: {
+						media: {
+							create: {
+								name: input.name,
+								type: MediaType.SEASON,
+								status: input.status,
+								ownerId: ctx.user.id,
+								rating: input.rating,
+								note: input.note,
+							},
+						},
+						serie: {
+							connect: {
+								id: input.serieId,
+							},
+						},
+						number: input.number,
+						overview: input.overview,
+					},
+					include: {
+						media: true,
+					},
+				});
+			});
+		}),
 
 	createFromExternal: protectedProcedure
 		.input(
@@ -46,42 +92,6 @@ export default router({
 		)
 		.output(SeasonWithMediaSchema)
 		.mutation(async ({ input, ctx }) => {
-			const serie = await prisma.serie.findFirst({
-				where: {
-					media: {
-						ownerId: ctx.user.id,
-						externalId: input.externalSerieId,
-					},
-				},
-				select: {
-					id: true,
-				},
-			});
-
-			if (!serie) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Serie not found",
-				});
-			}
-
-			const existingSeason = await prisma.season.findFirst({
-				where: {
-					serieId: serie.id,
-					number: input.seasonNumber,
-				},
-				select: {
-					id: true,
-				},
-			});
-
-			if (existingSeason) {
-				throw new TRPCError({
-					code: "CONFLICT",
-					message: "This season has already been added",
-				});
-			}
-
 			const tmdbSeason = await useCache(
 				`tmdb:season:${input.externalSerieId}:${input.seasonNumber}:details`,
 				() =>
@@ -90,29 +100,67 @@ export default router({
 					}),
 			);
 
-			return await prisma.season.create({
-				data: {
-					media: {
-						create: {
-							externalId: tmdbSeason.id,
-							name: tmdbSeason.name ?? null,
-							type: MediaType.SEASON,
+			return await prisma.$transaction(async (tx) => {
+				const serie = await tx.serie.findFirst({
+					where: {
+						media: {
 							ownerId: ctx.user.id,
-							imagePath: tmdbSeason.poster_path ?? null,
-							imageType: ImageType.TMDB,
+							externalId: input.externalSerieId,
 						},
 					},
-					serie: {
-						connect: {
-							id: serie.id,
-						},
+					select: {
+						id: true,
 					},
-					number: tmdbSeason.season_number,
-					overview: tmdbSeason.overview ?? null,
-				},
-				include: {
-					media: true,
-				},
+				});
+
+				if (!serie) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Serie not found",
+					});
+				}
+
+				const existingSeason = await tx.season.findFirst({
+					where: {
+						serieId: serie.id,
+						number: input.seasonNumber,
+					},
+					select: {
+						id: true,
+					},
+				});
+
+				if (existingSeason) {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "This season has already been added",
+					});
+				}
+
+				return await tx.season.create({
+					data: {
+						media: {
+							create: {
+								externalId: tmdbSeason.id,
+								name: tmdbSeason.name ?? null,
+								type: MediaType.SEASON,
+								ownerId: ctx.user.id,
+								imagePath: tmdbSeason.poster_path ?? null,
+								imageType: ImageType.TMDB,
+							},
+						},
+						serie: {
+							connect: {
+								id: serie.id,
+							},
+						},
+						number: tmdbSeason.season_number,
+						overview: tmdbSeason.overview ?? null,
+					},
+					include: {
+						media: true,
+					},
+				});
 			});
 		}),
 

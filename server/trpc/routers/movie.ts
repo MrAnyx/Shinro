@@ -5,6 +5,9 @@ import { ImageType, MediaType, Prisma } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
+	/**
+	 * Create a new movie for the authenticated user. The movie will be created with a media of type MOVIE.
+	 */
 	create: protectedProcedure
 		.input(
 			z.object({
@@ -37,6 +40,9 @@ export default router({
 			});
 		}),
 
+	/**
+	 * Create a new movie for the authenticated user from an external source.
+	 */
 	createFromExternal: protectedProcedure
 		.input(
 			z.object({
@@ -45,51 +51,56 @@ export default router({
 		)
 		.output(MovieWithMediaSchema)
 		.mutation(async ({ input, ctx }) => {
-			const movieExist = await prisma.movie.findFirst({
-				where: {
-					media: {
-						ownerId: ctx.user.id,
-						externalId: input.externalId,
-					},
-				},
-				select: {
-					id: true,
-				},
-			});
-
-			if (movieExist) {
-				throw new TRPCError({
-					code: "CONFLICT",
-					message: "This movie as already been added",
-				});
-			}
-
 			const tmdbMovie = await tmdb(`/movie/${input.externalId}`, {
 				schema: TmdbMovieDetailsResponseSchema,
 			});
 
-			const movie = await prisma.movie.create({
-				data: {
-					media: {
-						create: {
-							externalId: tmdbMovie.id,
-							name: tmdbMovie.title ?? null,
-							type: MediaType.MOVIE,
+			return await prisma.$transaction(async (tx) => {
+				const movieExist = await tx.movie.findFirst({
+					where: {
+						media: {
 							ownerId: ctx.user.id,
-							imagePath: tmdbMovie.poster_path ?? null,
-							imageType: ImageType.TMDB,
+							externalId: input.externalId,
 						},
 					},
-					overview: tmdbMovie.overview ?? null,
-				},
-				include: {
-					media: true,
-				},
-			});
+					select: {
+						id: true,
+					},
+				});
 
-			return movie;
+				if (movieExist) {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "This movie as already been added",
+					});
+				}
+
+				const movie = await tx.movie.create({
+					data: {
+						media: {
+							create: {
+								externalId: tmdbMovie.id,
+								name: tmdbMovie.title ?? null,
+								type: MediaType.MOVIE,
+								ownerId: ctx.user.id,
+								imagePath: tmdbMovie.poster_path ?? null,
+								imageType: ImageType.TMDB,
+							},
+						},
+						overview: tmdbMovie.overview ?? null,
+					},
+					include: {
+						media: true,
+					},
+				});
+
+				return movie;
+			});
 		}),
 
+	/**
+	 * Update an existing movie for the authenticated user.
+	 */
 	update: protectedProcedure
 		.input(
 			z.object({
@@ -159,6 +170,9 @@ export default router({
 			});
 		}),
 
+	/**
+	 * Delete an existing movie for the authenticated user.
+	 */
 	delete: protectedProcedure
 		.input(
 			z.object({
@@ -199,6 +213,9 @@ export default router({
 			});
 		}),
 
+	/**
+	 * Count the number of movies for the authenticated user.
+	 */
 	count: protectedProcedure
 		.input(z.void())
 		.output(z.number())
@@ -212,6 +229,10 @@ export default router({
 			});
 		}),
 
+	/**
+	 * Get all the movies for the authenticated user, with pagination, search and sorting.
+	 * If the force flag is set to true, all the movies will be returned without pagination.
+	 */
 	getAll: protectedProcedure
 		.input(
 			z.object({
@@ -255,6 +276,9 @@ export default router({
 			return { total, results };
 		}),
 
+	/**
+	 * Get a movie by its ID for the authenticated user.
+	 */
 	getById: protectedProcedure
 		.input(
 			z.object({

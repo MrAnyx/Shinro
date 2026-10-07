@@ -5,6 +5,9 @@ import { Prisma } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
+	/**
+	 * Create a new collection for the authenticated user.
+	 */
 	create: protectedProcedure
 		.input(
 			z.object({
@@ -27,6 +30,9 @@ export default router({
 			return collection;
 		}),
 
+	/**
+	 * Update an existing collection for the authenticated user.
+	 */
 	update: protectedProcedure
 		.input(
 			z.object({
@@ -38,47 +44,52 @@ export default router({
 		)
 		.output(CollectionSchema)
 		.mutation(async ({ input, ctx }) => {
-			const existingCollection = await prisma.collection.findFirst({
-				where: {
-					id: input.id,
-				},
-				select: {
-					id: true,
-					ownerId: true,
-				},
-			});
-
-			if (!existingCollection) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Collection not found",
+			return await prisma.$transaction(async (tx) => {
+				const existingCollection = await tx.collection.findFirst({
+					where: {
+						id: input.id,
+					},
+					select: {
+						id: true,
+						ownerId: true,
+					},
 				});
-			}
 
-			if (existingCollection.ownerId !== ctx.user.id) {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "Your are not the owner of this collection",
+				if (!existingCollection) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Collection not found",
+					});
+				}
+
+				if (existingCollection.ownerId !== ctx.user.id) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "Your are not the owner of this collection",
+					});
+				}
+
+				const { name = Prisma.skip, description = Prisma.skip, favorite = Prisma.skip } = input;
+
+				const collection = await tx.collection.update({
+					where: {
+						id: input.id,
+						ownerId: ctx.user.id,
+					},
+					data: {
+						name,
+						description,
+						favorite,
+					},
 				});
-			}
 
-			const { name = Prisma.skip, description = Prisma.skip, favorite = Prisma.skip } = input;
-
-			const collection = await prisma.collection.update({
-				where: {
-					id: input.id,
-					ownerId: ctx.user.id,
-				},
-				data: {
-					name,
-					description,
-					favorite,
-				},
+				return collection;
 			});
-
-			return collection;
 		}),
 
+	/**
+	 * Delete an existing collection for the authenticated user.
+	 */
 	delete: protectedProcedure
 		.input(
 			z.object({
@@ -87,38 +98,43 @@ export default router({
 		)
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
-			const existingCollection = await prisma.collection.findFirst({
-				where: {
-					id: input.id,
-				},
-				select: {
-					id: true,
-					ownerId: true,
-				},
-			});
-
-			if (!existingCollection) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Collection not found",
+			await prisma.$transaction(async (tx) => {
+				const existingCollection = await tx.collection.findFirst({
+					where: {
+						id: input.id,
+					},
+					select: {
+						id: true,
+						ownerId: true,
+					},
 				});
-			}
 
-			if (existingCollection.ownerId !== ctx.user.id) {
-				throw new TRPCError({
-					code: "FORBIDDEN",
-					message: "Your are not the owner of this collection",
+				if (!existingCollection) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Collection not found",
+					});
+				}
+
+				if (existingCollection.ownerId !== ctx.user.id) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "Your are not the owner of this collection",
+					});
+				}
+
+				await tx.collection.delete({
+					where: {
+						id: input.id,
+						ownerId: ctx.user.id,
+					},
 				});
-			}
-
-			await prisma.collection.delete({
-				where: {
-					id: input.id,
-					ownerId: ctx.user.id,
-				},
 			});
 		}),
 
+	/**
+	 * Count the number of collections for the authenticated user.
+	 */
 	count: protectedProcedure
 		.input(z.void())
 		.output(z.number())
@@ -130,6 +146,9 @@ export default router({
 			});
 		}),
 
+	/**
+	 * Get all the favorite collections for the authenticated user, including their medias.
+	 */
 	getFavoritesWithMedias: protectedProcedure
 		.input(z.void())
 		.output(z.array(CollectionWithMediasSchema))
@@ -151,6 +170,10 @@ export default router({
 			});
 		}),
 
+	/**
+	 * Get all the collections for the authenticated user, with pagination, search and sorting.
+	 * If the force flag is set to true, all the collections will be returned without pagination.
+	 */
 	getAll: protectedProcedure
 		.input(
 			z.object({
@@ -191,6 +214,9 @@ export default router({
 			return { total, results };
 		}),
 
+	/**
+	 * Get a collection by its ID for the authenticated user.
+	 */
 	getById: protectedProcedure
 		.input(
 			z.object({

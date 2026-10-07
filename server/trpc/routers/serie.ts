@@ -45,49 +45,51 @@ export default router({
 		)
 		.output(SerieWithMediaSchema)
 		.mutation(async ({ input, ctx }) => {
-			const serieExist = await prisma.serie.findFirst({
-				where: {
-					media: {
-						ownerId: ctx.user.id,
-						externalId: input.externalId,
-					},
-				},
-				select: {
-					id: true,
-				},
-			});
-
-			if (serieExist) {
-				throw new TRPCError({
-					code: "CONFLICT",
-					message: "This serie as already been added",
-				});
-			}
-
 			const tmdbSerie = await tmdb(`/tv/${input.externalId}`, {
 				schema: TmdbSerieDetailsResponseSchema,
 			});
 
-			const movie = await prisma.serie.create({
-				data: {
-					media: {
-						create: {
-							externalId: tmdbSerie.id,
-							name: tmdbSerie.name ?? null,
-							type: MediaType.SERIE,
+			return await prisma.$transaction(async (tx) => {
+				const serieExist = await tx.serie.findFirst({
+					where: {
+						media: {
 							ownerId: ctx.user.id,
-							imagePath: tmdbSerie.poster_path ?? null,
-							imageType: ImageType.TMDB,
+							externalId: input.externalId,
 						},
 					},
-					overview: tmdbSerie.overview ?? null,
-				},
-				include: {
-					media: true,
-				},
-			});
+					select: {
+						id: true,
+					},
+				});
 
-			return movie;
+				if (serieExist) {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "This serie as already been added",
+					});
+				}
+
+				const movie = await tx.serie.create({
+					data: {
+						media: {
+							create: {
+								externalId: tmdbSerie.id,
+								name: tmdbSerie.name ?? null,
+								type: MediaType.SERIE,
+								ownerId: ctx.user.id,
+								imagePath: tmdbSerie.poster_path ?? null,
+								imageType: ImageType.TMDB,
+							},
+						},
+						overview: tmdbSerie.overview ?? null,
+					},
+					include: {
+						media: true,
+					},
+				});
+
+				return movie;
+			});
 		}),
 	update: protectedProcedure
 		.input(

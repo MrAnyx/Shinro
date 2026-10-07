@@ -5,6 +5,10 @@ import { Prisma } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
+	/**
+	 * Get all the collections for the authenticated user, with pagination, search and sorting.
+	 * If the force flag is set to true, all the medias will be returned without pagination.
+	 */
 	getAll: protectedProcedure
 		.input(
 			z.object({
@@ -43,6 +47,9 @@ export default router({
 			};
 		}),
 
+	/**
+	 * Get all the collections for a specific media for the authenticated user.
+	 */
 	getCollections: protectedProcedure
 		.input(
 			z.object({
@@ -96,6 +103,9 @@ export default router({
 			return collections.map((x) => x.collection);
 		}),
 
+	/**
+	 * Update the collections for a specific media for the authenticated user.
+	 */
 	updateCollections: protectedProcedure
 		.input(
 			z.object({
@@ -105,29 +115,10 @@ export default router({
 		)
 		.output(z.array(CollectionSchema))
 		.mutation(async ({ input, ctx }) => {
-			const media = await prisma.media.findFirst({
-				where: {
-					id: input.id,
-					ownerId: ctx.user.id,
-				},
-				select: {
-					id: true,
-				},
-			});
-
-			if (!media) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Media not found",
-				});
-			}
-
-			if (input.collectionIds.length > 0) {
-				const ownedCollections = await prisma.collection.findMany({
+			return await prisma.$transaction(async (tx) => {
+				const media = await tx.media.findFirst({
 					where: {
-						id: {
-							in: input.collectionIds,
-						},
+						id: input.id,
 						ownerId: ctx.user.id,
 					},
 					select: {
@@ -135,39 +126,60 @@ export default router({
 					},
 				});
 
-				if (ownedCollections.length !== input.collectionIds.length) {
+				if (!media) {
 					throw new TRPCError({
-						code: "FORBIDDEN",
-						message: "One or more selected collections are invalid",
+						code: "NOT_FOUND",
+						message: "Media not found",
 					});
 				}
-			}
 
-			const collections = await prisma.media.update({
-				where: { id: input.id },
-				data: {
-					collections: {
-						deleteMany: {
-							mediaId: input.id,
-						},
-						...(input.collectionIds.length > 0 && {
-							createMany: {
-								data: input.collectionIds.map((collectionId) => ({
-									collectionId,
-								})),
+				if (input.collectionIds.length > 0) {
+					const ownedCollections = await tx.collection.findMany({
+						where: {
+							id: {
+								in: input.collectionIds,
 							},
-						}),
-					},
-				},
-				include: {
-					collections: {
-						include: {
-							collection: true,
+							ownerId: ctx.user.id,
+						},
+						select: {
+							id: true,
+						},
+					});
+
+					if (ownedCollections.length !== input.collectionIds.length) {
+						throw new TRPCError({
+							code: "FORBIDDEN",
+							message: "One or more selected collections are invalid",
+						});
+					}
+				}
+
+				const collections = await tx.media.update({
+					where: { id: input.id },
+					data: {
+						collections: {
+							deleteMany: {
+								mediaId: input.id,
+							},
+							...(input.collectionIds.length > 0 && {
+								createMany: {
+									data: input.collectionIds.map((collectionId) => ({
+										collectionId,
+									})),
+								},
+							}),
 						},
 					},
-				},
-			});
+					include: {
+						collections: {
+							include: {
+								collection: true,
+							},
+						},
+					},
+				});
 
-			return collections.collections.map((c) => c.collection);
+				return collections.collections.map((c) => c.collection);
+			});
 		}),
 });
