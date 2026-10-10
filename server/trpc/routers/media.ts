@@ -18,7 +18,7 @@ export default router({
 				orderBy: SortableSchema(ServerMediaValidation.sort),
 			}),
 		)
-		.output(PaginatedSchema(MediaSchema))
+		.output(PaginatedSchema(BaseMediaSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 			const orderBy = buildPrismaOrderBy<Prisma.MediaOrderByWithRelationInput>(input.orderBy);
@@ -57,7 +57,7 @@ export default router({
 				externalId: ServerMediaValidation.externalId.optional(),
 			}),
 		)
-		.output(z.array(CollectionSchema))
+		.output(z.array(BaseCollectionSchema))
 		.query(async ({ input, ctx }) => {
 			if (!input.id && !input.externalId) {
 				throw new TRPCError({
@@ -113,7 +113,7 @@ export default router({
 				collectionIds: z.array(ServerCollectionValidation.id),
 			}),
 		)
-		.output(z.array(CollectionSchema))
+		.output(z.array(BaseCollectionSchema))
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
 				const media = await tx.media.findFirst({

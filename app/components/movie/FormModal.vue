@@ -87,7 +87,7 @@ import { z } from "zod";
 const props = defineProps<{ id?: string }>();
 
 const emit = defineEmits<{
-	close: [value?: { movie: MovieWithMedia; collections: Collection[] }];
+	close: [value?: { movie: Movie; collections: Collection[] }];
 }>();
 
 const isSubmitting = ref(false);

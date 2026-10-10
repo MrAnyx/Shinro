@@ -80,7 +80,7 @@ const { search, page, trimmedSearch } = useSearchPagination();
 const movieFormModal = overlay.create(LazyMovieFormModal);
 
 // Table structure
-const columns: TableColumn<MovieWithMedia>[] = [
+const columns: TableColumn<Movie>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },
@@ -164,7 +164,7 @@ const openMovieFormModal = async (movieId?: string) =>
 		}
 	});
 
-const getRowActions = (movie: MovieWithMedia): DropdownMenuItem[][] => [
+const getRowActions = (movie: Movie): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
@@ -189,7 +189,7 @@ const getRowActions = (movie: MovieWithMedia): DropdownMenuItem[][] => [
 	],
 ];
 
-const onMovieSelected = async (movie: MovieWithMedia) => {
+const onMovieSelected = async (movie: Movie) => {
 	if (movie.media.externalId) {
 		await navigateTo(`/app/movies/external/${movie.media.externalId}`);
 	} else {

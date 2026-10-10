@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const CollectionSchema = z.object({
+export const BaseCollectionSchema = z.object({
 	id: z.uuid(),
 	name: z.string(),
 	description: z.string().nullable(),
@@ -10,6 +10,8 @@ export const CollectionSchema = z.object({
 	updatedAt: z.date(),
 });
 
-export const CollectionWithMediasSchema = CollectionSchema.extend({
+export const CollectionSchema = BaseCollectionSchema.extend({});
+
+export const CollectionWithMediasSchema = BaseCollectionSchema.extend({
 	medias: z.array(z.lazy(() => CollectionMediaWithMediaSchema)),
 });

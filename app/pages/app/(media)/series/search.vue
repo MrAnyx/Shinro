@@ -159,7 +159,7 @@ const _focusSearchField = () => {
 	searchInput.value?.inputRef?.focus();
 };
 
-const _updateSerieInternalSerie = (externalId: string, internalSerie?: SerieWithMedia) => {
+const _updateSerieInternalSerie = (externalId: string, internalSerie?: Serie) => {
 	const target = data.value?.results.find((m) => m.id === externalId);
 	if (target) {
 		target.internal_serie = internalSerie;

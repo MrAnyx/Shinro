@@ -317,7 +317,7 @@ const seasonColumns: TableColumn<TmdbSerieDetailsSeason>[] = [
 ];
 
 // Helper methods
-const _updateSeasonInternalSeason = (externalId?: string, internalSeason?: SeasonWithMedia) => {
+const _updateSeasonInternalSeason = (externalId?: string, internalSeason?: Season) => {
 	if (!externalId) {
 		return;
 	}

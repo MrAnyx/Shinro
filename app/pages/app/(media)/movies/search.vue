@@ -160,7 +160,7 @@ const _focusSearchField = () => {
 	searchInput.value?.inputRef?.focus();
 };
 
-const _updateMovieInternalId = (externalId: string, internalMovie?: MovieWithMedia) => {
+const _updateMovieInternalId = (externalId: string, internalMovie?: Movie) => {
 	const target = data.value?.results.find((m) => m.id === externalId);
 	if (target) {
 		target.internal_movie = internalMovie;

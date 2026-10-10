@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { MediaType, ImageType, MediaStatus } from "#prisma/enums";
 
-export const MediaSchema = z.object({
+export const BaseMediaSchema = z.object({
 	id: z.uuid(),
 	type: z.enum(MediaType),
 	status: z.enum(MediaStatus).nullable(),
@@ -17,19 +17,21 @@ export const MediaSchema = z.object({
 	updatedAt: z.date(),
 });
 
-export const MovieMediaSchema = MediaSchema.extend({
+export const MediaSchema = BaseMediaSchema.extend({});
+
+export const MovieMediaSchema = BaseMediaSchema.extend({
 	type: z.literal(MediaType.MOVIE),
-	movie: z.lazy(() => MovieSchema),
+	movie: z.lazy(() => BaseMovieSchema),
 });
 
-export const SerieMediaSchema = MediaSchema.extend({
+export const SerieMediaSchema = BaseMediaSchema.extend({
 	type: z.literal(MediaType.SERIE),
-	serie: z.lazy(() => SerieSchema),
+	serie: z.lazy(() => BaseSerieSchema),
 });
 
-export const SeasonMediaSchema = MediaSchema.extend({
+export const SeasonMediaSchema = BaseMediaSchema.extend({
 	type: z.literal(MediaType.SEASON),
-	serie: z.lazy(() => SeasonSchema),
+	serie: z.lazy(() => BaseSeasonSchema),
 });
 
 export const AnyMediaSchema = z.discriminatedUnion("type", [

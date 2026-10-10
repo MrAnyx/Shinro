@@ -15,7 +15,7 @@ export default router({
 				note: ServerMediaValidation.note,
 			}),
 		)
-		.output(SerieWithMediaSchema)
+		.output(SerieSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.serie.create({
 				data: {
@@ -43,7 +43,7 @@ export default router({
 				externalId: ServerTmdbSerieValidation.id,
 			}),
 		)
-		.output(SerieWithMediaSchema)
+		.output(SerieSchema)
 		.mutation(async ({ input, ctx }) => {
 			const tmdbSerie = await tmdb(`/tv/${input.externalId}`, {
 				schema: TmdbSerieDetailsResponseSchema,
@@ -103,7 +103,7 @@ export default router({
 				note: ServerMediaValidation.note.optional(),
 			}),
 		)
-		.output(SerieWithMediaSchema)
+		.output(SerieSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
 				const existingSerie = await tx.serie.findFirst({
@@ -228,7 +228,7 @@ export default router({
 				orderBy: SortableSchema(ServerSerieValidation.sort),
 			}),
 		)
-		.output(PaginatedSchema(SerieWithMediaSchema))
+		.output(PaginatedSchema(SerieSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 			const orderBy = buildPrismaOrderBy<Prisma.SerieOrderByWithRelationInput>(input.orderBy);
@@ -269,7 +269,7 @@ export default router({
 				externalId: ServerTmdbSerieValidation.id.optional(),
 			}),
 		)
-		.output(SerieWithMediaSchema)
+		.output(SerieSchema)
 		.query(async ({ input, ctx }) => {
 			if (!input.id && !input.externalId) {
 				throw new TRPCError({

@@ -16,7 +16,7 @@ export default router({
 				favorite: ServerCollectionValidation.favorite,
 			}),
 		)
-		.output(CollectionSchema)
+		.output(BaseCollectionSchema)
 		.mutation(async ({ input, ctx }) => {
 			const collection = await prisma.collection.create({
 				data: {
@@ -42,7 +42,7 @@ export default router({
 				favorite: ServerCollectionValidation.favorite.optional(),
 			}),
 		)
-		.output(CollectionSchema)
+		.output(BaseCollectionSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
 				const existingCollection = await tx.collection.findFirst({
@@ -171,7 +171,7 @@ export default router({
 				orderBy: SortableSchema(ServerCollectionValidation.sort),
 			}),
 		)
-		.output(PaginatedSchema(CollectionSchema))
+		.output(PaginatedSchema(BaseCollectionSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 			const orderBy: Prisma.CollectionOrderByWithRelationInput[] = input.orderBy.map(({ sort, order }) => ({
@@ -211,7 +211,7 @@ export default router({
 				id: ServerCollectionValidation.id,
 			}),
 		)
-		.output(CollectionSchema)
+		.output(BaseCollectionSchema)
 		.query(async ({ input, ctx }) => {
 			const collection = await prisma.collection.findFirst({
 				where: {

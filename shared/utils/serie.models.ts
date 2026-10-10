@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-export const SerieSchema = z.object({
+export const BaseSerieSchema = z.object({
 	id: z.uuid(),
 	overview: z.string().nullable(),
 });
 
-export const SerieWithMediaSchema = SerieSchema.extend({
-	media: z.lazy(() => MediaSchema),
+export const SerieSchema = BaseSerieSchema.extend({
+	media: z.lazy(() => BaseMediaSchema),
 });

@@ -9,7 +9,7 @@ export const TmdbSerieSearchSchema = z.object({
 	first_air_date: z.string().nullish(),
 	vote_average: z.number(),
 	vote_count: z.number(),
-	internal_serie: SerieWithMediaSchema.nullish(),
+	internal_serie: SerieSchema.nullish(),
 });
 
 export const TmdbSerieDetailsSchema = z.object({
@@ -43,7 +43,7 @@ export const TmdbSerieDetailsSeasonSchema = z.object({
 	overview: z.string().nullish(),
 	poster_path: z.string().nullish(),
 	vote_average: z.number(),
-	internal_season: SeasonWithMediaSchema.nullish(),
+	internal_season: SeasonSchema.nullish(),
 });
 
 export const TmdbSerieCreditSchema = z.object({

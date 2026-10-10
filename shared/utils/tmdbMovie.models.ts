@@ -9,7 +9,7 @@ export const TmdbMovieSearchSchema = z.object({
 	adult: z.boolean(),
 	vote_average: z.number(),
 	vote_count: z.number(),
-	internal_movie: MovieWithMediaSchema.nullish(),
+	internal_movie: MovieSchema.nullish(),
 });
 
 export const TmdbMovieDetailsSchema = z.object({
@@ -46,7 +46,7 @@ export const TmdbMovieSagaSchema = z.object({
 			release_date: z.string().nullish(),
 			vote_average: z.number(),
 			vote_count: z.number(),
-			internal_movie: MovieWithMediaSchema.nullish(),
+			internal_movie: MovieSchema.nullish(),
 		}),
 	),
 });

@@ -18,7 +18,7 @@ export default router({
 				note: ServerMediaValidation.note,
 			}),
 		)
-		.output(MovieWithMediaSchema)
+		.output(MovieSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.movie.create({
 				data: {
@@ -49,7 +49,7 @@ export default router({
 				externalId: ServerTmdbMovieValidation.id,
 			}),
 		)
-		.output(MovieWithMediaSchema)
+		.output(MovieSchema)
 		.mutation(async ({ input, ctx }) => {
 			const tmdbMovie = await tmdb(`/movie/${input.externalId}`, {
 				schema: TmdbMovieDetailsResponseSchema,
@@ -112,7 +112,7 @@ export default router({
 				note: ServerMediaValidation.note.optional(),
 			}),
 		)
-		.output(MovieWithMediaSchema)
+		.output(MovieSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
 				const existingMovie = await tx.movie.findFirst({
@@ -247,7 +247,7 @@ export default router({
 				orderBy: SortableSchema(ServerMovieValidation.sort),
 			}),
 		)
-		.output(PaginatedSchema(MovieWithMediaSchema))
+		.output(PaginatedSchema(MovieSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 			const orderBy = buildPrismaOrderBy<Prisma.MovieOrderByWithRelationInput>(input.orderBy);
@@ -291,7 +291,7 @@ export default router({
 				externalId: ServerTmdbMovieValidation.id.optional(),
 			}),
 		)
-		.output(MovieWithMediaSchema)
+		.output(MovieSchema)
 		.query(async ({ input, ctx }) => {
 			if (!input.id && !input.externalId) {
 				throw new TRPCError({

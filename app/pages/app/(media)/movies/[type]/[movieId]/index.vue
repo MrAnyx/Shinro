@@ -299,7 +299,7 @@ const sagaColumns: TableColumn<TmdbMovieSagaMovie>[] = [
 ];
 
 // Helper methods
-const _updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: MovieWithMedia) => {
+const _updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: Movie) => {
 	if (!externalId) {
 		return;
 	}

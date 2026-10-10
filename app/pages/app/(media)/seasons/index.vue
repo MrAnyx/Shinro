@@ -77,7 +77,7 @@ const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
 // const seasonFormModal = overlay.create(LazySeasonFormModal);
 
-const columns: TableColumn<SeasonWithMedia>[] = [
+const columns: TableColumn<Season>[] = [
 	{
 		id: "image",
 		meta: { class: { td: "w-[60px]" } },
@@ -157,7 +157,7 @@ const openSeasonFormModal = async (seasonId?: string) => {
 	// }
 };
 
-const getRowActions = (season: SeasonWithMedia): DropdownMenuItem[][] => [
+const getRowActions = (season: Season): DropdownMenuItem[][] => [
 	[
 		{
 			label: "Edit",
@@ -181,7 +181,7 @@ const getRowActions = (season: SeasonWithMedia): DropdownMenuItem[][] => [
 	],
 ];
 
-const onSeasonSelected = async (season: SeasonWithMedia) => {
+const onSeasonSelected = async (season: Season) => {
 	// if (season.media.externalId) {
 	// 	await navigateTo(`/app/seasons/external/${season.media.externalId}`);
 	// } else {
