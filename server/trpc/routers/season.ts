@@ -298,7 +298,7 @@ export default router({
 				orderBy: SortableSchema(ServerSeasonValidation.sort),
 			}),
 		)
-		.output(PaginatedSchema(SeasonSchema))
+		.output(PaginatedSchema(SeasonWithSerieSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
 			const orderBy = buildPrismaOrderBy<Prisma.SeasonOrderByWithRelationInput>(input.orderBy);
@@ -325,6 +325,11 @@ export default router({
 					...(input.force ? {} : { skip, take: ITEMS_PER_PAGE }),
 					include: {
 						media: true,
+						serie: {
+							include: {
+								media: true,
+							},
+						},
 					},
 				}),
 			]);

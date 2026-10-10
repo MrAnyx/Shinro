@@ -10,3 +10,7 @@ export const BaseSeasonSchema = z.object({
 export const SeasonSchema = BaseSeasonSchema.extend({
 	media: z.lazy(() => BaseMediaSchema),
 });
+
+export const SeasonWithSerieSchema = SeasonSchema.extend({
+	serie: z.lazy(() => SerieSchema),
+});
