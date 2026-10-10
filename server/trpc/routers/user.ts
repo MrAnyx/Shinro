@@ -4,6 +4,7 @@ import { addSeconds } from "date-fns";
 import { z } from "zod";
 
 import { Prisma } from "#prisma/client";
+import { Role } from "#prisma/enums";
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -41,7 +42,7 @@ export default router({
 					data: {
 						passwordHash,
 						username: input.username,
-						role: isFirstUser ? "ADMIN" : "USER",
+						role: isFirstUser ? Role.ADMIN : Role.USER,
 					},
 				});
 

@@ -1,3 +1,5 @@
+import { Role } from "#prisma/enums";
+
 export const useUserStore = defineStore("user", {
 	state: () => ({
 		user: null as User | null,
@@ -5,8 +7,21 @@ export const useUserStore = defineStore("user", {
 	getters: {
 		isAuthenticated: (state) => !!state.user,
 		username: (state) => state.user?.username ?? "Unknown",
+		role: (state) => state.user?.role,
+		isAdmin: (state) => state.user?.role === Role.ADMIN,
+		isUser: (state) => state.user?.role === Role.USER,
 	},
 	actions: {
+		isAllowed(roles: Role | Role[]) {
+			const roleArray = Array.isArray(roles) ? roles : [roles];
+
+			if (!this.user?.role) {
+				return false;
+			}
+
+			return roleArray.includes(this.user.role);
+		},
+
 		async login(payload: TRPCProcedureInput<"user", "login">) {
 			const trpc = useTrpc();
 

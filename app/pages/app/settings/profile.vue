@@ -78,22 +78,24 @@
 
 	<ColorCard title="Danger zone" icon="i-lucide-triangle-alert" color="error" variant="subtle">
 		<div class="flex flex-col gap-y-5">
-			<SettingsParameterItem
-				title="Clear cache"
-				description="Remove locally cached data (service worker caches and other temporary cached assets). This action will force the app to re-fetch assets and may increase load times temporarily."
-			>
-				<UButton
-					label="Clear cache"
-					icon="i-lucide-refresh-cw"
-					class="self-end"
-					color="warning"
-					variant="subtle"
-					:loading="isLoadingCache"
-					@click="clearCache"
-				/>
-			</SettingsParameterItem>
+			<RoleGuard :allow="['ADMIN']">
+				<SettingsParameterItem
+					title="Clear cache"
+					description="Remove locally cached data (service worker caches and other temporary cached assets). This action will force the app to re-fetch assets and may increase load times temporarily."
+				>
+					<UButton
+						label="Clear cache"
+						icon="i-lucide-refresh-cw"
+						class="self-end"
+						color="warning"
+						variant="subtle"
+						:loading="isLoadingCache"
+						@click="clearCache"
+					/>
+				</SettingsParameterItem>
 
-			<USeparator :ui="{ border: 'border-error/15' }" />
+				<USeparator :ui="{ border: 'border-error/15' }" />
+			</RoleGuard>
 
 			<SettingsParameterItem
 				title="Delete my account"
