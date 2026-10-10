@@ -114,59 +114,61 @@ export default router({
 		)
 		.output(MovieWithMediaSchema)
 		.mutation(async ({ input, ctx }) => {
-			const existingMovie = await prisma.movie.findFirst({
-				where: {
-					id: input.id,
-					media: {
-						ownerId: ctx.user.id,
-					},
-				},
-				select: {
-					id: true,
-					media: {
-						select: {
-							ownerId: true,
+			return await prisma.$transaction(async (tx) => {
+				const existingMovie = await tx.movie.findFirst({
+					where: {
+						id: input.id,
+						media: {
+							ownerId: ctx.user.id,
 						},
 					},
-				},
-			});
-
-			if (!existingMovie) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Movie not found",
+					select: {
+						id: true,
+						media: {
+							select: {
+								ownerId: true,
+							},
+						},
+					},
 				});
-			}
 
-			const {
-				name = Prisma.skip,
-				rating = Prisma.skip,
-				overview = Prisma.skip,
-				note = Prisma.skip,
-				status = Prisma.skip,
-			} = input;
+				if (!existingMovie) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Movie not found",
+					});
+				}
 
-			return await prisma.movie.update({
-				where: {
-					id: input.id,
-					media: {
-						ownerId: ctx.user.id,
-					},
-				},
-				data: {
-					media: {
-						update: {
-							name,
-							rating,
-							note,
-							status,
+				const {
+					name = Prisma.skip,
+					rating = Prisma.skip,
+					overview = Prisma.skip,
+					note = Prisma.skip,
+					status = Prisma.skip,
+				} = input;
+
+				return await tx.movie.update({
+					where: {
+						id: input.id,
+						media: {
+							ownerId: ctx.user.id,
 						},
 					},
-					overview,
-				},
-				include: {
-					media: true,
-				},
+					data: {
+						media: {
+							update: {
+								name,
+								rating,
+								note,
+								status,
+							},
+						},
+						overview,
+					},
+					include: {
+						media: true,
+					},
+				});
 			});
 		}),
 
@@ -181,35 +183,38 @@ export default router({
 		)
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
-			const existingMovie = await prisma.movie.findFirst({
-				where: {
-					id: input.id,
-					media: {
-						ownerId: ctx.user.id,
-					},
-				},
-				select: {
-					id: true,
-					media: {
-						select: {
-							ownerId: true,
+			await prisma.$transaction(async (tx) => {
+				const existingMovie = await tx.movie.findFirst({
+					where: {
+						id: input.id,
+						media: {
+							ownerId: ctx.user.id,
 						},
 					},
-				},
-			});
-
-			if (!existingMovie) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Movie not found",
+					select: {
+						id: true,
+						media: {
+							select: {
+								ownerId: true,
+							},
+						},
+					},
 				});
-			}
-			// Use the media model to leverage the cascade on delete feature
-			await prisma.media.deleteMany({
-				where: {
-					ownerId: ctx.user.id,
-					id: input.id,
-				},
+
+				if (!existingMovie) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Movie not found",
+					});
+				}
+
+				// Use the media model to leverage the cascade on delete feature
+				await tx.media.deleteMany({
+					where: {
+						ownerId: ctx.user.id,
+						id: input.id,
+					},
+				});
 			});
 		}),
 

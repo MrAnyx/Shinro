@@ -91,6 +91,7 @@ export default router({
 				return movie;
 			});
 		}),
+
 	update: protectedProcedure
 		.input(
 			z.object({
@@ -104,59 +105,61 @@ export default router({
 		)
 		.output(SerieWithMediaSchema)
 		.mutation(async ({ input, ctx }) => {
-			const existingSerie = await prisma.serie.findFirst({
-				where: {
-					id: input.id,
-					media: {
-						ownerId: ctx.user.id,
-					},
-				},
-				select: {
-					id: true,
-					media: {
-						select: {
-							ownerId: true,
+			return await prisma.$transaction(async (tx) => {
+				const existingSerie = await tx.serie.findFirst({
+					where: {
+						id: input.id,
+						media: {
+							ownerId: ctx.user.id,
 						},
 					},
-				},
-			});
-
-			if (!existingSerie) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Serie not found",
+					select: {
+						id: true,
+						media: {
+							select: {
+								ownerId: true,
+							},
+						},
+					},
 				});
-			}
 
-			const {
-				name = Prisma.skip,
-				rating = Prisma.skip,
-				overview = Prisma.skip,
-				note = Prisma.skip,
-				status = Prisma.skip,
-			} = input;
+				if (!existingSerie) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Serie not found",
+					});
+				}
 
-			return await prisma.serie.update({
-				where: {
-					id: input.id,
-					media: {
-						ownerId: ctx.user.id,
-					},
-				},
-				data: {
-					media: {
-						update: {
-							name,
-							rating,
-							note,
-							status,
+				const {
+					name = Prisma.skip,
+					rating = Prisma.skip,
+					overview = Prisma.skip,
+					note = Prisma.skip,
+					status = Prisma.skip,
+				} = input;
+
+				return await tx.serie.update({
+					where: {
+						id: input.id,
+						media: {
+							ownerId: ctx.user.id,
 						},
 					},
-					overview,
-				},
-				include: {
-					media: true,
-				},
+					data: {
+						media: {
+							update: {
+								name,
+								rating,
+								note,
+								status,
+							},
+						},
+						overview,
+					},
+					include: {
+						media: true,
+					},
+				});
 			});
 		}),
 
@@ -168,36 +171,38 @@ export default router({
 		)
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
-			const existingSerie = await prisma.serie.findFirst({
-				where: {
-					id: input.id,
-					media: {
-						ownerId: ctx.user.id,
-					},
-				},
-				select: {
-					id: true,
-					media: {
-						select: {
-							ownerId: true,
+			await prisma.$transaction(async (tx) => {
+				const existingSerie = await tx.serie.findFirst({
+					where: {
+						id: input.id,
+						media: {
+							ownerId: ctx.user.id,
 						},
 					},
-				},
-			});
-
-			if (!existingSerie) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Serie not found",
+					select: {
+						id: true,
+						media: {
+							select: {
+								ownerId: true,
+							},
+						},
+					},
 				});
-			}
 
-			// Use the media model to leverage the cascade on delete feature
-			await prisma.media.deleteMany({
-				where: {
-					ownerId: ctx.user.id,
-					id: input.id,
-				},
+				if (!existingSerie) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Serie not found",
+					});
+				}
+
+				// Use the media model to leverage the cascade on delete feature
+				await tx.media.deleteMany({
+					where: {
+						ownerId: ctx.user.id,
+						id: input.id,
+					},
+				});
 			});
 		}),
 

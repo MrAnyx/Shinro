@@ -48,6 +48,7 @@ export default router({
 				const existingCollection = await tx.collection.findFirst({
 					where: {
 						id: input.id,
+						ownerId: ctx.user.id,
 					},
 					select: {
 						id: true,
@@ -59,13 +60,6 @@ export default router({
 					throw new TRPCError({
 						code: "NOT_FOUND",
 						message: "Collection not found",
-					});
-				}
-
-				if (existingCollection.ownerId !== ctx.user.id) {
-					throw new TRPCError({
-						code: "FORBIDDEN",
-						message: "Your are not the owner of this collection",
 					});
 				}
 
@@ -102,6 +96,7 @@ export default router({
 				const existingCollection = await tx.collection.findFirst({
 					where: {
 						id: input.id,
+						ownerId: ctx.user.id,
 					},
 					select: {
 						id: true,
@@ -113,13 +108,6 @@ export default router({
 					throw new TRPCError({
 						code: "NOT_FOUND",
 						message: "Collection not found",
-					});
-				}
-
-				if (existingCollection.ownerId !== ctx.user.id) {
-					throw new TRPCError({
-						code: "FORBIDDEN",
-						message: "Your are not the owner of this collection",
 					});
 				}
 

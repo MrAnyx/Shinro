@@ -241,36 +241,38 @@ export default router({
 		)
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
-			const existingSeason = await prisma.season.findFirst({
-				where: {
-					id: input.id,
-					media: {
-						ownerId: ctx.user.id,
-					},
-				},
-				select: {
-					id: true,
-					media: {
-						select: {
-							ownerId: true,
+			await prisma.$transaction(async (tx) => {
+				const existingSeason = await tx.season.findFirst({
+					where: {
+						id: input.id,
+						media: {
+							ownerId: ctx.user.id,
 						},
 					},
-				},
-			});
-
-			if (!existingSeason) {
-				throw new TRPCError({
-					code: "NOT_FOUND",
-					message: "Season not found",
+					select: {
+						id: true,
+						media: {
+							select: {
+								ownerId: true,
+							},
+						},
+					},
 				});
-			}
 
-			// Use the media model to leverage the cascade on delete feature
-			await prisma.media.deleteMany({
-				where: {
-					ownerId: ctx.user.id,
-					id: input.id,
-				},
+				if (!existingSeason) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Season not found",
+					});
+				}
+
+				// Use the media model to leverage the cascade on delete feature
+				await tx.media.deleteMany({
+					where: {
+						ownerId: ctx.user.id,
+						id: input.id,
+					},
+				});
 			});
 		}),
 
