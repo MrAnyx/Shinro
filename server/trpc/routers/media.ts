@@ -15,6 +15,7 @@ export default router({
 				page: ServerPaginationValidation.page,
 				search: ServerPaginationValidation.search,
 				force: ServerPaginationValidation.force,
+				source: ServerMediaValidation.source.optional(),
 				orderBy: SortableSchema(ServerMediaValidation.sort),
 			}),
 		)
@@ -25,6 +26,7 @@ export default router({
 
 			const where: Prisma.MediaWhereInput = {
 				ownerId: ctx.user.id,
+				...(input.source ? { source: input.source } : {}),
 				...(input.search
 					? {
 							OR: [{ name: { contains: input.search, mode: "insensitive" } }],

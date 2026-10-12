@@ -297,6 +297,7 @@ export default router({
 				page: ServerPaginationValidation.page,
 				search: ServerPaginationValidation.search,
 				force: ServerPaginationValidation.force,
+				source: ServerMediaValidation.source.optional(),
 				orderBy: SortableSchema(ServerSeasonValidation.sort),
 			}),
 		)
@@ -308,6 +309,7 @@ export default router({
 			const where: Prisma.SeasonWhereInput = {
 				media: {
 					ownerId: ctx.user.id,
+					...(input.source ? { source: input.source } : {}),
 				},
 				...(input.search
 					? {

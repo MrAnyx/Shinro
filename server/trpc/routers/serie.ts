@@ -227,7 +227,7 @@ export default router({
 				page: ServerPaginationValidation.page,
 				search: ServerPaginationValidation.search,
 				force: ServerPaginationValidation.force,
-				source: z.enum(MediaSourceTypes).optional(),
+				source: ServerMediaValidation.source.optional(),
 				orderBy: SortableSchema(ServerSerieValidation.sort),
 			}),
 		)
@@ -239,6 +239,7 @@ export default router({
 			const where: Prisma.SerieWhereInput = {
 				media: {
 					ownerId: ctx.user.id,
+					...(input.source ? { source: input.source } : {}),
 				},
 				...(input.search
 					? {

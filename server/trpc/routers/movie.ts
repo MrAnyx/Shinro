@@ -246,6 +246,7 @@ export default router({
 				page: ServerPaginationValidation.page,
 				search: ServerPaginationValidation.search,
 				force: ServerPaginationValidation.force,
+				source: ServerMediaValidation.source.optional(),
 				orderBy: SortableSchema(ServerMovieValidation.sort),
 			}),
 		)
@@ -257,6 +258,7 @@ export default router({
 			const where: Prisma.MovieWhereInput = {
 				media: {
 					ownerId: ctx.user.id,
+					...(input.source ? { source: input.source } : {}),
 				},
 				...(input.search
 					? {
