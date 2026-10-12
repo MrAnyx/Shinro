@@ -91,7 +91,7 @@ const columns: TableColumn<SeasonWithSerie>[] = [
 	{
 		id: "serie",
 		header: "Serie",
-		cell: ({ row }) => row.original.serie.media.name,
+		cell: ({ row }) => `${row.original.serie.media.name} (S${row.original.number})`,
 		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
 	},
 	{
