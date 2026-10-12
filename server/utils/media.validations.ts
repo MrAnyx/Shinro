@@ -6,6 +6,7 @@ export const ServerMediaValidation = {
 	id: MediaIdSchemaBase,
 	externalId: MediaExternalIdSchemaBase,
 	status: MediaStatusSchemaBase.nullable(),
+	source: MediaSourceTypeSchemaBase,
 	name: MediaNameSchemaBase,
 	rating: MediaRatingSchemaBase.nullable(),
 	note: MediaNoteSchemaBase.nullable().transform((val) => (val === "" ? null : val)),

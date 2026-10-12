@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { ImageType, MediaType, Prisma } from "#prisma/client";
+import { ImageType, MediaType, Prisma, SourceType } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -25,6 +25,7 @@ export default router({
 					media: {
 						create: {
 							name: input.name,
+							source: SourceType.INTERNAL,
 							type: MediaType.MOVIE,
 							status: input.status,
 							ownerId: ctx.user.id,
@@ -85,6 +86,7 @@ export default router({
 								ownerId: ctx.user.id,
 								imagePath: tmdbMovie.poster_path ?? null,
 								imageType: ImageType.TMDB,
+								source: SourceType.EXTERNAL,
 							},
 						},
 						overview: tmdbMovie.overview ?? null,

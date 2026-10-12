@@ -13,6 +13,11 @@ datasource db {
     provider = "postgresql"
 }
 
+enum SourceType {
+    INTERNAL
+    EXTERNAL
+}
+
 enum Role {
     ADMIN
     USER
@@ -80,6 +85,7 @@ model Media {
     id         String       @id @default(uuid()) @db.Uuid
     type       MediaType
     status     MediaStatus?
+    source     SourceType
     externalId String?      @db.VarChar(255)
     name       String?      @db.VarChar(255)
     imagePath  String?      @db.VarChar(500)

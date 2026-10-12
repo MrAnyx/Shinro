@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { ImageType, MediaType, Prisma } from "#prisma/client";
+import { ImageType, MediaType, Prisma, SourceType } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -22,6 +22,7 @@ export default router({
 					media: {
 						create: {
 							name: input.name,
+							source: SourceType.INTERNAL,
 							type: MediaType.SERIE,
 							status: input.status,
 							ownerId: ctx.user.id,
@@ -77,6 +78,7 @@ export default router({
 								name: tmdbSerie.name ?? null,
 								type: MediaType.SERIE,
 								ownerId: ctx.user.id,
+								source: SourceType.EXTERNAL,
 								imagePath: tmdbSerie.poster_path ?? null,
 								imageType: ImageType.TMDB,
 							},
@@ -225,6 +227,7 @@ export default router({
 				page: ServerPaginationValidation.page,
 				search: ServerPaginationValidation.search,
 				force: ServerPaginationValidation.force,
+				source: z.enum(MediaSourceTypes).optional(),
 				orderBy: SortableSchema(ServerSerieValidation.sort),
 			}),
 		)

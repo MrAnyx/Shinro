@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MediaStatus } from "~~/lib/prisma/enums";
+import { MediaStatus, SourceType } from "~~/lib/prisma/enums";
 
 export const MediaIdSchemaBase = z.uuid("Media id must be a valid UUID");
 
@@ -13,7 +13,9 @@ export const MediaNameSchemaBase = z
 	.min(1, "Media title can not be empty")
 	.max(255, "Media title must be less than 255 characters");
 
-export const MediaStatusSchemaBase = z.enum(MediaStatus);
+export const MediaStatusSchemaBase = z.enum(MediaStatus, "Media status must be a valid enum value");
+
+export const MediaSourceTypeSchemaBase = z.enum(SourceType, "Media source type must be a valid enum value");
 
 export const MediaRatingSchemaBase = z
 	.number()
