@@ -351,11 +351,24 @@ export default router({
 
 	getById: protectedProcedure
 		.input(
-			z.object({
-				id: ServerSeasonValidation.id,
-			}),
+			z.discriminatedUnion("type", [
+				z.object({
+					type: z.literal("id"),
+					id: ServerSeasonValidation.id,
+				}),
+				z.object({
+					type: z.literal("serie"),
+					serieId: z.string(),
+					seasonNumber: z.number(),
+				}),
+				z.object({
+					type: z.literal("externalSerie"),
+					externalSerieId: z.string(),
+					seasonNumber: z.number(),
+				}),
+			]),
 		)
-		.output(SeasonSchema)
+		.output(SeasonWithSerieSchema)
 		.query(async ({ input, ctx }) => {
 			const season = await prisma.season.findFirst({
 				where: {
@@ -366,6 +379,11 @@ export default router({
 				},
 				include: {
 					media: true,
+					serie: {
+						include: {
+							media: true,
+						},
+					},
 				},
 			});
 
