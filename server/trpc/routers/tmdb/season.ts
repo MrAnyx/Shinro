@@ -6,14 +6,18 @@ export default router({
 	details: protectedProcedure
 		.input(
 			z.object({
-				serieId: ServerTmdbSerieValidation.id,
-				seasonNumber: ServerTmdbSeasonValidation.number,
+				externalSerieId: ServerTmdbSerieValidation.id,
+				externalSeasonNumber: ServerTmdbSeasonValidation.number,
 			}),
 		)
 		.output(TmdbSeasonDetailsSchema)
 		.query(async ({ input, ctx }) => {
-			const details = await useCache(`tmdb:serie:${input.serieId}:season:${input.seasonNumber}:details`, () =>
-				tmdb(`/tv/${input.serieId}/season/${input.seasonNumber}`, { schema: TmdbSeasonDetailsResponseSchema }),
+			const details = await useCache(
+				`tmdb:serie:${input.externalSerieId}:season:${input.externalSeasonNumber}:details`,
+				() =>
+					tmdb(`/tv/${input.externalSerieId}/season/${input.externalSeasonNumber}`, {
+						schema: TmdbSeasonDetailsResponseSchema,
+					}),
 			);
 
 			// // Get the external IDs of the season in the collection

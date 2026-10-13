@@ -65,7 +65,7 @@ export default router({
 	details: protectedProcedure
 		.input(
 			z.object({
-				id: ServerTmdbSerieValidation.id,
+				externalSerieId: ServerTmdbSerieValidation.id,
 			}),
 		)
 		.output(
@@ -78,11 +78,11 @@ export default router({
 		.query(async ({ input, ctx }) => {
 			// Get the serie details and credits from TMDB in parallel
 			const [detailsResponse, creditsResponse] = await Promise.all([
-				useCache(`tmdb:serie:${input.id}:details`, () =>
-					tmdb(`/tv/${input.id}`, { schema: TmdbSerieDetailsResponseSchema }),
+				useCache(`tmdb:serie:${input.externalSerieId}:details`, () =>
+					tmdb(`/tv/${input.externalSerieId}`, { schema: TmdbSerieDetailsResponseSchema }),
 				),
-				useCache(`tmdb:serie:${input.id}:credits`, () =>
-					tmdb(`/tv/${input.id}/credits`, { schema: TmdbSerieCreditsResponseSchema }),
+				useCache(`tmdb:serie:${input.externalSerieId}:credits`, () =>
+					tmdb(`/tv/${input.externalSerieId}/credits`, { schema: TmdbSerieCreditsResponseSchema }),
 				),
 			]);
 

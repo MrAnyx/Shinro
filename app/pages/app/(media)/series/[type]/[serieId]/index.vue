@@ -250,7 +250,7 @@ const earliestSerieAirDate = computed(() => {
 });
 
 const { data: tmdbSerieDetails, pending: loadingDetails } = useClientAsyncData(
-	() => trpc.tmdbSerie.details.query({ id: serieId.value }),
+	() => trpc.tmdbSerie.details.query({ externalSerieId: serieId.value }),
 	{
 		enabled: () => isExternal.value,
 	},

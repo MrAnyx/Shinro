@@ -232,7 +232,7 @@ const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown")
 const sagaMovies = computed(() => tmdbMovieDetails.value?.saga?.movies);
 
 const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
-	() => trpc.tmdbMovie.details.query({ movieId: movieId.value }),
+	() => trpc.tmdbMovie.details.query({ externalMovieId: movieId.value }),
 	{
 		enabled: () => isExternal.value,
 	},
