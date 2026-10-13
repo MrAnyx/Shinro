@@ -5,7 +5,7 @@ import { ImageType, MediaType, Prisma, SourceType } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
-	create: protectedProcedure
+	createFromInternal: protectedProcedure
 		.input(
 			z.object({
 				name: ServerMediaValidation.name,
@@ -29,6 +29,7 @@ export default router({
 					},
 					select: {
 						id: true,
+						source: true,
 					},
 				});
 
@@ -36,6 +37,13 @@ export default router({
 					throw new TRPCError({
 						code: "NOT_FOUND",
 						message: "Serie not found",
+					});
+				}
+
+				if (serie.source === SourceType.EXTERNAL) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "You cannot add a season to an external serie",
 					});
 				}
 
@@ -341,43 +349,33 @@ export default router({
 			return { total, results };
 		}),
 
-	// getById: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			id: ServerSerieValidation.id.optional(),
-	// 			externalId: ServerTmdbSerieValidation.id.optional(),
-	// 		}),
-	// 	)
-	// 	.output(SerieSchema)
-	// 	.query(async ({ input, ctx }) => {
-	// 		if (!input.id && !input.externalId) {
-	// 			throw new TRPCError({
-	// 				code: "BAD_REQUEST",
-	// 				message: "Either id or externalId must be specified",
-	// 			});
-	// 		}
+	getById: protectedProcedure
+		.input(
+			z.object({
+				id: ServerSeasonValidation.id,
+			}),
+		)
+		.output(SeasonSchema)
+		.query(async ({ input, ctx }) => {
+			const season = await prisma.season.findFirst({
+				where: {
+					id: input.id,
+					media: {
+						ownerId: ctx.user.id,
+					},
+				},
+				include: {
+					media: true,
+				},
+			});
 
-	// 		const mediaFilter: Prisma.MediaWhereInput = input.id ? { id: input.id } : { externalId: input.externalId };
+			if (!season) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Season not found",
+				});
+			}
 
-	// 		const serie = await prisma.serie.findFirst({
-	// 			where: {
-	// 				media: {
-	// 					...mediaFilter,
-	// 					ownerId: ctx.user.id,
-	// 				},
-	// 			},
-	// 			include: {
-	// 				media: true,
-	// 			},
-	// 		});
-
-	// 		if (!serie) {
-	// 			throw new TRPCError({
-	// 				code: "NOT_FOUND",
-	// 				message: "Serie not found",
-	// 			});
-	// 		}
-
-	// 		return serie;
-	// 	}),
+			return season;
+		}),
 });

@@ -5,7 +5,7 @@ import { ImageType, MediaType, Prisma, SourceType } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
-	create: protectedProcedure
+	createFromInternal: protectedProcedure
 		.input(
 			z.object({
 				name: ServerMediaValidation.name,

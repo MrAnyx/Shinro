@@ -8,7 +8,7 @@ export default router({
 	/**
 	 * Create a new movie for the authenticated user. The movie will be created with a media of type MOVIE.
 	 */
-	create: protectedProcedure
+	createFromInternal: protectedProcedure
 		.input(
 			z.object({
 				name: ServerMediaValidation.name,

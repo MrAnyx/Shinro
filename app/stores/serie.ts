@@ -10,10 +10,10 @@ export const useSerieStore = defineStore("serie", {
 			this.total = count;
 		},
 
-		async createSerie(payload: TRPCProcedureInput<"serie", "create">) {
+		async createSerieFromInternal(payload: TRPCProcedureInput<"serie", "createFromInternal">) {
 			const trpc = useTrpc();
 
-			const serie = await trpc.serie.create.mutate(payload);
+			const serie = await trpc.serie.createFromInternal.mutate(payload);
 			this.total += 1;
 
 			return serie;
