@@ -365,7 +365,7 @@ const _addSerie = () =>
 			return;
 		}
 
-		const serie = await serieStore.createSerieFromExternal({ externalId: serieId.value });
+		const serie = await serieStore.createSerieFromExternal({ externalSerieId: serieId.value });
 		mySerieDetails.value = serie;
 	});
 

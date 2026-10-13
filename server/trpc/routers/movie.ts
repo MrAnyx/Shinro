@@ -47,12 +47,12 @@ export default router({
 	createFromExternal: protectedProcedure
 		.input(
 			z.object({
-				externalId: ServerTmdbMovieValidation.id,
+				externalMovieId: ServerTmdbMovieValidation.id,
 			}),
 		)
 		.output(MovieSchema)
 		.mutation(async ({ input, ctx }) => {
-			const tmdbMovie = await tmdb(`/movie/${input.externalId}`, {
+			const tmdbMovie = await tmdb(`/movie/${input.externalMovieId}`, {
 				schema: TmdbMovieDetailsResponseSchema,
 			});
 
@@ -61,7 +61,7 @@ export default router({
 					where: {
 						media: {
 							ownerId: ctx.user.id,
-							externalId: input.externalId,
+							externalId: input.externalMovieId,
 						},
 					},
 					select: {
@@ -292,19 +292,21 @@ export default router({
 		.input(
 			z.object({
 				id: ServerMovieValidation.id.optional(),
-				externalId: ServerTmdbMovieValidation.id.optional(),
+				externalMovieId: ServerTmdbMovieValidation.id.optional(),
 			}),
 		)
 		.output(MovieSchema)
 		.query(async ({ input, ctx }) => {
-			if (!input.id && !input.externalId) {
+			if (!input.id && !input.externalMovieId) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					message: "Either id or externalId must be specified",
+					message: "Either id or externalMovieId must be specified",
 				});
 			}
 
-			const mediaFilter: Prisma.MediaWhereInput = input.id ? { id: input.id } : { externalId: input.externalId };
+			const mediaFilter: Prisma.MediaWhereInput = input.id
+				? { id: input.id }
+				: { externalId: input.externalMovieId };
 
 			const movie = await prisma.movie.findFirst({
 				where: {

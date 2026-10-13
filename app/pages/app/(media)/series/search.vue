@@ -173,7 +173,7 @@ const addSerieToMyList = async (tmdbSerie: TmdbSerieSearch) =>
 			return;
 		}
 
-		const newSerie = await serieStore.createSerieFromExternal({ externalId: tmdbSerie.id });
+		const newSerie = await serieStore.createSerieFromExternal({ externalSerieId: tmdbSerie.id });
 		_updateSerieInternalSerie(tmdbSerie.id, newSerie);
 	});
 

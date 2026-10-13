@@ -174,7 +174,7 @@ const addMovieToMyList = async (tmdbMovie: TmdbMovieSearch) =>
 			return;
 		}
 
-		const movie = await movieStore.createMovieFromExternal({ externalId: tmdbMovie.id });
+		const movie = await movieStore.createMovieFromExternal({ externalMovieId: tmdbMovie.id });
 		_updateMovieInternalId(tmdbMovie.id, movie);
 	});
 

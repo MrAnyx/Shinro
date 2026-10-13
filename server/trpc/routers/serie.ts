@@ -41,12 +41,12 @@ export default router({
 	createFromExternal: protectedProcedure
 		.input(
 			z.object({
-				externalId: ServerTmdbSerieValidation.id,
+				externalSerieId: ServerTmdbSerieValidation.id,
 			}),
 		)
 		.output(SerieSchema)
 		.mutation(async ({ input, ctx }) => {
-			const tmdbSerie = await tmdb(`/tv/${input.externalId}`, {
+			const tmdbSerie = await tmdb(`/tv/${input.externalSerieId}`, {
 				schema: TmdbSerieDetailsResponseSchema,
 			});
 
@@ -55,7 +55,7 @@ export default router({
 					where: {
 						media: {
 							ownerId: ctx.user.id,
-							externalId: input.externalId,
+							externalId: input.externalSerieId,
 						},
 					},
 					select: {
@@ -270,19 +270,21 @@ export default router({
 		.input(
 			z.object({
 				id: ServerSerieValidation.id.optional(),
-				externalId: ServerTmdbSerieValidation.id.optional(),
+				externalSerieId: ServerTmdbSerieValidation.id.optional(),
 			}),
 		)
 		.output(SerieSchema)
 		.query(async ({ input, ctx }) => {
-			if (!input.id && !input.externalId) {
+			if (!input.id && !input.externalSerieId) {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					message: "Either id or externalId must be specified",
+					message: "Either id or externalSerieId must be specified",
 				});
 			}
 
-			const mediaFilter: Prisma.MediaWhereInput = input.id ? { id: input.id } : { externalId: input.externalId };
+			const mediaFilter: Prisma.MediaWhereInput = input.id
+				? { id: input.id }
+				: { externalId: input.externalSerieId };
 
 			const serie = await prisma.serie.findFirst({
 				where: {

@@ -350,7 +350,7 @@ const _addMovie = () =>
 			return;
 		}
 
-		const movie = await movieStore.createMovieFromExternal({ externalId: movieId.value });
+		const movie = await movieStore.createMovieFromExternal({ externalMovieId: movieId.value });
 		myMovieDetails.value = movie;
 		_updateSagaMovieInternalMovie(movieId.value, movie);
 	});
@@ -427,7 +427,7 @@ const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 		}
 
 		const movie = await movieStore.createMovieFromExternal({
-			externalId: tmdbSagaMovie.id,
+			externalMovieId: tmdbSagaMovie.id,
 		});
 
 		_updateSagaMovieInternalMovie(tmdbSagaMovie.id, movie);
