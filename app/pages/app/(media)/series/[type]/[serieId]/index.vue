@@ -452,9 +452,7 @@ const removeSeasonFromMyList = (tmdbSeason: TmdbSerieDetailsSeason) =>
 			return;
 		}
 
-		await seasonStore.deleteSerie({
-			id: tmdbSeason.internal_season.id,
-		});
+		await seasonStore.deleteSeason({ id: tmdbSeason.internal_season.id });
 
 		_updateSeasonInternalSeason(tmdbSeason.id, undefined);
 	});

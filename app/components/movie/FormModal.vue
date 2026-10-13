@@ -170,7 +170,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
 					status: payload.data.status ?? null,
 				});
 			} else {
-				updatedMovie = await movieStore.createMovie({
+				updatedMovie = await movieStore.createMovieFromInternal({
 					name: payload.data.name,
 					status: payload.data.status ?? null,
 					overview: payload.data.overview,

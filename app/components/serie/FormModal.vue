@@ -170,7 +170,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
 					status: payload.data.status ?? null,
 				});
 			} else {
-				updatedSerie = await serieStore.createSerie({
+				updatedSerie = await serieStore.createSerieFromInternal({
 					name: payload.data.name,
 					status: payload.data.status ?? null,
 					overview: payload.data.overview,
