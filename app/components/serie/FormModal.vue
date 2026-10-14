@@ -109,9 +109,12 @@ const schema = z.object({
 });
 type Schema = z.infer<typeof schema>;
 
-const { data: serie, pending: loadingSerie } = useClientAsyncData(() => trpc.serie.getById.query({ id: props.id }), {
-	enabled: () => !!props.id,
-});
+const { data: serie, pending: loadingSerie } = useClientAsyncData(
+	() => trpc.serie.getById.query({ type: "id", id: props.id! }),
+	{
+		enabled: () => !!props.id,
+	},
+);
 
 watch(serie, (m) => {
 	if (!m) {
@@ -125,7 +128,7 @@ watch(serie, (m) => {
 });
 
 const { data: collections, pending: loadingCollections } = useClientAsyncData(
-	() => trpc.media.getCollections.query({ id: props.id }),
+	() => trpc.media.getCollections.query({ type: "id", id: props.id! }),
 	{ enabled: () => !!props.id },
 );
 

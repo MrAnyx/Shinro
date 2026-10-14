@@ -193,7 +193,6 @@ const type = computed(() => route.params.type as MediaSourceType);
 const movieId = computed(() => route.params.movieId as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
-const mediaQueryParams = computed(() => (isInternal.value ? { id: movieId.value } : { externalId: movieId.value }));
 
 // Local reactive state
 const rating = ref<number | undefined>(undefined);
@@ -206,8 +205,15 @@ const internalId = computed(() => myMovieDetails.value?.id);
 const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
 const title = computed(() => myMovieDetails.value?.media.name ?? tmdbMovieDetails.value?.details.title ?? undefined);
 
-const { data: myMovieDetails, pending: loadingMyMovie } = useClientAsyncData(
-	async () => (mediaQueryParams.value ? trpc.movie.getById.query(mediaQueryParams.value) : undefined),
+const { data: myMovieDetails, pending: loadingMyMovie } = useClientAsyncData<Movie | undefined>(
+	// async () => (mediaQueryParams.value ? trpc.movie.getById.query(mediaQueryParams.value) : undefined),
+	async () => {
+		if (isInternal.value) {
+			return trpc.movie.getById.query({ type: "id", id: movieId.value });
+		} else {
+			return trpc.movie.getById.query({ type: "externalMovieId", externalMovieId: movieId.value });
+		}
+	},
 	{
 		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
 	},
@@ -240,7 +246,13 @@ const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
 
 // Get the movie collections
 const { data: myMovieCollections, pending: loadingMovieCollections } = useClientAsyncData(
-	async () => (mediaQueryParams.value ? trpc.media.getCollections.query(mediaQueryParams.value) : undefined),
+	async () => {
+		if (isInternal.value) {
+			return trpc.media.getCollections.query({ type: "id", id: movieId.value });
+		} else {
+			return trpc.media.getCollections.query({ type: "externalId", externalId: movieId.value });
+		}
+	},
 	{
 		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
 	},

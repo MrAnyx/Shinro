@@ -110,7 +110,7 @@ const schema = z.object({
 type Schema = z.infer<typeof schema>;
 
 const { data: season, pending: loadingSeason } = useClientAsyncData(
-	() => trpc.season.getById.query({ id: props.id! }),
+	() => trpc.season.getById.query({ type: "id", id: props.id! }),
 	{
 		enabled: () => !!props.id,
 	},
@@ -128,8 +128,10 @@ watch(season, (m) => {
 });
 
 const { data: collections, pending: loadingCollections } = useClientAsyncData(
-	() => trpc.media.getCollections.query({ id: props.id }),
-	{ enabled: () => !!props.id },
+	() => trpc.media.getCollections.query({ type: "id", id: props.id! }),
+	{
+		enabled: () => !!props.id,
+	},
 );
 
 watch(collections, (c) => {

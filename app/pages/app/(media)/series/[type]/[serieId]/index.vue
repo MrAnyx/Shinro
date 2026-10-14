@@ -194,7 +194,6 @@ const type = computed(() => route.params.type as MediaSourceType);
 const serieId = computed(() => route.params.serieId as string);
 const isExternal = computed(() => type.value === MediaSourceTypes.external);
 const isInternal = computed(() => type.value === MediaSourceTypes.internal);
-const mediaQueryParams = computed(() => (isInternal.value ? { id: serieId.value } : { externalId: serieId.value }));
 
 // Local reactive state
 const rating = ref<number | undefined>();
@@ -207,8 +206,14 @@ const internalId = computed(() => mySerieDetails.value?.id);
 const note = computed(() => mySerieDetails.value?.media.note ?? undefined);
 const title = computed(() => mySerieDetails.value?.media.name ?? tmdbSerieDetails.value?.details.name ?? undefined);
 
-const { data: mySerieDetails, pending: loadingMySerie } = useClientAsyncData(
-	async () => (mediaQueryParams.value ? trpc.serie.getById.query(mediaQueryParams.value) : undefined),
+const { data: mySerieDetails, pending: loadingMySerie } = useClientAsyncData<Serie | undefined>(
+	async () => {
+		if (isInternal.value) {
+			return trpc.serie.getById.query({ type: "id", id: serieId.value });
+		} else {
+			return trpc.serie.getById.query({ type: "externalSerieId", externalSerieId: serieId.value });
+		}
+	},
 	{
 		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
 	},
@@ -258,7 +263,13 @@ const { data: tmdbSerieDetails, pending: loadingDetails } = useClientAsyncData(
 
 // Get the serie collections
 const { data: mySerieCollections, pending: loadingSerieCollections } = useClientAsyncData(
-	async () => (mediaQueryParams.value ? trpc.media.getCollections.query(mediaQueryParams.value) : undefined),
+	async () => {
+		if (isInternal.value) {
+			return trpc.media.getCollections.query({ type: "id", id: serieId.value });
+		} else {
+			return trpc.media.getCollections.query({ type: "externalId", externalId: serieId.value });
+		}
+	},
 	{
 		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
 	},

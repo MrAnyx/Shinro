@@ -118,9 +118,12 @@ const state = reactive<Schema>({
 	rating: undefined,
 });
 
-const { data: movie, pending: loadingMovie } = useClientAsyncData(() => trpc.movie.getById.query({ id: props.id }), {
-	enabled: () => !!props.id,
-});
+const { data: movie, pending: loadingMovie } = useClientAsyncData(
+	() => trpc.movie.getById.query({ type: "id", id: props.id! }),
+	{
+		enabled: () => !!props.id,
+	},
+);
 
 watch(movie, (m) => {
 	if (!m) {
@@ -134,7 +137,7 @@ watch(movie, (m) => {
 });
 
 const { data: collections, pending: loadingCollections } = useClientAsyncData(
-	() => trpc.media.getCollections.query({ id: props.id }),
+	() => trpc.media.getCollections.query({ type: "id", id: props.id! }),
 	{ enabled: () => !!props.id },
 );
 
