@@ -268,28 +268,36 @@ export default router({
 
 	getById: protectedProcedure
 		.input(
-			z.object({
-				id: ServerSerieValidation.id.optional(),
-				externalSerieId: ServerTmdbSerieValidation.id.optional(),
-			}),
+			z.discriminatedUnion("type", [
+				z.object({
+					type: z.literal("id"),
+					id: ServerSerieValidation.id,
+				}),
+				z.object({
+					type: z.literal("externalSerieId"),
+					externalSerieId: ServerTmdbSerieValidation.id,
+				}),
+			]),
 		)
 		.output(SerieSchema)
 		.query(async ({ input, ctx }) => {
-			if (!input.id && !input.externalSerieId) {
+			let serieFilter: Prisma.SerieWhereInput;
+
+			if (input.type === "id") {
+				serieFilter = { id: input.id };
+			} else if (input.type === "externalSerieId") {
+				serieFilter = { media: { externalId: input.externalSerieId } };
+			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					message: "Either id or externalSerieId must be specified",
+					message: "Invalid input type",
 				});
 			}
 
-			const mediaFilter: Prisma.MediaWhereInput = input.id
-				? { id: input.id }
-				: { externalId: input.externalSerieId };
-
 			const serie = await prisma.serie.findFirst({
 				where: {
+					...serieFilter,
 					media: {
-						...mediaFilter,
 						ownerId: ctx.user.id,
 					},
 				},

@@ -290,28 +290,36 @@ export default router({
 	 */
 	getById: protectedProcedure
 		.input(
-			z.object({
-				id: ServerMovieValidation.id.optional(),
-				externalMovieId: ServerTmdbMovieValidation.id.optional(),
-			}),
+			z.discriminatedUnion("type", [
+				z.object({
+					type: z.literal("id"),
+					id: ServerSeasonValidation.id,
+				}),
+				z.object({
+					type: z.literal("externalMovieId"),
+					externalMovieId: ServerTmdbMovieValidation.id,
+				}),
+			]),
 		)
 		.output(MovieSchema)
 		.query(async ({ input, ctx }) => {
-			if (!input.id && !input.externalMovieId) {
+			let movieFilter: Prisma.MovieWhereInput;
+
+			if (input.type === "id") {
+				movieFilter = { id: input.id };
+			} else if (input.type === "externalMovieId") {
+				movieFilter = { media: { externalId: input.externalMovieId } };
+			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					message: "Either id or externalMovieId must be specified",
+					message: "Invalid input type",
 				});
 			}
 
-			const mediaFilter: Prisma.MediaWhereInput = input.id
-				? { id: input.id }
-				: { externalId: input.externalMovieId };
-
 			const movie = await prisma.movie.findFirst({
 				where: {
+					...movieFilter,
 					media: {
-						...mediaFilter,
 						ownerId: ctx.user.id,
 					},
 				},

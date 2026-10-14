@@ -357,12 +357,12 @@ export default router({
 					id: ServerSeasonValidation.id,
 				}),
 				z.object({
-					type: z.literal("serie"),
+					type: z.literal("serieId"),
 					serieId: z.string(),
 					seasonNumber: z.number(),
 				}),
 				z.object({
-					type: z.literal("externalSerie"),
+					type: z.literal("externalSerieId"),
 					externalSerieId: z.string(),
 					seasonNumber: z.number(),
 				}),
@@ -370,9 +370,24 @@ export default router({
 		)
 		.output(SeasonWithSerieSchema)
 		.query(async ({ input, ctx }) => {
+			let seasonFilter: Prisma.SeasonWhereInput;
+
+			if (input.type === "id") {
+				seasonFilter = { id: input.id };
+			} else if (input.type === "serieId") {
+				seasonFilter = { serieId: input.serieId, number: input.seasonNumber };
+			} else if (input.type === "externalSerieId") {
+				seasonFilter = { media: { externalId: input.externalSerieId }, number: input.seasonNumber };
+			} else {
+				throw new TRPCError({
+					code: "BAD_REQUEST",
+					message: "Invalid input type",
+				});
+			}
+
 			const season = await prisma.season.findFirst({
 				where: {
-					id: input.id,
+					...seasonFilter,
 					media: {
 						ownerId: ctx.user.id,
 					},

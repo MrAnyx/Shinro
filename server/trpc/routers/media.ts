@@ -54,21 +54,31 @@ export default router({
 	 */
 	getCollections: protectedProcedure
 		.input(
-			z.object({
-				id: ServerMediaValidation.id.optional(),
-				externalId: ServerMediaValidation.externalId.optional(),
-			}),
+			z.discriminatedUnion("type", [
+				z.object({
+					type: z.literal("id"),
+					id: ServerMediaValidation.id,
+				}),
+				z.object({
+					type: z.literal("externalId"),
+					externalId: ServerMediaValidation.externalId,
+				}),
+			]),
 		)
 		.output(z.array(BaseCollectionSchema))
 		.query(async ({ input, ctx }) => {
-			if (!input.id && !input.externalId) {
+			let mediaFilter: Prisma.MediaWhereInput;
+
+			if (input.type === "id") {
+				mediaFilter = { id: input.id };
+			} else if (input.type === "externalId") {
+				mediaFilter = { externalId: input.externalId };
+			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					message: "Either id or externalId must be specified",
+					message: "Invalid input type",
 				});
 			}
-
-			const mediaFilter: Prisma.MediaWhereInput = input.id ? { id: input.id } : { externalId: input.externalId };
 
 			const media = await prisma.media.findFirst({
 				where: {
