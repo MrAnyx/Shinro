@@ -358,13 +358,13 @@ export default router({
 				}),
 				z.object({
 					type: z.literal("serieId"),
-					serieId: z.string(),
-					seasonNumber: z.number(),
+					serieId: ServerSerieValidation.id,
+					seasonNumber: ServerSeasonValidation.number,
 				}),
 				z.object({
 					type: z.literal("externalSerieId"),
-					externalSerieId: z.string(),
-					seasonNumber: z.number(),
+					externalSerieId: ServerTmdbSerieValidation.id,
+					seasonNumber: ServerSeasonValidation.number,
 				}),
 			]),
 		)
