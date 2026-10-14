@@ -84,10 +84,12 @@
 import type { FormSubmitEvent } from "@nuxt/ui";
 import { z } from "zod";
 
+import { SourceType } from "#prisma/enums";
+
 const props = defineProps<{ id?: string }>();
 
 const emit = defineEmits<{
-	close: [value?: { season: Season; collections: Collection[] }];
+	close: [value?: { season: Season; collections: Collection[]; serie: Serie }];
 }>();
 
 const isSubmitting = ref(false);
@@ -106,6 +108,7 @@ const schema = z.object({
 	overview: ClientSeasonValidation.overview,
 	note: ClientMediaValidation.note,
 	rating: ClientMediaValidation.rating,
+	serie: ClientSerieValidation.id.optional(),
 });
 type Schema = z.infer<typeof schema>;
 
@@ -125,6 +128,7 @@ watch(season, (m) => {
 	state.note = m.media.note ?? "";
 	state.overview = m.overview ?? "";
 	state.rating = m.media.rating ?? undefined;
+	state.serie = m.serieId ?? undefined;
 });
 
 const { data: collections, pending: loadingCollections } = useClientAsyncData(
@@ -141,6 +145,15 @@ watch(collections, (c) => {
 	state.collections = c.map((col) => col.id);
 });
 
+// const { data: series, pending: loadingSeries } = useClientAsyncData(() =>
+// 	trpc.serie.getAll.query({
+// 		page: 1,
+// 		orderBy: [{ sort: "media.name", order: "asc" }],
+// 		source: SourceType.INTERNAL,
+// 		search: "",
+// 	}),
+// );
+
 const state = reactive<Schema>({
 	name: "",
 	status: undefined,
@@ -148,6 +161,7 @@ const state = reactive<Schema>({
 	note: "",
 	overview: "",
 	rating: undefined,
+	serie: undefined,
 });
 
 const onCancel = () => {
@@ -187,7 +201,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
 				id: updatedSeason.id,
 				collectionIds: payload.data.collections,
 			});
-			emit("close", { season: updatedSeason, collections: updatedCollections });
+			emit("close", { season: updatedSeason, collections: updatedCollections, serie: payload.data.serie });
 		} finally {
 			isSubmitting.value = false;
 		}
