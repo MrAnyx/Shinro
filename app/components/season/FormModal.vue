@@ -26,6 +26,17 @@
 					/>
 				</UFormField>
 
+				<UFormField label="Number" name="number" required>
+					<UInputNumber
+						v-model="state.number"
+						class="w-full"
+						orientation="vertical"
+						:disabled="isLoading"
+						:loading="loadingSeason"
+						:min="1"
+					/>
+				</UFormField>
+
 				<UFormField label="Serie" name="serie" required>
 					<UTooltip
 						text="The serie of an external season can't be changed"
@@ -107,7 +118,7 @@ import { SourceType } from "#prisma/enums";
 const props = defineProps<{ id?: string }>();
 
 const emit = defineEmits<{
-	close: [value?: { season: Season; collections: Collection[]; serie: Serie }];
+	close: [value?: { season: SeasonWithSerie; collections: Collection[] }];
 }>();
 
 const isSubmitting = ref(false);
@@ -127,6 +138,7 @@ const schema = z.object({
 	note: ClientMediaValidation.note,
 	rating: ClientMediaValidation.rating,
 	serie: ClientSerieValidation.id,
+	number: ClientSeasonValidation.number,
 });
 type Schema = z.infer<typeof schema>;
 
@@ -134,9 +146,7 @@ const isInternal = computed(() => season.value?.media.source === SourceType.INTE
 const isExternal = computed(() => season.value?.media.source === SourceType.EXTERNAL);
 const { data: season, pending: loadingSeason } = useClientAsyncData(
 	() => trpc.season.getById.query({ type: "id", id: props.id! }),
-	{
-		enabled: () => !!props.id,
-	},
+	{ enabled: () => !!props.id },
 );
 
 watch(season, (m) => {
@@ -153,9 +163,7 @@ watch(season, (m) => {
 
 const { data: collections, pending: loadingCollections } = useClientAsyncData(
 	() => trpc.media.getCollections.query({ type: "id", id: props.id! }),
-	{
-		enabled: () => !!props.id,
-	},
+	{ enabled: () => !!props.id },
 );
 
 watch(collections, (c) => {
@@ -173,6 +181,7 @@ const state = reactive<Schema>({
 	overview: "",
 	rating: undefined,
 	serie: "",
+	number: 1,
 });
 
 const onCancel = () => {
@@ -188,32 +197,34 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
 		try {
 			isSubmitting.value = true;
 
-			log.debug(payload.data);
-
-			// let updatedSeason;
-			// if (props.id) {
-			// 	updatedSeason = await trpc.season.update.mutate({
-			// 		id: props.id,
-			// 		name: payload.data.name,
-			// 		overview: payload.data.overview,
-			// 		rating: payload.data.rating ?? null,
-			// 		note: payload.data.note,
-			// 		status: payload.data.status ?? null,
-			// 	});
-			// } else {
-			// 	updatedSeason = await seasonStore.createSeasonFromInternal({
-			// 		name: payload.data.name,
-			// 		status: payload.data.status ?? null,
-			// 		overview: payload.data.overview,
-			// 		note: payload.data.note,
-			// 		rating: payload.data.rating ?? null,
-			// 	});
-			// }
-			// const updatedCollections = await trpc.media.updateCollections.mutate({
-			// 	id: updatedSeason.id,
-			// 	collectionIds: payload.data.collections,
-			// });
-			// emit("close", { season: updatedSeason, collections: updatedCollections, serie: payload.data.serie });
+			let updatedSeason;
+			if (props.id) {
+				// updatedSeason = await trpc.season.update.mutate({
+				// 	id: props.id,
+				// 	name: payload.data.name,
+				// 	overview: payload.data.overview,
+				// 	rating: payload.data.rating ?? null,
+				// 	note: payload.data.note,
+				// 	number: payload.data.number,
+				// 	serieId: payload.data.serie,
+				// 	status: payload.data.status ?? null,
+				// });
+			} else {
+				updatedSeason = await seasonStore.createSeasonFromInternal({
+					name: payload.data.name,
+					status: payload.data.status ?? null,
+					overview: payload.data.overview,
+					note: payload.data.note,
+					rating: payload.data.rating ?? null,
+					serieId: payload.data.serie,
+					number: payload.data.number,
+				});
+			}
+			const updatedCollections = await trpc.media.updateCollections.mutate({
+				id: updatedSeason.id,
+				collectionIds: payload.data.collections,
+			});
+			emit("close", { season: updatedSeason, collections: updatedCollections });
 		} finally {
 			isSubmitting.value = false;
 		}
