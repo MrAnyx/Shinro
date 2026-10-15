@@ -25,6 +25,24 @@
 						:loading="loadingSeason"
 					/>
 				</UFormField>
+
+				<UFormField label="Serie" name="serie" required>
+					<UTooltip
+						text="The serie of an external season can't be changed"
+						:disabled="isInternal"
+						class="w-full"
+					>
+						<SerieSelectMenu
+							class="w-full"
+							:source="SourceType.INTERNAL"
+							v-model="state.serie"
+							:fallback-serie="season?.serie"
+							:disabled="isLoading || isExternal"
+							:loading="loadingSeason"
+						/>
+					</UTooltip>
+				</UFormField>
+
 				<UFormField label="Status" name="status">
 					<StatusSelectMenu
 						class="w-full"
@@ -108,10 +126,12 @@ const schema = z.object({
 	overview: ClientSeasonValidation.overview,
 	note: ClientMediaValidation.note,
 	rating: ClientMediaValidation.rating,
-	serie: ClientSerieValidation.id.optional(),
+	serie: ClientSerieValidation.id,
 });
 type Schema = z.infer<typeof schema>;
 
+const isInternal = computed(() => season.value?.media.source === SourceType.INTERNAL);
+const isExternal = computed(() => season.value?.media.source === SourceType.EXTERNAL);
 const { data: season, pending: loadingSeason } = useClientAsyncData(
 	() => trpc.season.getById.query({ type: "id", id: props.id! }),
 	{
@@ -128,7 +148,7 @@ watch(season, (m) => {
 	state.note = m.media.note ?? "";
 	state.overview = m.overview ?? "";
 	state.rating = m.media.rating ?? undefined;
-	state.serie = m.serieId ?? undefined;
+	state.serie = m.serieId;
 });
 
 const { data: collections, pending: loadingCollections } = useClientAsyncData(
@@ -145,15 +165,6 @@ watch(collections, (c) => {
 	state.collections = c.map((col) => col.id);
 });
 
-// const { data: series, pending: loadingSeries } = useClientAsyncData(() =>
-// 	trpc.serie.getAll.query({
-// 		page: 1,
-// 		orderBy: [{ sort: "media.name", order: "asc" }],
-// 		source: SourceType.INTERNAL,
-// 		search: "",
-// 	}),
-// );
-
 const state = reactive<Schema>({
 	name: "",
 	status: undefined,
@@ -161,7 +172,7 @@ const state = reactive<Schema>({
 	note: "",
 	overview: "",
 	rating: undefined,
-	serie: undefined,
+	serie: "",
 });
 
 const onCancel = () => {
@@ -177,31 +188,32 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
 		try {
 			isSubmitting.value = true;
 
-			let updatedSeason;
+			log.debug(payload.data);
 
-			if (props.id) {
-				updatedSeason = await trpc.season.update.mutate({
-					id: props.id,
-					name: payload.data.name,
-					overview: payload.data.overview,
-					rating: payload.data.rating ?? null,
-					note: payload.data.note,
-					status: payload.data.status ?? null,
-				});
-			} else {
-				updatedSeason = await seasonStore.createSeasonFromInternal({
-					name: payload.data.name,
-					status: payload.data.status ?? null,
-					overview: payload.data.overview,
-					note: payload.data.note,
-					rating: payload.data.rating ?? null,
-				});
-			}
-			const updatedCollections = await trpc.media.updateCollections.mutate({
-				id: updatedSeason.id,
-				collectionIds: payload.data.collections,
-			});
-			emit("close", { season: updatedSeason, collections: updatedCollections, serie: payload.data.serie });
+			// let updatedSeason;
+			// if (props.id) {
+			// 	updatedSeason = await trpc.season.update.mutate({
+			// 		id: props.id,
+			// 		name: payload.data.name,
+			// 		overview: payload.data.overview,
+			// 		rating: payload.data.rating ?? null,
+			// 		note: payload.data.note,
+			// 		status: payload.data.status ?? null,
+			// 	});
+			// } else {
+			// 	updatedSeason = await seasonStore.createSeasonFromInternal({
+			// 		name: payload.data.name,
+			// 		status: payload.data.status ?? null,
+			// 		overview: payload.data.overview,
+			// 		note: payload.data.note,
+			// 		rating: payload.data.rating ?? null,
+			// 	});
+			// }
+			// const updatedCollections = await trpc.media.updateCollections.mutate({
+			// 	id: updatedSeason.id,
+			// 	collectionIds: payload.data.collections,
+			// });
+			// emit("close", { season: updatedSeason, collections: updatedCollections, serie: payload.data.serie });
 		} finally {
 			isSubmitting.value = false;
 		}

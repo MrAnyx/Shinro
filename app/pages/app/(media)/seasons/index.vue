@@ -67,7 +67,7 @@
 import type { TableColumn, ButtonProps, DropdownMenuItem } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
-// import { LazySeasonFormModal } from "#components";
+import { LazySeasonFormModal } from "#components";
 
 // Composable
 const overlay = useOverlay();
@@ -75,7 +75,7 @@ const trpc = useTrpc();
 const seasonStore = useSeasonStore();
 const { openConfirmationModal } = useConfirmation();
 const { search, page, trimmedSearch } = useSearchPagination();
-// const seasonFormModal = overlay.create(LazySeasonFormModal);
+const seasonFormModal = overlay.create(LazySeasonFormModal);
 
 const columns: TableColumn<SeasonWithSerie>[] = [
 	{
@@ -156,11 +156,13 @@ watchDebounced(trimmedSearch, () => refresh(), {
 
 // Methods
 const openSeasonFormModal = async (seasonId?: string) => {
-	// const instance = seasonFormModal.open({ id: seasonId });
-	// const result = await instance.result;
-	// if (result?.season) {
-	// 	refresh();
-	// }
+	const instance = seasonFormModal.open({ id: seasonId });
+
+	const result = await instance.result;
+
+	if (result?.season) {
+		refresh();
+	}
 };
 
 const getRowActions = (season: SeasonWithSerie): DropdownMenuItem[][] => [
