@@ -29,7 +29,11 @@ export default router({
 					},
 					select: {
 						id: true,
-						source: true,
+						media: {
+							select: {
+								source: true,
+							},
+						},
 					},
 				});
 
@@ -40,7 +44,7 @@ export default router({
 					});
 				}
 
-				if (serie.source === SourceType.EXTERNAL) {
+				if (serie.media.source === SourceType.EXTERNAL) {
 					throw new TRPCError({
 						code: "FORBIDDEN",
 						message: "You cannot add a season to an external serie",
@@ -174,74 +178,119 @@ export default router({
 			});
 		}),
 
-	// update: protectedProcedure
-	// 	.input(
-	// 		z.object({
-	// 			id: ServerSerieValidation.id,
-	// 			name: ServerMediaValidation.name.optional(),
-	// 			overview: ServerSerieValidation.overview.optional(),
-	// 			status: ServerMediaValidation.status.optional(),
-	// 			rating: ServerMediaValidation.rating.optional(),
-	// 			note: ServerMediaValidation.note.optional(),
-	// 		}),
-	// 	)
-	// 	.output(SerieSchema)
-	// 	.mutation(async ({ input, ctx }) => {
-	// 		const existingSerie = await prisma.serie.findFirst({
-	// 			where: {
-	// 				id: input.id,
-	// 				media: {
-	// 					ownerId: ctx.user.id,
-	// 				},
-	// 			},
-	// 			select: {
-	// 				id: true,
-	// 				media: {
-	// 					select: {
-	// 						ownerId: true,
-	// 					},
-	// 				},
-	// 			},
-	// 		});
+	update: protectedProcedure
+		.input(
+			z.object({
+				id: ServerSeasonValidation.id,
+				name: ServerMediaValidation.name.optional(),
+				overview: ServerSeasonValidation.overview.optional(),
+				status: ServerMediaValidation.status.optional(),
+				rating: ServerMediaValidation.rating.optional(),
+				note: ServerMediaValidation.note.optional(),
+				number: ServerSeasonValidation.number.optional(),
+				serieId: ServerSerieValidation.id.optional(),
+			}),
+		)
+		.output(SeasonWithSerieSchema)
+		.mutation(async ({ input, ctx }) => {
+			const INTERNAL_ONLY_FIELDS = ["number", "serieId"] satisfies (keyof typeof input)[];
 
-	// 		if (!existingSerie) {
-	// 			throw new TRPCError({
-	// 				code: "NOT_FOUND",
-	// 				message: "Serie not found",
-	// 			});
-	// 		}
+			return await prisma.$transaction(async (tx) => {
+				const existingSeason = await tx.season.findFirst({
+					where: {
+						id: input.id,
+						media: {
+							ownerId: ctx.user.id,
+						},
+					},
+					select: {
+						id: true,
+						media: {
+							select: {
+								source: true,
+							},
+						},
+					},
+				});
 
-	// 		const {
-	// 			name = Prisma.skip,
-	// 			rating = Prisma.skip,
-	// 			overview = Prisma.skip,
-	// 			note = Prisma.skip,
-	// 			status = Prisma.skip,
-	// 		} = input;
+				if (!existingSeason) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Season not found",
+					});
+				}
 
-	// 		return await prisma.serie.update({
-	// 			where: {
-	// 				id: input.id,
-	// 				media: {
-	// 					ownerId: ctx.user.id,
-	// 				},
-	// 			},
-	// 			data: {
-	// 				media: {
-	// 					update: {
-	// 						name,
-	// 						rating,
-	// 						note,
-	// 						status,
-	// 					},
-	// 				},
-	// 				overview,
-	// 			},
-	// 			include: {
-	// 				media: true,
-	// 			},
-	// 		});
-	// // 	}),
+				if (
+					existingSeason.media.source === SourceType.EXTERNAL &&
+					INTERNAL_ONLY_FIELDS.some((field) => input[field] !== undefined)
+				) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "Some fields cannot be modified on an external season",
+					});
+				}
+
+				const serie = await tx.serie.findFirst({
+					where: {
+						id: input.serieId,
+						media: {
+							ownerId: ctx.user.id,
+						},
+					},
+					select: {
+						id: true,
+						source: true,
+					},
+				});
+
+				if (!serie) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Serie not found",
+					});
+				}
+
+				if (serie.source === SourceType.EXTERNAL) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "You cannot add a season to an external serie",
+					});
+				}
+
+				const {
+					name = Prisma.skip,
+					rating = Prisma.skip,
+					overview = Prisma.skip,
+					note = Prisma.skip,
+					status = Prisma.skip,
+					number = Prisma.skip,
+				} = input;
+
+				return await tx.season.update({
+					where: {
+						id: input.id,
+						media: {
+							ownerId: ctx.user.id,
+						},
+					},
+					data: {
+						media: {
+							update: {
+								name,
+								rating,
+								note,
+								status,
+							},
+						},
+						number,
+						overview,
+					},
+					include: {
+						media: true,
+					},
+				});
+			});
+		}),
 
 	delete: protectedProcedure
 		.input(

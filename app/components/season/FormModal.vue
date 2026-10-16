@@ -190,38 +190,40 @@ const onSave = async () => {
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
 	toast.withErrorToast(async () => {
-		// try {
-		// 	isSubmitting.value = true;
-		// 	let updatedSeason;
-		// 	if (props.id) {
-		// 		// updatedSeason = await trpc.season.update.mutate({
-		// 		// 	id: props.id,
-		// 		// 	name: payload.data.name,
-		// 		// 	overview: payload.data.overview,
-		// 		// 	rating: payload.data.rating ?? null,
-		// 		// 	note: payload.data.note,
-		// 		// 	number: payload.data.number,
-		// 		// 	serieId: payload.data.serie,
-		// 		// 	status: payload.data.status ?? null,
-		// 		// });
-		// 	} else {
-		// 		updatedSeason = await seasonStore.createSeasonFromInternal({
-		// 			name: payload.data.name,
-		// 			status: payload.data.status ?? null,
-		// 			overview: payload.data.overview,
-		// 			note: payload.data.note,
-		// 			rating: payload.data.rating ?? null,
-		// 			serieId: payload.data.serie,
-		// 			number: payload.data.number,
-		// 		});
-		// 	}
-		// 	const updatedCollections = await trpc.media.updateCollections.mutate({
-		// 		id: updatedSeason.id,
-		// 		collectionIds: payload.data.collections,
-		// 	});
-		// 	emit("close", { season: updatedSeason, collections: updatedCollections });
-		// } finally {
-		// 	isSubmitting.value = false;
-		// }
+		try {
+			isSubmitting.value = true;
+
+			let updatedSeason;
+
+			if (props.id) {
+				updatedSeason = await trpc.season.update.mutate({
+					id: props.id,
+					name: payload.data.name,
+					overview: payload.data.overview,
+					rating: payload.data.rating ?? null,
+					note: payload.data.note,
+					number: payload.data.number,
+					serieId: payload.data.serie,
+					status: payload.data.status ?? null,
+				});
+			} else {
+				updatedSeason = await seasonStore.createSeasonFromInternal({
+					name: payload.data.name,
+					status: payload.data.status ?? null,
+					overview: payload.data.overview,
+					note: payload.data.note,
+					rating: payload.data.rating ?? null,
+					serieId: payload.data.serie,
+					number: payload.data.number,
+				});
+			}
+			const updatedCollections = await trpc.media.updateCollections.mutate({
+				id: updatedSeason.id,
+				collectionIds: payload.data.collections,
+			});
+			emit("close", { season: updatedSeason, collections: updatedCollections });
+		} finally {
+			isSubmitting.value = false;
+		}
 	});
 </script>
