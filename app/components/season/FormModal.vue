@@ -31,27 +31,21 @@
 						v-model="state.number"
 						class="w-full"
 						orientation="vertical"
-						:disabled="isLoading"
+						:disabled="isLoading || isExternal"
 						:loading="loadingSeason"
-						:min="1"
+						:min="0"
 					/>
 				</UFormField>
 
 				<UFormField label="Serie" name="serie" required>
-					<UTooltip
-						text="The serie of an external season can't be changed"
-						:disabled="isInternal || isCreate"
+					<SerieSelectMenu
 						class="w-full"
-					>
-						<SerieSelectMenu
-							class="w-full"
-							:source="SourceType.INTERNAL"
-							v-model="state.serie"
-							:fallback-serie="season?.serie"
-							:disabled="isLoading || isExternal"
-							:loading="loadingSeason"
-						/>
-					</UTooltip>
+						:source="SourceType.INTERNAL"
+						v-model="state.serie"
+						:fallback-serie="season?.serie"
+						:disabled="isLoading || isExternal"
+						:loading="loadingSeason"
+					/>
 				</UFormField>
 
 				<UFormField label="Status" name="status">
