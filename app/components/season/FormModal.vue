@@ -3,7 +3,7 @@
 		<template #title>
 			<div class="flex items-center gap-x-2">
 				<Spinner class="size-5" v-if="isInitializing" />
-				<span>{{ season ? "Update" : "Create" }} a season</span>
+				<span>{{ isUpdate ? "Update" : "Create" }} a season</span>
 			</div>
 		</template>
 		<template #body>
@@ -40,7 +40,7 @@
 				<UFormField label="Serie" name="serie" required>
 					<UTooltip
 						text="The serie of an external season can't be changed"
-						:disabled="isInternal"
+						:disabled="isInternal || isCreate"
 						class="w-full"
 					>
 						<SerieSelectMenu
@@ -100,7 +100,7 @@
 		<template #footer>
 			<UButton label="Cancel" variant="ghost" color="neutral" @click="onCancel" :disabled="isLoading" />
 			<UButton
-				:label="props.id ? 'Update' : 'Create'"
+				:label="isUpdate ? 'Update' : 'Create'"
 				@click="onSave"
 				:loading="isSubmitting"
 				:disabled="isInitializing"
@@ -127,6 +127,8 @@ const toast = useStatusToast();
 const trpc = useTrpc();
 const seasonStore = useSeasonStore();
 
+const isCreate = computed(() => !props.id);
+const isUpdate = computed(() => !!props.id);
 const isInitializing = computed(() => loadingSeason.value || loadingCollections.value);
 const isLoading = computed(() => isInitializing.value || isSubmitting.value);
 
@@ -142,8 +144,8 @@ const schema = z.object({
 });
 type Schema = z.infer<typeof schema>;
 
-const isInternal = computed(() => season.value?.media.source === SourceType.INTERNAL);
-const isExternal = computed(() => season.value?.media.source === SourceType.EXTERNAL);
+const isInternal = computed(() => season.value && season.value.media.source === SourceType.INTERNAL);
+const isExternal = computed(() => season.value && season.value.media.source === SourceType.EXTERNAL);
 const { data: season, pending: loadingSeason } = useClientAsyncData(
 	() => trpc.season.getById.query({ type: "id", id: props.id! }),
 	{ enabled: () => !!props.id },
@@ -194,39 +196,38 @@ const onSave = async () => {
 
 const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
 	toast.withErrorToast(async () => {
-		try {
-			isSubmitting.value = true;
-
-			let updatedSeason;
-			if (props.id) {
-				// updatedSeason = await trpc.season.update.mutate({
-				// 	id: props.id,
-				// 	name: payload.data.name,
-				// 	overview: payload.data.overview,
-				// 	rating: payload.data.rating ?? null,
-				// 	note: payload.data.note,
-				// 	number: payload.data.number,
-				// 	serieId: payload.data.serie,
-				// 	status: payload.data.status ?? null,
-				// });
-			} else {
-				updatedSeason = await seasonStore.createSeasonFromInternal({
-					name: payload.data.name,
-					status: payload.data.status ?? null,
-					overview: payload.data.overview,
-					note: payload.data.note,
-					rating: payload.data.rating ?? null,
-					serieId: payload.data.serie,
-					number: payload.data.number,
-				});
-			}
-			const updatedCollections = await trpc.media.updateCollections.mutate({
-				id: updatedSeason.id,
-				collectionIds: payload.data.collections,
-			});
-			emit("close", { season: updatedSeason, collections: updatedCollections });
-		} finally {
-			isSubmitting.value = false;
-		}
+		// try {
+		// 	isSubmitting.value = true;
+		// 	let updatedSeason;
+		// 	if (props.id) {
+		// 		// updatedSeason = await trpc.season.update.mutate({
+		// 		// 	id: props.id,
+		// 		// 	name: payload.data.name,
+		// 		// 	overview: payload.data.overview,
+		// 		// 	rating: payload.data.rating ?? null,
+		// 		// 	note: payload.data.note,
+		// 		// 	number: payload.data.number,
+		// 		// 	serieId: payload.data.serie,
+		// 		// 	status: payload.data.status ?? null,
+		// 		// });
+		// 	} else {
+		// 		updatedSeason = await seasonStore.createSeasonFromInternal({
+		// 			name: payload.data.name,
+		// 			status: payload.data.status ?? null,
+		// 			overview: payload.data.overview,
+		// 			note: payload.data.note,
+		// 			rating: payload.data.rating ?? null,
+		// 			serieId: payload.data.serie,
+		// 			number: payload.data.number,
+		// 		});
+		// 	}
+		// 	const updatedCollections = await trpc.media.updateCollections.mutate({
+		// 		id: updatedSeason.id,
+		// 		collectionIds: payload.data.collections,
+		// 	});
+		// 	emit("close", { season: updatedSeason, collections: updatedCollections });
+		// } finally {
+		// 	isSubmitting.value = false;
+		// }
 	});
 </script>
