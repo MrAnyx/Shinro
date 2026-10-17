@@ -46,8 +46,8 @@ export default router({
 
 				if (serie.media.source === SourceType.EXTERNAL) {
 					throw new TRPCError({
-						code: "FORBIDDEN",
-						message: "You cannot add a season to an external serie",
+						code: "BAD_REQUEST",
+						message: "You cannot add an internal season to an external serie",
 					});
 				}
 
@@ -123,6 +123,11 @@ export default router({
 					},
 					select: {
 						id: true,
+						media: {
+							select: {
+								source: true,
+							},
+						},
 					},
 				});
 
@@ -130,6 +135,13 @@ export default router({
 					throw new TRPCError({
 						code: "NOT_FOUND",
 						message: "Serie not found",
+					});
+				}
+
+				if (serie.media.source === SourceType.INTERNAL) {
+					throw new TRPCError({
+						code: "BAD_REQUEST",
+						message: "You cannot add an external season to an internal serie",
 					});
 				}
 
@@ -230,31 +242,37 @@ export default router({
 					});
 				}
 
-				const serie = await tx.serie.findFirst({
-					where: {
-						id: input.serieId,
-						media: {
-							ownerId: ctx.user.id,
+				if (input.serieId) {
+					const serie = await tx.serie.findFirst({
+						where: {
+							id: input.serieId,
+							media: {
+								ownerId: ctx.user.id,
+							},
 						},
-					},
-					select: {
-						id: true,
-						source: true,
-					},
-				});
-
-				if (!serie) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Serie not found",
+						select: {
+							id: true,
+							media: {
+								select: {
+									source: true,
+								},
+							},
+						},
 					});
-				}
 
-				if (serie.source === SourceType.EXTERNAL) {
-					throw new TRPCError({
-						code: "FORBIDDEN",
-						message: "You cannot add a season to an external serie",
-					});
+					if (!serie) {
+						throw new TRPCError({
+							code: "NOT_FOUND",
+							message: "Serie not found",
+						});
+					}
+
+					if (serie.media.source === SourceType.EXTERNAL) {
+						throw new TRPCError({
+							code: "FORBIDDEN",
+							message: "You cannot add an internal season to an external serie",
+						});
+					}
 				}
 
 				const {
@@ -264,6 +282,7 @@ export default router({
 					note = Prisma.skip,
 					status = Prisma.skip,
 					number = Prisma.skip,
+					serieId,
 				} = input;
 
 				return await tx.season.update({
@@ -282,11 +301,17 @@ export default router({
 								status,
 							},
 						},
+						...(serieId ? { serie: { connect: { id: serieId } } } : {}),
 						number,
 						overview,
 					},
 					include: {
 						media: true,
+						serie: {
+							include: {
+								media: true,
+							},
+						},
 					},
 				});
 			});
