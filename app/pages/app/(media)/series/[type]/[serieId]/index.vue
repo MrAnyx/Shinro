@@ -303,7 +303,7 @@ const seasonColumns: TableColumn<TmdbSerieDetailsSeason>[] = [
 	{
 		id: "season",
 		header: "Season",
-		cell: ({ row }) => row.original.internal_season?.number ?? row.original.season_number,
+		cell: ({ row }) => `S${row.original.internal_season?.number ?? row.original.season_number}`,
 		meta: { class: { td: "max-w-[160px] truncate font-bold text-default" } },
 	},
 	{

@@ -16,7 +16,7 @@ export const TmdbSeasonDetailsEpisodeSchema = z.object({
 	id: z.string(),
 	name: z.string().nullish(),
 	overview: z.string().nullish(),
-	runtime: z.number(),
+	runtime: z.number().nullish(),
 	still_path: z.string().nullish(),
 	vote_average: z.number(),
 	vote_count: z.number(),
