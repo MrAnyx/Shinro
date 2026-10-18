@@ -17,7 +17,7 @@ export default router({
 				serieId: ServerSerieValidation.id,
 			}),
 		)
-		.output(SeasonSchema)
+		.output(SeasonWithSerieSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
 				const serie = await tx.serie.findFirst({
@@ -91,6 +91,11 @@ export default router({
 					},
 					include: {
 						media: true,
+						serie: {
+							include: {
+								media: true,
+							},
+						},
 					},
 				});
 			});
@@ -185,6 +190,11 @@ export default router({
 					},
 					include: {
 						media: true,
+						serie: {
+							include: {
+								media: true,
+							},
+						},
 					},
 				});
 			});
@@ -231,6 +241,8 @@ export default router({
 						message: "Season not found",
 					});
 				}
+
+				log.debug(input);
 
 				if (
 					existingSeason.media.source === SourceType.EXTERNAL &&

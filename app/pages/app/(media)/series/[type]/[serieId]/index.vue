@@ -297,13 +297,19 @@ const seasonColumns: TableColumn<TmdbSerieDetailsSeason>[] = [
 	{
 		id: "title",
 		header: "Title",
-		cell: ({ row }) =>
-			row.original.name ?? `${title.value} - S${String(row.original.season_number).padStart(2, "0")}`,
+		cell: ({ row }) => row.original.internal_season?.media.name ?? row.original.name,
 		meta: { class: { td: "max-w-[160px] truncate font-bold text-default" } },
 	},
 	{
-		accessorKey: "overview",
+		id: "season",
+		header: "Season",
+		cell: ({ row }) => row.original.internal_season?.number ?? row.original.season_number,
+		meta: { class: { td: "max-w-[160px] truncate font-bold text-default" } },
+	},
+	{
+		id: "overview",
 		header: "Synopsis",
+		cell: ({ row }) => row.original.internal_season?.overview ?? row.original.overview,
 		meta: { class: { td: "max-w-[300px] truncate" } },
 	},
 	{

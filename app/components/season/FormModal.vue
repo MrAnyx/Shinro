@@ -195,15 +195,15 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
 
 			let updatedSeason;
 
-			if (props.id) {
+			if (isUpdate.value) {
 				updatedSeason = await trpc.season.update.mutate({
-					id: props.id,
+					id: props.id!,
 					name: payload.data.name,
 					overview: payload.data.overview,
 					rating: payload.data.rating ?? null,
 					note: payload.data.note,
-					number: payload.data.number,
-					serieId: payload.data.serie,
+					number: isInternal.value ? payload.data.number : undefined,
+					serieId: isInternal.value ? payload.data.serie : undefined,
 					status: payload.data.status ?? null,
 				});
 			} else {
@@ -213,14 +213,16 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
 					overview: payload.data.overview,
 					note: payload.data.note,
 					rating: payload.data.rating ?? null,
-					serieId: payload.data.serie,
 					number: payload.data.number,
+					serieId: payload.data.serie,
 				});
 			}
+
 			const updatedCollections = await trpc.media.updateCollections.mutate({
 				id: updatedSeason.id,
 				collectionIds: payload.data.collections,
 			});
+
 			emit("close", { season: updatedSeason, collections: updatedCollections });
 		} finally {
 			isSubmitting.value = false;

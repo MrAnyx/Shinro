@@ -21,7 +21,7 @@ export default router({
 			);
 
 			// // Get the external IDs of the season in the collection
-			// const externalIds = details.seasons?.filter((x) => !!x).map((x) => x.id) ?? [];
+			// const externalIds = details.season.?.filter((x) => !!x).map((x) => x.id) ?? [];
 
 			// // Get the seasons that belong to the user and have the same external IDs
 			// const mySeasons = await prisma.season.findMany({
