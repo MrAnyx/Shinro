@@ -449,7 +449,7 @@ export default router({
 			if (input.type === "id") {
 				seasonFilter = { id: input.id };
 			} else if (input.type === "serieId") {
-				seasonFilter = { number: input.seasonNumber, serie: { media: { externalId: input.serieId } } };
+				seasonFilter = { number: input.seasonNumber, serie: { media: { id: input.serieId } } };
 			} else if (input.type === "externalSerieId") {
 				seasonFilter = { number: input.seasonNumber, serie: { media: { externalId: input.externalSerieId } } };
 			} else {
