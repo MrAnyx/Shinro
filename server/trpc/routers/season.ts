@@ -449,9 +449,9 @@ export default router({
 			if (input.type === "id") {
 				seasonFilter = { id: input.id };
 			} else if (input.type === "serieId") {
-				seasonFilter = { serieId: input.serieId, number: input.seasonNumber };
+				seasonFilter = { number: input.seasonNumber, serie: { media: { externalId: input.serieId } } };
 			} else if (input.type === "externalSerieId") {
-				seasonFilter = { media: { externalId: input.externalSerieId }, number: input.seasonNumber };
+				seasonFilter = { number: input.seasonNumber, serie: { media: { externalId: input.externalSerieId } } };
 			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
