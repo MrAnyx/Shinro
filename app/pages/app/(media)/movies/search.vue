@@ -31,7 +31,7 @@
 				/>
 			</template>
 			<template #adult-cell="{ row }">
-				<AdultBadge :adult="row.original.adult" />
+				<AdultBadge :adult="row.original.adult ?? undefined" />
 			</template>
 			<template #date-cell="{ row }">
 				<NuxtTime
@@ -44,7 +44,10 @@
 				/>
 			</template>
 			<template #vote-cell="{ row }">
-				<VoteBadge :score="row.original.vote_average" :count="row.original.vote_count" />
+				<VoteBadge
+					:score="row.original.vote_average ?? undefined"
+					:count="row.original.vote_count ?? undefined"
+				/>
 			</template>
 			<template #actions-cell="{ row }">
 				<ToggleButton

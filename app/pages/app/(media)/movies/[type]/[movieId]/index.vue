@@ -78,13 +78,13 @@
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
 				<template v-else>
-					<AdultBadge :adult="tmdbMovieDetails?.details.adult" />
+					<AdultBadge :adult="tmdbMovieDetails?.details.adult ?? undefined" />
 					<DetailsDateBadge :date="tmdbMovieDetails?.details.release_date ?? undefined" />
 					<DetailsReleaseBadge :start-date="tmdbMovieDetails?.details.release_date ?? undefined" />
-					<DetailsDurationBadge :duration="tmdbMovieDetails?.details.runtime" />
+					<DetailsDurationBadge :duration="tmdbMovieDetails?.details.runtime ?? undefined" />
 					<VoteBadge
-						:score="tmdbMovieDetails?.details.vote_average"
-						:count="tmdbMovieDetails?.details.vote_count"
+						:score="tmdbMovieDetails?.details.vote_average ?? undefined"
+						:count="tmdbMovieDetails?.details.vote_count ?? undefined"
 					/>
 				</template>
 			</div>
@@ -132,7 +132,7 @@
 								/>
 							</template>
 							<template #adult-cell="{ row }">
-								<AdultBadge :adult="row.original.adult" />
+								<AdultBadge :adult="row.original.adult ?? undefined" />
 							</template>
 							<template #date-cell="{ row }">
 								<NuxtTime
@@ -145,7 +145,10 @@
 								/>
 							</template>
 							<template #vote-cell="{ row }">
-								<VoteBadge :score="row.original.vote_average" :count="row.original.vote_count" />
+								<VoteBadge
+									:score="row.original.vote_average ?? undefined"
+									:count="row.original.vote_count ?? undefined"
+								/>
 							</template>
 							<template #actions-cell="{ row }">
 								<ToggleButton

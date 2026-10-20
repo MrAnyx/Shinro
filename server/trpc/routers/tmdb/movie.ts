@@ -57,7 +57,7 @@ export default router({
 					?.map((x) => Object.assign(x, { internal_movie: myMoviesMap.get(x.id) })) ?? [];
 
 			return {
-				total: tmdbMovies.total_results,
+				total: tmdbMovies.total_results ?? 0,
 				results: movies,
 			};
 		}),
