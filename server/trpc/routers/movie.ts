@@ -57,7 +57,11 @@ export default router({
 			});
 
 			return await prisma.$transaction(async (tx) => {
-				const movieExist = await MovieRepository.findByExternalId({ externalId: input.externalMovieId, ownerId: ctx.user.id, db: tx });
+				const movieExist = await MovieRepository.findByExternalId({
+					externalId: input.externalMovieId,
+					ownerId: ctx.user.id,
+					db: tx,
+				});
 
 				if (movieExist) {
 					throw new TRPCError({

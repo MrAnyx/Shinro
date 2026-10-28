@@ -51,7 +51,11 @@ export default router({
 					});
 				}
 
-				const existingSeason = await SeasonRepository.findBySerieAndNumber({ serieId: input.serieId, number: input.number, db: tx });
+				const existingSeason = await SeasonRepository.findBySerieAndNumber({
+					serieId: input.serieId,
+					number: input.number,
+					db: tx,
+				});
 
 				if (existingSeason) {
 					throw new TRPCError({

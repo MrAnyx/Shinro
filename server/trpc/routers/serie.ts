@@ -51,7 +51,11 @@ export default router({
 			});
 
 			return await prisma.$transaction(async (tx) => {
-				const serieExist = await SerieRepository.findByExternalId({ externalId: input.externalSerieId, ownerId: ctx.user.id, db: tx });
+				const serieExist = await SerieRepository.findByExternalId({
+					externalId: input.externalSerieId,
+					ownerId: ctx.user.id,
+					db: tx,
+				});
 
 				if (serieExist) {
 					throw new TRPCError({
