@@ -102,6 +102,7 @@ Use only the disposable staging database/accounts.
 - [ ] Add the movie from TMDb. Expected: it appears once in the library and remains after refresh.
 - [ ] Attempt to add the same TMDb movie again. Expected: duplicate is rejected or handled idempotently; no duplicate record appears.
 - [ ] Open the movie detail page. Expected: correct metadata/credits/franchise information when available; absent optional data and missing artwork use graceful fallbacks.
+- [ ] Call `movie.details` by internal ID and by TMDb ID. Expected: returns the internal movie (if owned), TMDb details, credits and saga; internal-only movies return no TMDb data; an unknown or foreign internal ID returns NOT_FOUND.
 - [ ] Change the movie's status, rating (including minimum, maximum, and cleared value), and note. Expected: valid changes persist after refresh; invalid values are rejected.
 - [ ] Edit available movie metadata. Expected: changes show in list and detail without creating a second record.
 - [ ] Create a movie manually with valid required fields and optional fields. Expected: record is saved and rendered consistently.

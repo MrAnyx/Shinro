@@ -290,4 +290,49 @@ export default router({
 
 			return movie;
 		}),
+
+	/**
+	 * Get the full details of a movie: the internal movie (if owned), the TMDB details, credits and saga.
+	 */
+	details: protectedProcedure
+		.input(
+			z.discriminatedUnion("type", [
+				z.object({ type: z.literal("id"), id: ServerMovieValidation.id }),
+				z.object({ type: z.literal("externalMovieId"), externalMovieId: ServerTmdbMovieValidation.id }),
+			]),
+		)
+		.output(
+			z.object({
+				movie: MovieSchema.optional(),
+				details: TmdbMovieDetailsSchema.optional(),
+				credits: z.array(TmdbMovieCreditSchema),
+				saga: TmdbMovieSagaSchema.optional(),
+			}),
+		)
+		.query(async ({ input, ctx }) => {
+			const movie = await prisma.movie.findFirst({
+				where: {
+					media: {
+						ownerId: ctx.user.id,
+						...(input.type === "id" ? {} : { externalId: input.externalMovieId }),
+					},
+					...(input.type === "id" ? { id: input.id } : {}),
+				},
+				include: { media: true },
+			});
+
+			if (input.type === "id" && !movie) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Movie not found" });
+			}
+
+			const externalMovieId = input.type === "externalMovieId" ? input.externalMovieId : movie?.media.externalId;
+
+			if (!externalMovieId) {
+				return { movie: movie ?? undefined, credits: [] };
+			}
+
+			const tmdbDetails = await getTmdbMovieFullDetails({ externalMovieId, ownerId: ctx.user.id });
+
+			return { movie: movie ?? undefined, ...tmdbDetails };
+		}),
 });
