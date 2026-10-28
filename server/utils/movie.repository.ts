@@ -2,7 +2,7 @@ import type { DbClient } from "./repository.types";
 
 export const MovieRepository = {
 	/** Find a movie owned by the given user, with the fields needed to guard mutations. */
-	findOwned(db: DbClient, id: string, ownerId: string) {
+	findOwned({ id, ownerId, db = prisma }: { id: string; ownerId: string; db?: DbClient }) {
 		return db.movie.findFirst({
 			where: { id, media: { ownerId } },
 			select: { id: true, media: { select: { ownerId: true, source: true } } },
@@ -10,14 +10,14 @@ export const MovieRepository = {
 	},
 
 	/** Check if the user already added a movie from the given external source id. */
-	findByExternalId(db: DbClient, externalId: string, ownerId: string) {
+	findByExternalId({ externalId, ownerId, db = prisma }: { externalId: string; ownerId: string; db?: DbClient }) {
 		return db.movie.findFirst({
 			where: { media: { ownerId, externalId } },
 			select: { id: true },
 		});
 	},
 
-	countByOwner(db: DbClient, ownerId: string) {
+	countByOwner({ ownerId, db = prisma }: { ownerId: string; db?: DbClient }) {
 		return db.movie.count({ where: { media: { ownerId } } });
 	},
 };

@@ -51,7 +51,7 @@ export default router({
 			});
 
 			return await prisma.$transaction(async (tx) => {
-				const serieExist = await SerieRepository.findByExternalId(tx, input.externalSerieId, ctx.user.id);
+				const serieExist = await SerieRepository.findByExternalId({ externalId: input.externalSerieId, ownerId: ctx.user.id, db: tx });
 
 				if (serieExist) {
 					throw new TRPCError({
@@ -98,7 +98,7 @@ export default router({
 		.output(SerieSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
-				const existingSerie = await SerieRepository.findOwned(tx, input.id, ctx.user.id);
+				const existingSerie = await SerieRepository.findOwned({ id: input.id, ownerId: ctx.user.id, db: tx });
 
 				if (!existingSerie) {
 					throw new TRPCError({
@@ -149,7 +149,7 @@ export default router({
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
 			await prisma.$transaction(async (tx) => {
-				const existingSerie = await SerieRepository.findOwned(tx, input.id, ctx.user.id);
+				const existingSerie = await SerieRepository.findOwned({ id: input.id, ownerId: ctx.user.id, db: tx });
 
 				if (!existingSerie) {
 					throw new TRPCError({
@@ -159,7 +159,7 @@ export default router({
 				}
 
 				// Use the media model to leverage the cascade on delete feature
-				await MediaRepository.deleteOwned(tx, input.id, ctx.user.id);
+				await MediaRepository.deleteOwned({ id: input.id, ownerId: ctx.user.id, db: tx });
 			});
 		}),
 
@@ -167,7 +167,7 @@ export default router({
 		.input(z.void())
 		.output(z.number())
 		.query(async ({ ctx }) => {
-			return await SerieRepository.countByOwner(prisma, ctx.user.id);
+			return await SerieRepository.countByOwner({ ownerId: ctx.user.id });
 		}),
 
 	getAll: protectedProcedure

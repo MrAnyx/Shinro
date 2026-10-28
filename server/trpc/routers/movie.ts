@@ -57,7 +57,7 @@ export default router({
 			});
 
 			return await prisma.$transaction(async (tx) => {
-				const movieExist = await MovieRepository.findByExternalId(tx, input.externalMovieId, ctx.user.id);
+				const movieExist = await MovieRepository.findByExternalId({ externalId: input.externalMovieId, ownerId: ctx.user.id, db: tx });
 
 				if (movieExist) {
 					throw new TRPCError({
@@ -107,7 +107,7 @@ export default router({
 		.output(MovieSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
-				const existingMovie = await MovieRepository.findOwned(tx, input.id, ctx.user.id);
+				const existingMovie = await MovieRepository.findOwned({ id: input.id, ownerId: ctx.user.id, db: tx });
 
 				if (!existingMovie) {
 					throw new TRPCError({
@@ -161,7 +161,7 @@ export default router({
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
 			await prisma.$transaction(async (tx) => {
-				const existingMovie = await MovieRepository.findOwned(tx, input.id, ctx.user.id);
+				const existingMovie = await MovieRepository.findOwned({ id: input.id, ownerId: ctx.user.id, db: tx });
 
 				if (!existingMovie) {
 					throw new TRPCError({
@@ -171,7 +171,7 @@ export default router({
 				}
 
 				// Use the media model to leverage the cascade on delete feature
-				await MediaRepository.deleteOwned(tx, input.id, ctx.user.id);
+				await MediaRepository.deleteOwned({ id: input.id, ownerId: ctx.user.id, db: tx });
 			});
 		}),
 
@@ -182,7 +182,7 @@ export default router({
 		.input(z.void())
 		.output(z.number())
 		.query(async ({ ctx }) => {
-			return await MovieRepository.countByOwner(prisma, ctx.user.id);
+			return await MovieRepository.countByOwner({ ownerId: ctx.user.id });
 		}),
 
 	/**
