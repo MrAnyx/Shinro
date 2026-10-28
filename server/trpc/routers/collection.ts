@@ -45,13 +45,13 @@ export default router({
 		.output(BaseCollectionSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
-				const existingCollection = await CollectionRepository.findOwned({
+				const collectionExists = await CollectionService.exists({
 					id: input.id,
 					ownerId: ctx.user.id,
 					db: tx,
 				});
 
-				if (!existingCollection) {
+				if (!collectionExists) {
 					throw new TRPCError({
 						code: "NOT_FOUND",
 						message: "Collection not found",
@@ -88,13 +88,13 @@ export default router({
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
 			await prisma.$transaction(async (tx) => {
-				const existingCollection = await CollectionRepository.findOwned({
+				const collectionExists = await CollectionService.exists({
 					id: input.id,
 					ownerId: ctx.user.id,
 					db: tx,
 				});
 
-				if (!existingCollection) {
+				if (!collectionExists) {
 					throw new TRPCError({
 						code: "NOT_FOUND",
 						message: "Collection not found",

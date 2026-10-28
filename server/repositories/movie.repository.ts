@@ -1,4 +1,4 @@
-import type { DbClient } from "./repository.types";
+import type { DbClient } from "./repository";
 
 export const MovieRepository = {
 	/** Find a movie owned by the given user, with the fields needed to guard mutations. */

@@ -1,4 +1,4 @@
-import type { DbClient } from "./repository.types";
+import type { DbClient } from "./repository";
 
 export const MediaRepository = {
 	/** Delete through the media model to leverage the cascade on delete feature. */
