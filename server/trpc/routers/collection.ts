@@ -45,16 +45,7 @@ export default router({
 		.output(BaseCollectionSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
-				const existingCollection = await tx.collection.findFirst({
-					where: {
-						id: input.id,
-						ownerId: ctx.user.id,
-					},
-					select: {
-						id: true,
-						ownerId: true,
-					},
-				});
+				const existingCollection = await CollectionRepository.findOwned(tx, input.id, ctx.user.id);
 
 				if (!existingCollection) {
 					throw new TRPCError({
@@ -93,16 +84,7 @@ export default router({
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
 			await prisma.$transaction(async (tx) => {
-				const existingCollection = await tx.collection.findFirst({
-					where: {
-						id: input.id,
-						ownerId: ctx.user.id,
-					},
-					select: {
-						id: true,
-						ownerId: true,
-					},
-				});
+				const existingCollection = await CollectionRepository.findOwned(tx, input.id, ctx.user.id);
 
 				if (!existingCollection) {
 					throw new TRPCError({
@@ -127,11 +109,7 @@ export default router({
 		.input(z.void())
 		.output(z.number())
 		.query(async ({ ctx }) => {
-			return await prisma.collection.count({
-				where: {
-					ownerId: ctx.user.id,
-				},
-			});
+			return await CollectionRepository.countByOwner(prisma, ctx.user.id);
 		}),
 
 	/**

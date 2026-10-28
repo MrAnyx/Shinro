@@ -51,15 +51,7 @@ export default router({
 					});
 				}
 
-				const existingSeason = await tx.season.findFirst({
-					where: {
-						serieId: input.serieId,
-						number: input.number,
-					},
-					select: {
-						id: true,
-					},
-				});
+				const existingSeason = await SeasonRepository.findBySerieAndNumber(tx, input.serieId, input.number);
 
 				if (existingSeason) {
 					throw new TRPCError({
@@ -218,22 +210,7 @@ export default router({
 			const INTERNAL_ONLY_FIELDS = ["number", "serieId"] satisfies (keyof typeof input)[];
 
 			return await prisma.$transaction(async (tx) => {
-				const existingSeason = await tx.season.findFirst({
-					where: {
-						id: input.id,
-						media: {
-							ownerId: ctx.user.id,
-						},
-					},
-					select: {
-						id: true,
-						media: {
-							select: {
-								source: true,
-							},
-						},
-					},
-				});
+				const existingSeason = await SeasonRepository.findOwned(tx, input.id, ctx.user.id);
 
 				if (!existingSeason) {
 					throw new TRPCError({
@@ -338,22 +315,7 @@ export default router({
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
 			await prisma.$transaction(async (tx) => {
-				const existingSeason = await tx.season.findFirst({
-					where: {
-						id: input.id,
-						media: {
-							ownerId: ctx.user.id,
-						},
-					},
-					select: {
-						id: true,
-						media: {
-							select: {
-								ownerId: true,
-							},
-						},
-					},
-				});
+				const existingSeason = await SeasonRepository.findOwned(tx, input.id, ctx.user.id);
 
 				if (!existingSeason) {
 					throw new TRPCError({
@@ -363,12 +325,7 @@ export default router({
 				}
 
 				// Use the media model to leverage the cascade on delete feature
-				await tx.media.deleteMany({
-					where: {
-						ownerId: ctx.user.id,
-						id: input.id,
-					},
-				});
+				await MediaRepository.deleteOwned(tx, input.id, ctx.user.id);
 			});
 		}),
 
@@ -376,13 +333,7 @@ export default router({
 		.input(z.void())
 		.output(z.number())
 		.query(async ({ ctx }) => {
-			return await prisma.season.count({
-				where: {
-					media: {
-						ownerId: ctx.user.id,
-					},
-				},
-			});
+			return await SeasonRepository.countByOwner(prisma, ctx.user.id);
 		}),
 
 	getAll: protectedProcedure
