@@ -57,16 +57,10 @@ export default router({
 			});
 
 			return await prisma.$transaction(async (tx) => {
-				const movieExist = await tx.movie.findFirst({
-					where: {
-						media: {
-							ownerId: ctx.user.id,
-							externalId: input.externalMovieId,
-						},
-					},
-					select: {
-						id: true,
-					},
+				const movieExist = await MovieRepository.findByExternalId({
+					externalId: input.externalMovieId,
+					ownerId: ctx.user.id,
+					db: tx,
 				});
 
 				if (movieExist) {
@@ -117,22 +111,7 @@ export default router({
 		.output(MovieSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
-				const existingMovie = await tx.movie.findFirst({
-					where: {
-						id: input.id,
-						media: {
-							ownerId: ctx.user.id,
-						},
-					},
-					select: {
-						id: true,
-						media: {
-							select: {
-								ownerId: true,
-							},
-						},
-					},
-				});
+				const existingMovie = await MovieRepository.findOwned({ id: input.id, ownerId: ctx.user.id, db: tx });
 
 				if (!existingMovie) {
 					throw new TRPCError({
@@ -186,22 +165,7 @@ export default router({
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
 			await prisma.$transaction(async (tx) => {
-				const existingMovie = await tx.movie.findFirst({
-					where: {
-						id: input.id,
-						media: {
-							ownerId: ctx.user.id,
-						},
-					},
-					select: {
-						id: true,
-						media: {
-							select: {
-								ownerId: true,
-							},
-						},
-					},
-				});
+				const existingMovie = await MovieRepository.findOwned({ id: input.id, ownerId: ctx.user.id, db: tx });
 
 				if (!existingMovie) {
 					throw new TRPCError({
@@ -211,12 +175,7 @@ export default router({
 				}
 
 				// Use the media model to leverage the cascade on delete feature
-				await tx.media.deleteMany({
-					where: {
-						ownerId: ctx.user.id,
-						id: input.id,
-					},
-				});
+				await MediaRepository.deleteOwned({ id: input.id, ownerId: ctx.user.id, db: tx });
 			});
 		}),
 
@@ -227,13 +186,7 @@ export default router({
 		.input(z.void())
 		.output(z.number())
 		.query(async ({ ctx }) => {
-			return await prisma.movie.count({
-				where: {
-					media: {
-						ownerId: ctx.user.id,
-					},
-				},
-			});
+			return await MovieRepository.countByOwner({ ownerId: ctx.user.id });
 		}),
 
 	/**

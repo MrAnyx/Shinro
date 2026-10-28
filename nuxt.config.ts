@@ -8,6 +8,9 @@ export default defineNuxtConfig({
 		scheduledTasks: {
 			"* * * * *": ["hello"],
 		},
+		imports: {
+			dirs: ["./server/repositories"],
+		},
 		// redis storage in defined in server/plugins/redisStorage.ts
 	},
 	build: {
