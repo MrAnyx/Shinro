@@ -246,7 +246,7 @@ export default router({
 			z.discriminatedUnion("type", [
 				z.object({
 					type: z.literal("id"),
-					id: ServerSeasonValidation.id,
+					id: ServerMovieValidation.id,
 				}),
 				z.object({
 					type: z.literal("externalMovieId"),
