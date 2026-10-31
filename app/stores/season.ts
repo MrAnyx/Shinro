@@ -2,37 +2,4 @@ export const useSeasonStore = defineStore("season", {
 	state: () => ({
 		total: 0,
 	}),
-	getters: {},
-	actions: {
-		async initialize() {
-			const trpc = useTrpc();
-			const [count] = await Promise.all([trpc.season.count.query()]);
-			this.total = count;
-		},
-
-		async createSeasonFromInternal(payload: TRPCProcedureInput<"season", "createFromInternal">) {
-			const trpc = useTrpc();
-
-			const season = await trpc.season.createFromInternal.mutate(payload);
-			this.total += 1;
-
-			return season;
-		},
-
-		async createSeasonFromExternal(payload: TRPCProcedureInput<"season", "createFromExternal">) {
-			const trpc = useTrpc();
-
-			const season = await trpc.season.createFromExternal.mutate(payload);
-			this.total += 1;
-
-			return season;
-		},
-
-		async deleteSeason(payload: TRPCProcedureInput<"season", "delete">) {
-			const trpc = useTrpc();
-
-			await trpc.season.delete.mutate(payload);
-			this.total -= 1;
-		},
-	},
 });

@@ -25,19 +25,7 @@ export const MovieMediaSchema = BaseMediaSchema.extend({
 	movie: z.lazy(() => BaseMovieSchema),
 });
 
-export const SerieMediaSchema = BaseMediaSchema.extend({
-	type: z.literal(MediaType.SERIE),
-	serie: z.lazy(() => BaseSerieSchema),
-});
-
-export const SeasonMediaSchema = BaseMediaSchema.extend({
-	type: z.literal(MediaType.SEASON),
-	serie: z.lazy(() => BaseSeasonSchema),
-});
-
 export const AnyMediaSchema = z.discriminatedUnion("type", [
 	MovieMediaSchema,
-	SerieMediaSchema,
-	SeasonMediaSchema,
 	// other types
 ]);
