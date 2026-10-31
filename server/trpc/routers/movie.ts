@@ -4,6 +4,21 @@ import { z } from "zod";
 import { ImageType, MediaType, Prisma, SourceType } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
+/**
+ * Get the collections of the user that contain the given media.
+ */
+const getMovieCollections = async (mediaId: string, ownerId: string) => {
+	const collections = await prisma.collectionMedia.findMany({
+		where: {
+			mediaId,
+			collection: { ownerId },
+		},
+		select: { collection: true },
+	});
+
+	return collections.map((x) => x.collection);
+};
+
 export default router({
 	/**
 	 * Create a new movie for the authenticated user. The movie will be created with a media of type MOVIE.
@@ -253,7 +268,10 @@ export default router({
 		.output(PaginatedSchema(MovieSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
-			const orderBy = buildPrismaOrderBy<Prisma.MovieOrderByWithRelationInput>(input.orderBy);
+			const orderBy =
+				buildPrismaOrderBy<Prisma.MovieOrderByWithRelationInput>(
+					input.orderBy,
+				);
 
 			const where: Prisma.MovieWhereInput = {
 				media: {
@@ -263,8 +281,20 @@ export default router({
 				...(input.search
 					? {
 							OR: [
-								{ media: { name: { contains: input.search, mode: "insensitive" } } },
-								{ overview: { contains: input.search, mode: "insensitive" } },
+								{
+									media: {
+										name: {
+											contains: input.search,
+											mode: "insensitive",
+										},
+									},
+								},
+								{
+									overview: {
+										contains: input.search,
+										mode: "insensitive",
+									},
+								},
 							],
 						}
 					: {}),
@@ -336,5 +366,178 @@ export default router({
 			}
 
 			return movie;
+		}),
+
+	/**
+	 * Get the details of an internal movie (created manually by the user).
+	 */
+	getInternalDetails: protectedProcedure
+		.input(
+			z.object({
+				id: ServerMovieValidation.id,
+			}),
+		)
+		.output(MovieDetailsSchema)
+		.query(async ({ input, ctx }) => {
+			const movie = await prisma.movie.findFirst({
+				where: {
+					id: input.id,
+					media: {
+						ownerId: ctx.user.id,
+					},
+				},
+				include: {
+					media: true,
+				},
+			});
+
+			if (!movie) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Movie not found",
+				});
+			}
+
+			return {
+				movie,
+				details: null,
+				credits: [],
+				saga: null,
+				collections: await getMovieCollections(
+					movie.media.id,
+					ctx.user.id,
+				),
+			};
+		}),
+
+	/**
+	 * Get the details of an external movie from TMDB, along with the user's movie if it is in their list.
+	 */
+	getExternalDetails: protectedProcedure
+		.input(
+			z.object({
+				externalMovieId: ServerTmdbMovieValidation.id,
+			}),
+		)
+		.output(MovieDetailsSchema)
+		.query(async ({ input, ctx }) => {
+			// Get the movie details and credits from TMDB, and the user's movie in parallel
+			const [detailsResponse, creditsResponse, movie] = await Promise.all(
+				[
+					useCache(
+						`tmdb:movie:${input.externalMovieId}:details`,
+						() =>
+							tmdb(`/movie/${input.externalMovieId}`, {
+								schema: TmdbMovieDetailsResponseSchema,
+							}),
+					),
+					useCache(
+						`tmdb:movie:${input.externalMovieId}:credits`,
+						() =>
+							tmdb(`/movie/${input.externalMovieId}/credits`, {
+								schema: TmdbMovieCreditsResponseSchema,
+							}),
+					),
+					prisma.movie.findFirst({
+						where: {
+							media: {
+								ownerId: ctx.user.id,
+								externalId: input.externalMovieId,
+							},
+						},
+						include: {
+							media: true,
+						},
+					}),
+				],
+			);
+
+			// Compute the details and credits responses to filter and format the properties
+			const credits = creditsResponse.cast?.filter((x) => !!x) ?? [];
+			const details = {
+				...detailsResponse,
+				genres:
+					detailsResponse.genres
+						?.filter(
+							(
+								x,
+							): x is NonNullable<typeof x> & { name: string } =>
+								!!x?.name?.trim(),
+						)
+						.map((x) => x.name.trim()) ?? [],
+			};
+
+			let saga = null;
+
+			// If the movie belongs to a saga, get the saga details from TMDB
+			if (detailsResponse.belongs_to_collection?.id) {
+				const collectionId = detailsResponse.belongs_to_collection.id;
+
+				const sagaResponse = await useCache(
+					`tmdb:movie:saga:${collectionId}`,
+					() =>
+						tmdb(`/collection/${collectionId}`, {
+							schema: TmdbMovieCollectionResponseSchema,
+						}),
+				);
+
+				// Get the external IDs of the movies in the saga
+				const externalIds =
+					sagaResponse.parts?.filter((x) => !!x).map((x) => x.id) ??
+					[];
+
+				// Get the movies that belong to the user and have the same external IDs
+				const myMovies = await prisma.movie.findMany({
+					where: {
+						media: {
+							ownerId: ctx.user.id,
+							externalId: {
+								in: externalIds,
+							},
+						},
+					},
+					include: {
+						media: true,
+					},
+				});
+
+				const myMoviesMap = new Map(
+					myMovies.map((m) => [m.media.externalId, m]),
+				);
+
+				// Merge the TMDB collection movies with the user's movies
+				saga = {
+					...sagaResponse,
+					movies:
+						sagaResponse.parts
+							?.filter((x): x is NonNullable<typeof x> => !!x)
+							?.filter((p) => p.media_type === "movie")
+							?.map((x) =>
+								Object.assign(x, {
+									internal_movie: myMoviesMap.get(x.id),
+								}),
+							)
+							?.sort((a, b) => {
+								if (!a.release_date && !b.release_date) {
+									return 0;
+								}
+								if (!a.release_date) {
+									return 1;
+								}
+								if (!b.release_date) {
+									return -1;
+								}
+								return a.release_date.localeCompare(
+									b.release_date,
+								);
+							}) ?? [],
+				};
+			}
+
+			const collections = movie
+				? await getMovieCollections(movie.media.id, ctx.user.id)
+				: [];
+
+			return { movie, details, credits, saga, collections };
 		}),
 });

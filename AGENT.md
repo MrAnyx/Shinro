@@ -14,6 +14,14 @@
 - Do not run destructive database commands against production. Use an isolated or disposable database for migrations and reset operations.
 - Do not commit changes or create branches unless explicitly requested.
 
+## Architecture Conventions
+
+- tRPC routers live in `server/trpc/routers` and query Prisma inline. Do not add a repository or service layer for procedure queries.
+- Zod schemas shared by client and server live in `shared/utils/*.models.ts`, with inferred types in `shared/types/*.models.d.ts`.
+- Movie details use dedicated procedures, `movie.getInternalDetails` and `movie.getExternalDetails`. Both return the common `MovieDetailsSchema` (`movie`, `details`, `credits`, `saga`, `collections`), and the details page picks one by route type.
+- Serie, season, and episode features were removed. Do not reintroduce them unless requested.
+- Use `useTrpc()` for client calls and `getTRPCErrorCode()` to handle expected errors such as `NOT_FOUND`.
+
 ## Feature And Improvement Checklist Rule
 
 For every new feature or improvement:

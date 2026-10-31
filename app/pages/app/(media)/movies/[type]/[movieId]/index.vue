@@ -78,13 +78,13 @@
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
 				<template v-else>
-					<AdultBadge :adult="tmdbMovieDetails?.details.adult ?? undefined" />
-					<DetailsDateBadge :date="tmdbMovieDetails?.details.release_date ?? undefined" />
-					<DetailsReleaseBadge :start-date="tmdbMovieDetails?.details.release_date ?? undefined" />
-					<DetailsDurationBadge :duration="tmdbMovieDetails?.details.runtime ?? undefined" />
+					<AdultBadge :adult="tmdbMovieDetails?.details?.adult ?? undefined" />
+					<DetailsDateBadge :date="tmdbMovieDetails?.details?.release_date ?? undefined" />
+					<DetailsReleaseBadge :start-date="tmdbMovieDetails?.details?.release_date ?? undefined" />
+					<DetailsDurationBadge :duration="tmdbMovieDetails?.details?.runtime ?? undefined" />
 					<VoteBadge
-						:score="tmdbMovieDetails?.details.vote_average ?? undefined"
-						:count="tmdbMovieDetails?.details.vote_count ?? undefined"
+						:score="tmdbMovieDetails?.details?.vote_average ?? undefined"
+						:count="tmdbMovieDetails?.details?.vote_count ?? undefined"
 					/>
 				</template>
 			</div>
@@ -92,7 +92,7 @@
 			<!-- Synopsis -->
 			<DetailsOverview
 				:loading="isLoading"
-				:overview="myMovieDetails?.overview ?? tmdbMovieDetails?.details.overview ?? undefined"
+				:overview="myMovieDetails?.overview ?? tmdbMovieDetails?.details?.overview ?? undefined"
 			/>
 
 			<!-- Genres -->
@@ -206,21 +206,33 @@ const status = ref<MediaStatus | undefined>(undefined);
 const isInMyList = computed(() => !!myMovieDetails.value);
 const internalId = computed(() => myMovieDetails.value?.id);
 const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
-const title = computed(() => myMovieDetails.value?.media.name ?? tmdbMovieDetails.value?.details.title ?? undefined);
+const title = computed(() => myMovieDetails.value?.media.name ?? tmdbMovieDetails.value?.details?.title ?? undefined);
 
-const { data: myMovieDetails, pending: loadingMyMovie } = useClientAsyncData<Movie | undefined>(
-	// async () => (mediaQueryParams.value ? trpc.movie.getById.query(mediaQueryParams.value) : undefined),
+const { data: movieDetails, pending: loadingDetails } = useClientAsyncData<MovieDetails | undefined>(
 	async () => {
 		if (isInternal.value) {
-			return trpc.movie.getById.query({ type: "id", id: movieId.value });
+			return trpc.movie.getInternalDetails.query({ id: movieId.value });
 		} else {
-			return trpc.movie.getById.query({ type: "externalMovieId", externalMovieId: movieId.value });
+			return trpc.movie.getExternalDetails.query({ externalMovieId: movieId.value });
 		}
 	},
 	{
 		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
 	},
 );
+
+// The user's movie, writable to reflect additions, edits and removals on the page
+const myMovieDetails = computed<Movie | undefined>({
+	get: () => movieDetails.value?.movie ?? undefined,
+	set: (movie) => {
+		if (movieDetails.value) {
+			movieDetails.value = { ...movieDetails.value, movie: movie ?? null };
+		}
+	},
+});
+
+// The TMDB details, only available for external movies
+const tmdbMovieDetails = computed(() => (movieDetails.value?.details ? movieDetails.value : undefined));
 
 watch(myMovieDetails, (newValue) => {
 	rating.value = newValue?.media.rating ?? undefined;
@@ -232,41 +244,24 @@ watch(myMovieDetails, (newValue) => {
 });
 
 // Get the tmdb movie details
-const image = computed(() => tmdbMovieDetails.value?.details.poster_path ?? undefined);
-const tagline = computed(() => tmdbMovieDetails.value?.details.tagline ?? undefined);
-const genres = computed(() => tmdbMovieDetails.value?.details.genres);
+const image = computed(() => tmdbMovieDetails.value?.details?.poster_path ?? undefined);
+const tagline = computed(() => tmdbMovieDetails.value?.details?.tagline ?? undefined);
+const genres = computed(() => tmdbMovieDetails.value?.details?.genres);
 const credits = computed(() => tmdbMovieDetails.value?.credits);
 const hasSaga = computed(() => !!tmdbMovieDetails.value?.saga && tmdbMovieDetails.value?.saga.movies.length > 1);
 const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown");
 const sagaMovies = computed(() => tmdbMovieDetails.value?.saga?.movies);
 
-const { data: tmdbMovieDetails, pending: loadingDetails } = useClientAsyncData(
-	() => trpc.tmdbMovie.details.query({ externalMovieId: movieId.value }),
-	{
-		enabled: () => isExternal.value,
+// Sync the selected collections with the movie collections
+watch(
+	() => movieDetails.value?.collections,
+	(newValue) => {
+		selectedCollectionIds.value = newValue?.map((x) => x.id) ?? [];
 	},
 );
-
-// Get the movie collections
-const { data: myMovieCollections, pending: loadingMovieCollections } = useClientAsyncData(
-	async () => {
-		if (isInternal.value) {
-			return trpc.media.getCollections.query({ type: "id", id: movieId.value });
-		} else {
-			return trpc.media.getCollections.query({ type: "externalId", externalId: movieId.value });
-		}
-	},
-	{
-		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
-	},
-);
-
-watch(myMovieCollections, (newValue) => {
-	selectedCollectionIds.value = newValue?.map((x) => x.id) ?? [];
-});
 
 // Derived UI state
-const isLoading = computed(() => loadingDetails.value || loadingMyMovie.value || loadingMovieCollections.value);
+const isLoading = computed(() => loadingDetails.value);
 const tabs = computed<TabsItem[]>(() => [
 	...(isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : []),
 	...(isExternal.value && hasSaga.value
