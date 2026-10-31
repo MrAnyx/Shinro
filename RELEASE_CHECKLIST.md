@@ -102,6 +102,9 @@ Use only the disposable staging database/accounts.
 - [ ] Add the movie from TMDb. Expected: it appears once in the library and remains after refresh.
 - [ ] Attempt to add the same TMDb movie again. Expected: duplicate is rejected or handled idempotently; no duplicate record appears.
 - [ ] Open the movie detail page. Expected: correct metadata/credits/franchise information when available; absent optional data and missing artwork use graceful fallbacks.
+- [ ] Open the detail page of an external movie (`/app/movies/external/<tmdbId>`) both in and not in the library. Expected: one details request (`movie.getExternalDetails`) returns TMDb data plus the saved movie and its collections when it is in the library, and no saved movie or collections otherwise; "Add to My List" or the edit/remove/status/collection/rating controls match that state.
+- [ ] Open the detail page of an internal movie (`/app/movies/internal/<id>`). Expected: one details request (`movie.getInternalDetails`) returns the saved movie and its collections; no TMDb-only sections (credits, saga, genres, badges) appear; another user's or unknown ID gives a controlled not-found state.
+- [ ] On the movie detail page, add, remove, edit, and change collections, then refresh. Expected: the page updates immediately and the state after refresh matches; selected collections reflect saved memberships.
 - [ ] Change the movie's status, rating (including minimum, maximum, and cleared value), and note. Expected: valid changes persist after refresh; invalid values are rejected.
 - [ ] Edit available movie metadata. Expected: changes show in list and detail without creating a second record.
 - [ ] Create a movie manually with valid required fields and optional fields. Expected: record is saved and rendered consistently.
