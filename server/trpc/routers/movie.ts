@@ -268,10 +268,7 @@ export default router({
 		.output(PaginatedSchema(MovieSchema))
 		.query(async ({ input, ctx }) => {
 			const skip = (input.page - 1) * ITEMS_PER_PAGE;
-			const orderBy =
-				buildPrismaOrderBy<Prisma.MovieOrderByWithRelationInput>(
-					input.orderBy,
-				);
+			const orderBy = buildPrismaOrderBy<Prisma.MovieOrderByWithRelationInput>(input.orderBy);
 
 			const where: Prisma.MovieWhereInput = {
 				media: {
@@ -403,10 +400,7 @@ export default router({
 				details: null,
 				credits: [],
 				saga: null,
-				collections: await getMovieCollections(
-					movie.media.id,
-					ctx.user.id,
-				),
+				collections: await getMovieCollections(movie.media.id, ctx.user.id),
 			};
 		}),
 
@@ -422,35 +416,29 @@ export default router({
 		.output(MovieDetailsSchema)
 		.query(async ({ input, ctx }) => {
 			// Get the movie details and credits from TMDB, and the user's movie in parallel
-			const [detailsResponse, creditsResponse, movie] = await Promise.all(
-				[
-					useCache(
-						`tmdb:movie:${input.externalMovieId}:details`,
-						() =>
-							tmdb(`/movie/${input.externalMovieId}`, {
-								schema: TmdbMovieDetailsResponseSchema,
-							}),
-					),
-					useCache(
-						`tmdb:movie:${input.externalMovieId}:credits`,
-						() =>
-							tmdb(`/movie/${input.externalMovieId}/credits`, {
-								schema: TmdbMovieCreditsResponseSchema,
-							}),
-					),
-					prisma.movie.findFirst({
-						where: {
-							media: {
-								ownerId: ctx.user.id,
-								externalId: input.externalMovieId,
-							},
-						},
-						include: {
-							media: true,
-						},
+			const [detailsResponse, creditsResponse, movie] = await Promise.all([
+				useCache(`tmdb:movie:${input.externalMovieId}:details`, () =>
+					tmdb(`/movie/${input.externalMovieId}`, {
+						schema: TmdbMovieDetailsResponseSchema,
 					}),
-				],
-			);
+				),
+				useCache(`tmdb:movie:${input.externalMovieId}:credits`, () =>
+					tmdb(`/movie/${input.externalMovieId}/credits`, {
+						schema: TmdbMovieCreditsResponseSchema,
+					}),
+				),
+				prisma.movie.findFirst({
+					where: {
+						media: {
+							ownerId: ctx.user.id,
+							externalId: input.externalMovieId,
+						},
+					},
+					include: {
+						media: true,
+					},
+				}),
+			]);
 
 			// Compute the details and credits responses to filter and format the properties
 			const credits = creditsResponse.cast?.filter((x) => !!x) ?? [];
@@ -458,12 +446,7 @@ export default router({
 				...detailsResponse,
 				genres:
 					detailsResponse.genres
-						?.filter(
-							(
-								x,
-							): x is NonNullable<typeof x> & { name: string } =>
-								!!x?.name?.trim(),
-						)
+						?.filter((x): x is NonNullable<typeof x> & { name: string } => !!x?.name?.trim())
 						.map((x) => x.name.trim()) ?? [],
 			};
 
@@ -473,18 +456,14 @@ export default router({
 			if (detailsResponse.belongs_to_collection?.id) {
 				const collectionId = detailsResponse.belongs_to_collection.id;
 
-				const sagaResponse = await useCache(
-					`tmdb:movie:saga:${collectionId}`,
-					() =>
-						tmdb(`/collection/${collectionId}`, {
-							schema: TmdbMovieCollectionResponseSchema,
-						}),
+				const sagaResponse = await useCache(`tmdb:movie:saga:${collectionId}`, () =>
+					tmdb(`/collection/${collectionId}`, {
+						schema: TmdbMovieCollectionResponseSchema,
+					}),
 				);
 
 				// Get the external IDs of the movies in the saga
-				const externalIds =
-					sagaResponse.parts?.filter((x) => !!x).map((x) => x.id) ??
-					[];
+				const externalIds = sagaResponse.parts?.filter((x) => !!x).map((x) => x.id) ?? [];
 
 				// Get the movies that belong to the user and have the same external IDs
 				const myMovies = await prisma.movie.findMany({
@@ -501,9 +480,7 @@ export default router({
 					},
 				});
 
-				const myMoviesMap = new Map(
-					myMovies.map((m) => [m.media.externalId, m]),
-				);
+				const myMoviesMap = new Map(myMovies.map((m) => [m.media.externalId, m]));
 
 				// Merge the TMDB collection movies with the user's movies
 				saga = {
@@ -527,16 +504,12 @@ export default router({
 								if (!b.release_date) {
 									return -1;
 								}
-								return a.release_date.localeCompare(
-									b.release_date,
-								);
+								return a.release_date.localeCompare(b.release_date);
 							}) ?? [],
 				};
 			}
 
-			const collections = movie
-				? await getMovieCollections(movie.media.id, ctx.user.id)
-				: [];
+			const collections = movie ? await getMovieCollections(movie.media.id, ctx.user.id) : [];
 
 			return { movie, details, credits, saga, collections };
 		}),
