@@ -199,9 +199,7 @@ const isInternal = computed(() => sourceType.value === MediaSourceTypes.internal
 const isPageLoading = computed(() => isFetchingDetails.value);
 
 // Editable metadata of the user's movie, kept local so the controls update instantly
-const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);
-const status = ref<MediaStatus | undefined>(undefined);
 
 // Values derived from the user's own movie entry, falling back to TMDB data when it isn't in my list
 const isInMyList = computed(() => !!userMovie.value);
@@ -230,14 +228,21 @@ const userMovie = computed<Movie | undefined>({
 	},
 });
 
+const rating = computed<number | undefined>({
+	get: () => userMovie.value?.media.rating ?? undefined,
+	set: (value) => _updateUserMovieMedia({ rating: value ?? null }),
+});
+
+const status = computed<MediaStatus | undefined>({
+	get: () => userMovie.value?.media.status ?? undefined,
+	set: (value) => _updateUserMovieMedia({ status: value ?? null }),
+});
+
 // The TMDB details, only available for external movies
 const tmdbDetails = computed(() => (movieDetails.value?.details ? movieDetails.value : undefined));
 
-// Reset the editable fields whenever the user's movie changes (loaded, added, edited or removed)
+// Reset the selected collections when the user's movie is removed
 watch(userMovie, (newValue) => {
-	rating.value = newValue?.media.rating ?? undefined;
-	status.value = newValue?.media.status ?? undefined;
-
 	if (!newValue) {
 		selectedCollectionIds.value = [];
 	}
@@ -316,6 +321,13 @@ const _syncSagaMovieUserEntry = (externalId?: string, internalMovie?: Movie) => 
 	const target = tmdbDetails.value?.saga?.movies?.find((m) => m?.id === externalId);
 	if (target) {
 		target.internal_movie = internalMovie;
+	}
+};
+
+// The rating and status read from and write to the user's movie so both always stay in sync
+const _updateUserMovieMedia = (patch: Partial<Movie["media"]>) => {
+	if (userMovie.value) {
+		userMovie.value = { ...userMovie.value, media: { ...userMovie.value.media, ...patch } };
 	}
 };
 

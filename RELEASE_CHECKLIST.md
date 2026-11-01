@@ -108,6 +108,7 @@ Use only the disposable staging database/accounts.
 - [ ] Open the detail page of an internal movie (`/app/movies/internal/<id>`). Expected: one details request (`movie.getInternalDetails`) returns the saved movie and its collections; no TMDb-only sections (credits, saga, genres, badges) appear; another user's or unknown ID gives a controlled not-found state.
 - [ ] On the movie detail page, add, remove, edit, and change collections, then refresh. Expected: the page updates immediately and the state after refresh matches; selected collections reflect saved memberships.
 - [ ] Change the movie's status, rating (including minimum, maximum, and cleared value), and note. Expected: valid changes persist after refresh; invalid values are rejected.
+- [ ] On the movie detail page, change the rating then the status (and the reverse), and open the edit modal. Expected: each control keeps the other's value and the modal shows the current saved values without reloading.
 - [ ] Edit available movie metadata. Expected: changes show in list and detail without creating a second record.
 - [ ] Create a movie manually with valid required fields and optional fields. Expected: record is saved and rendered consistently.
 - [ ] Try invalid manual movie values at the UI and server boundary. Expected: validation rejects them without partial records.
