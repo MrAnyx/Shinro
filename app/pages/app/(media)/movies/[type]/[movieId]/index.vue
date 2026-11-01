@@ -471,6 +471,5 @@ const removeSagaMovieFromMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 	});
 
 // Navigate to the selected saga movie's external details page
-const openSagaMovie = (tmdbMovie: TmdbMovieSagaMovie) =>
-	navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
+const openSagaMovie = (tmdbMovie: TmdbMovieSagaMovie) => navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
 </script>

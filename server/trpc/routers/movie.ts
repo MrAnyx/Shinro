@@ -4,21 +4,6 @@ import { z } from "zod";
 import { ImageType, MediaType, Prisma, SourceType } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
-/**
- * Get the collections of the user that contain the given media.
- */
-const getMovieCollections = async (mediaId: string, ownerId: string) => {
-	const collections = await prisma.collectionMedia.findMany({
-		where: {
-			mediaId,
-			collection: { ownerId },
-		},
-		select: { collection: true },
-	});
-
-	return collections.map((x) => x.collection);
-};
-
 export default router({
 	/**
 	 * Create a new movie for the authenticated user. The movie will be created with a media of type MOVIE.
@@ -395,12 +380,24 @@ export default router({
 				});
 			}
 
+			const collections = await prisma.collectionMedia.findMany({
+				where: {
+					mediaId: movie.media.id,
+					collection: {
+						ownerId: ctx.user.id,
+					},
+				},
+				select: {
+					collection: true,
+				},
+			});
+
 			return {
 				movie,
 				details: null,
 				credits: [],
 				saga: null,
-				collections: await getMovieCollections(movie.media.id, ctx.user.id),
+				collections: collections.map((x) => x.collection),
 			};
 		}),
 
@@ -509,8 +506,27 @@ export default router({
 				};
 			}
 
-			const collections = movie ? await getMovieCollections(movie.media.id, ctx.user.id) : [];
+			let collections = undefined;
+			if (movie) {
+				collections = await prisma.collectionMedia.findMany({
+					where: {
+						mediaId: movie.media.id,
+						collection: {
+							ownerId: ctx.user.id,
+						},
+					},
+					select: {
+						collection: true,
+					},
+				});
+			}
 
-			return { movie, details, credits, saga, collections };
+			return {
+				movie,
+				details,
+				credits,
+				saga,
+				collections: collections?.map((x) => x.collection) ?? [],
+			};
 		}),
 });
