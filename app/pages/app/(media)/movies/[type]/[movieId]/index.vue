@@ -44,24 +44,13 @@
 							@click="editMovie"
 						/>
 
-						<StatusSelectMenu
-							variant="subtle"
-							v-model="status"
-							@update:model-value="updateStatus"
-							:loading="isUpdatingStatus"
-						/>
+						<StatusSelectMenu variant="subtle" v-model="status" :loading="isUpdatingStatus" />
 						<CollectionSelectMenu
 							variant="subtle"
 							v-model="selectedCollectionIds"
-							@update:model-value="updateCollections"
 							:loading="isUpdatingCollections"
 						/>
-						<DetailsRatingPopover
-							variant="subtle"
-							color="neutral"
-							v-model="rating"
-							@update:model-value="updateRating"
-						/>
+						<DetailsRatingPopover variant="subtle" color="neutral" v-model="rating" />
 					</template>
 				</template>
 			</UCard>
@@ -198,11 +187,6 @@ const isExternal = computed(() => sourceType.value === MediaSourceTypes.external
 const isInternal = computed(() => sourceType.value === MediaSourceTypes.internal);
 const isPageLoading = computed(() => isFetchingDetails.value);
 
-// Editable metadata of the user's movie, kept local so the controls update instantly
-const rating = ref<number | undefined>(undefined);
-const selectedCollectionIds = ref<string[]>([]);
-const status = ref<MediaStatus | undefined>(undefined);
-
 // Values derived from the user's own movie entry, falling back to TMDB data when it isn't in my list
 const isInMyList = computed(() => !!userMovie.value);
 const userMovieId = computed(() => userMovie.value?.id);
@@ -223,24 +207,61 @@ const userMovie = computed<Movie | undefined>({
 	get: () => movieDetails.value?.movie ?? undefined,
 	set: (movie) => {
 		if (movieDetails.value) {
-			movieDetails.value = { ...movieDetails.value, movie: movie ?? null };
+			movieDetails.value = {
+				...movieDetails.value,
+				movie: movie ?? null,
+				collections: movie ? movieDetails.value.collections : [],
+			};
 		}
 
 		_syncSagaMovieUserEntry(routeMovieId.value, movie);
 	},
 });
 
+// The collections of the user's movie, writable to reflect the collections returned by the server
+const userCollections = computed<Collection[]>({
+	get: () => movieDetails.value?.collections ?? [],
+	set: (collections) => {
+		if (movieDetails.value) {
+			movieDetails.value = { ...movieDetails.value, collections };
+		}
+	},
+});
+
+// Selecting collections persists them; the displayed selection follows the collections returned by the server
+const selectedCollectionIds = computed<string[]>({
+	get: () => userCollections.value.map((c) => c.id),
+	set: (collectionIds) => {
+		updateCollections(collectionIds);
+	},
+});
+
 // The TMDB details, only available for external movies
 const tmdbDetails = computed(() => (movieDetails.value?.details ? movieDetails.value : undefined));
 
-// Reset the editable fields whenever the user's movie changes (loaded, added, edited or removed)
-watch(userMovie, (newValue) => {
-	rating.value = newValue?.media.rating ?? undefined;
-	status.value = newValue?.media.status ?? undefined;
+// Pending values are shown right away while the update (debounced for rating) is in flight; they are
+// wrapped so that "cleared" (undefined) can be told apart from "nothing pending"
+const pendingStatus = shallowRef<{ value?: MediaStatus }>();
 
-	if (!newValue) {
-		selectedCollectionIds.value = [];
-	}
+// Status and rating derive from the user's movie; the saved movie is only replaced once the update succeeds
+const status = computed<MediaStatus | undefined>({
+	get: () => (pendingStatus.value ? pendingStatus.value.value : (userMovie.value?.media.status ?? undefined)),
+	set: (newStatus) => {
+		pendingStatus.value = { value: newStatus };
+		updateStatus(newStatus, pendingStatus.value);
+	},
+});
+
+// Pending rating works similarly to pending status: it shows the new value immediately while the update is in flight
+const pendingRating = shallowRef<{ value?: number }>();
+
+// The rating, derived from the user's movie; pending changes are shown immediately while the update is in flight
+const rating = computed<number | undefined>({
+	get: () => (pendingRating.value ? pendingRating.value.value : (userMovie.value?.media.rating ?? undefined)),
+	set: (newRating) => {
+		pendingRating.value = { value: newRating };
+		updateRating(newRating, pendingRating.value);
+	},
 });
 
 // Values derived from the TMDB details
@@ -251,14 +272,6 @@ const credits = computed(() => tmdbDetails.value?.credits);
 const hasSaga = computed(() => !!tmdbDetails.value?.saga && tmdbDetails.value?.saga.movies.length > 1);
 const sagaName = computed(() => tmdbDetails.value?.saga?.name ?? "Unknown");
 const sagaMovies = computed(() => tmdbDetails.value?.saga?.movies);
-
-// Sync the selected collections with the movie collections
-watch(
-	() => movieDetails.value?.collections,
-	(newValue) => {
-		selectedCollectionIds.value = newValue?.map((x) => x.id) ?? [];
-	},
-);
 
 // Derived UI state: tabs are only shown for external movies (credits, and saga when it has several movies)
 const tabs = computed<TabsItem[]>(() => [
@@ -377,51 +390,65 @@ const _editMovie = async () =>
 
 		if (result) {
 			userMovie.value = result.movie;
-			selectedCollectionIds.value = result.collections.map((c) => c.id);
+			userCollections.value = result.collections;
 		}
 	});
 
 const { loading: isEditingMovie, execute: editMovie } = useLoadingWrapper(_editMovie);
 
 // Metadata updates: persist the new value for the user's movie
-const _updateStatus = (newStatus?: MediaStatus) =>
+const _updateStatus = (newStatus: MediaStatus | undefined, pending: { value?: MediaStatus }) =>
 	toast.withErrorToast(async () => {
-		if (!isInMyList.value) {
-			return;
-		}
+		try {
+			if (!isInMyList.value) {
+				return;
+			}
 
-		await trpc.movie.update.mutate({
-			id: userMovieId.value!,
-			status: newStatus ?? null,
-		});
+			userMovie.value = await trpc.movie.update.mutate({
+				id: userMovieId.value!,
+				status: newStatus ?? null,
+			});
+		} finally {
+			// A newer selection keeps its own pending value
+			if (pendingStatus.value === pending) {
+				pendingStatus.value = undefined;
+			}
+		}
 	});
 
 const { loading: isUpdatingStatus, execute: updateStatus } = useLoadingWrapper(_updateStatus);
 
-const _updateCollections = () =>
+const _updateCollections = (collectionIds: string[]) =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
 		}
 
-		await trpc.media.updateCollections.mutate({
+		userCollections.value = await trpc.media.updateCollections.mutate({
 			id: userMovieId.value!,
-			collectionIds: selectedCollectionIds.value,
+			collectionIds,
 		});
 	});
 
 const { loading: isUpdatingCollections, execute: updateCollections } = useLoadingWrapper(_updateCollections);
 
-const _updateRating = () =>
+const _updateRating = (newRating: number | undefined, pending: { value?: number }) =>
 	toast.withErrorToast(async () => {
-		if (!isInMyList.value) {
-			return;
-		}
+		try {
+			if (!isInMyList.value) {
+				return;
+			}
 
-		await trpc.movie.update.mutate({
-			id: userMovieId.value!,
-			rating: rating.value ?? null,
-		});
+			userMovie.value = await trpc.movie.update.mutate({
+				id: userMovieId.value!,
+				rating: newRating ?? null,
+			});
+		} finally {
+			// A newer rating keeps its own pending value
+			if (pendingRating.value === pending) {
+				pendingRating.value = undefined;
+			}
+		}
 	});
 
 // Debounced so that dragging/typing a rating doesn't send a request per change
