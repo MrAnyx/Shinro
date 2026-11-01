@@ -196,6 +196,7 @@ const sourceType = computed(() => route.params.type as MediaSourceType);
 const routeMovieId = computed(() => route.params.movieId as string);
 const isExternal = computed(() => sourceType.value === MediaSourceTypes.external);
 const isInternal = computed(() => sourceType.value === MediaSourceTypes.internal);
+const isPageLoading = computed(() => isFetchingDetails.value);
 
 // Editable metadata of the user's movie, kept local so the controls update instantly
 const rating = ref<number | undefined>(undefined);
@@ -209,18 +210,13 @@ const note = computed(() => userMovie.value?.media.note ?? undefined);
 const title = computed(() => userMovie.value?.media.name ?? tmdbDetails.value?.details?.title ?? undefined);
 
 // Fetch the page data: internal movies come from my list, external ones from TMDB (NOT_FOUND shows no toast)
-const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<MovieDetails | undefined>(
-	async () => {
-		if (isInternal.value) {
-			return trpc.movie.getInternalDetails.query({ id: routeMovieId.value });
-		} else {
-			return trpc.movie.getExternalDetails.query({ externalMovieId: routeMovieId.value });
-		}
-	},
-	{
-		ignoreError: (err) => getTRPCErrorCode(err) === "NOT_FOUND",
-	},
-);
+const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<MovieDetails | undefined>(async () => {
+	if (isInternal.value) {
+		return trpc.movie.getInternalDetails.query({ id: routeMovieId.value });
+	} else {
+		return trpc.movie.getExternalDetails.query({ externalMovieId: routeMovieId.value });
+	}
+});
 
 // The user's movie, writable to reflect additions, edits and removals on the page
 const userMovie = computed<Movie | undefined>({
@@ -229,6 +225,8 @@ const userMovie = computed<Movie | undefined>({
 		if (movieDetails.value) {
 			movieDetails.value = { ...movieDetails.value, movie: movie ?? null };
 		}
+
+		_syncSagaMovieUserEntry(routeMovieId.value, movie);
 	},
 });
 
@@ -263,7 +261,6 @@ watch(
 );
 
 // Derived UI state: tabs are only shown for external movies (credits, and saga when it has several movies)
-const isPageLoading = computed(() => isFetchingDetails.value);
 const tabs = computed<TabsItem[]>(() => [
 	...(isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : []),
 	...(isExternal.value && hasSaga.value
@@ -346,7 +343,6 @@ const _removeFromMyList = () =>
 		}
 
 		userMovie.value = undefined;
-		_syncSagaMovieUserEntry(routeMovieId.value, undefined);
 
 		// Go back to the main movies page in the current movie is internal
 		if (isInternal.value) {
@@ -365,7 +361,6 @@ const _addToMyList = () =>
 
 		const movie = await movieStore.createMovieFromExternal({ externalMovieId: routeMovieId.value });
 		userMovie.value = movie;
-		_syncSagaMovieUserEntry(routeMovieId.value, movie);
 	});
 
 const { loading: isAddingToMyList, execute: addToMyList } = useLoadingWrapper(_addToMyList);
@@ -383,7 +378,6 @@ const _editMovie = async () =>
 		if (result) {
 			userMovie.value = result.movie;
 			selectedCollectionIds.value = result.collections.map((c) => c.id);
-			_syncSagaMovieUserEntry(result.movie.media.externalId ?? undefined, result.movie);
 		}
 	});
 
@@ -448,7 +442,7 @@ const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 		_syncSagaMovieUserEntry(tmdbSagaMovie.id, movie);
 
 		// If the saga movie is the current movie details
-		if (tmdbSagaMovie.id === routeMovieId.value && !!userMovie.value) {
+		if (tmdbSagaMovie.id === routeMovieId.value) {
 			userMovie.value = movie;
 		}
 	});
@@ -456,16 +450,19 @@ const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 const removeSagaMovieFromMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 	toast.withErrorToast(async () => {
 		// If not in my list
-		if (!tmdbSagaMovie.internal_movie?.id) {
+		const movieId = tmdbSagaMovie.internal_movie?.id;
+		if (!movieId) {
 			return;
 		}
 
-		await movieStore.deleteMovie({ id: tmdbSagaMovie.internal_movie.id });
+		const isCurrentMovie = movieId === userMovie.value?.id;
+
+		await movieStore.deleteMovie({ id: movieId });
 
 		_syncSagaMovieUserEntry(tmdbSagaMovie.id, undefined);
 
 		// If the saga movie is the current movie details
-		if (tmdbSagaMovie.internal_movie.id === userMovie.value?.id) {
+		if (isCurrentMovie) {
 			userMovie.value = undefined;
 		}
 	});
