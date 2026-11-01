@@ -4,10 +4,10 @@
 		<aside>
 			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle" class="w-80">
 				<!-- Image -->
-				<ImageFallback provider="tmdb" :src="image" :height="400" class="rounded-md" :loading="isLoading" />
+				<ImageFallback provider="tmdb" :src="image" :height="400" class="rounded-md" :loading="isPageLoading" />
 
 				<!-- Actions -->
-				<template v-if="isLoading">
+				<template v-if="isPageLoading">
 					<USkeleton class="w-full h-[32px] rounded-sm" />
 					<USkeleton class="w-full h-[32px] rounded-sm" />
 				</template>
@@ -19,8 +19,8 @@
 						variant="subtle"
 						color="success"
 						v-if="!isInMyList && isExternal"
-						:loading="isAddingMovie"
-						@click="addMovie"
+						:loading="isAddingToMyList"
+						@click="addToMyList"
 					/>
 
 					<template v-else-if="isInMyList">
@@ -30,8 +30,8 @@
 							leading-icon="i-lucide-trash"
 							variant="subtle"
 							color="error"
-							:loading="isRemovingMovie"
-							@click="removeMovie"
+							:loading="isRemovingFromMyList"
+							@click="removeFromMyList"
 						/>
 
 						<UButton
@@ -70,36 +70,36 @@
 		<!-- Main section -->
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
 			<!-- Title and tagline -->
-			<DetailsTitleHeader :loading="isLoading" :title="title" :subtitle="tagline" />
+			<DetailsTitleHeader :loading="isPageLoading" :title="title" :subtitle="tagline" />
 
 			<!-- Details badges -->
 			<div class="flex gap-2 flex-wrap" v-if="isExternal">
-				<template v-if="isLoading">
+				<template v-if="isPageLoading">
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
 				<template v-else>
-					<AdultBadge :adult="tmdbMovieDetails?.details?.adult ?? undefined" />
-					<DetailsDateBadge :date="tmdbMovieDetails?.details?.release_date ?? undefined" />
-					<DetailsReleaseBadge :start-date="tmdbMovieDetails?.details?.release_date ?? undefined" />
-					<DetailsDurationBadge :duration="tmdbMovieDetails?.details?.runtime ?? undefined" />
+					<AdultBadge :adult="tmdbDetails?.details?.adult ?? undefined" />
+					<DetailsDateBadge :date="tmdbDetails?.details?.release_date ?? undefined" />
+					<DetailsReleaseBadge :start-date="tmdbDetails?.details?.release_date ?? undefined" />
+					<DetailsDurationBadge :duration="tmdbDetails?.details?.runtime ?? undefined" />
 					<VoteBadge
-						:score="tmdbMovieDetails?.details?.vote_average ?? undefined"
-						:count="tmdbMovieDetails?.details?.vote_count ?? undefined"
+						:score="tmdbDetails?.details?.vote_average ?? undefined"
+						:count="tmdbDetails?.details?.vote_count ?? undefined"
 					/>
 				</template>
 			</div>
 
 			<!-- Synopsis -->
 			<DetailsOverview
-				:loading="isLoading"
-				:overview="myMovieDetails?.overview ?? tmdbMovieDetails?.details?.overview ?? undefined"
+				:loading="isPageLoading"
+				:overview="userMovie?.overview ?? tmdbDetails?.details?.overview ?? undefined"
 			/>
 
 			<!-- Genres -->
-			<DetailsGenreBadges :loading="isLoading" v-if="isExternal" :genres="genres" />
+			<DetailsGenreBadges :loading="isPageLoading" v-if="isExternal" :genres="genres" />
 
 			<!-- Note -->
-			<DetailsPersonalNote :description="note" v-if="note && !isLoading" />
+			<DetailsPersonalNote :description="note" v-if="note && !isPageLoading" />
 
 			<UTabs :items="tabs" variant="link">
 				<template #credits>
@@ -107,8 +107,8 @@
 					<DetailsCreditCards
 						:credits="credits"
 						image-provider="tmdb"
-						:loading="isLoading"
-						:show-more-to="`https://www.themoviedb.org/movie/${movieId}/cast`"
+						:loading="isPageLoading"
+						:show-more-to="`https://www.themoviedb.org/movie/${routeMovieId}/cast`"
 						:credit-card-to-fn="(c: TmdbCredit) => `https://www.themoviedb.org/person/${c.id}`"
 					/>
 				</template>
@@ -117,7 +117,7 @@
 						<UTable
 							:data="sagaMovies"
 							:columns="sagaColumns"
-							@select="(_e, row) => onSagaMovieSelected(row.original)"
+							@select="(_e, row) => openSagaMovie(row.original)"
 						>
 							<template #empty>
 								<UEmpty title="No movie found" variant="naked" icon="i-lucide-ban" />
@@ -191,29 +191,30 @@ const overlay = useOverlay();
 const movieFormModal = overlay.create(LazyMovieFormModal);
 const { openConfirmationModal } = useConfirmation();
 
-// Page computed
-const type = computed(() => route.params.type as MediaSourceType);
-const movieId = computed(() => route.params.movieId as string);
-const isExternal = computed(() => type.value === MediaSourceTypes.external);
-const isInternal = computed(() => type.value === MediaSourceTypes.internal);
+// Route-derived state: `type` is "internal" (movie in my list) or "external" (TMDB), `movieId` is the matching id
+const sourceType = computed(() => route.params.type as MediaSourceType);
+const routeMovieId = computed(() => route.params.movieId as string);
+const isExternal = computed(() => sourceType.value === MediaSourceTypes.external);
+const isInternal = computed(() => sourceType.value === MediaSourceTypes.internal);
 
-// Local reactive state
+// Editable metadata of the user's movie, kept local so the controls update instantly
 const rating = ref<number | undefined>(undefined);
 const selectedCollectionIds = ref<string[]>([]);
 const status = ref<MediaStatus | undefined>(undefined);
 
-// Get the movie from my list
-const isInMyList = computed(() => !!myMovieDetails.value);
-const internalId = computed(() => myMovieDetails.value?.id);
-const note = computed(() => myMovieDetails.value?.media.note ?? undefined);
-const title = computed(() => myMovieDetails.value?.media.name ?? tmdbMovieDetails.value?.details?.title ?? undefined);
+// Values derived from the user's own movie entry, falling back to TMDB data when it isn't in my list
+const isInMyList = computed(() => !!userMovie.value);
+const userMovieId = computed(() => userMovie.value?.id);
+const note = computed(() => userMovie.value?.media.note ?? undefined);
+const title = computed(() => userMovie.value?.media.name ?? tmdbDetails.value?.details?.title ?? undefined);
 
-const { data: movieDetails, pending: loadingDetails } = useClientAsyncData<MovieDetails | undefined>(
+// Fetch the page data: internal movies come from my list, external ones from TMDB (NOT_FOUND shows no toast)
+const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<MovieDetails | undefined>(
 	async () => {
 		if (isInternal.value) {
-			return trpc.movie.getInternalDetails.query({ id: movieId.value });
+			return trpc.movie.getInternalDetails.query({ id: routeMovieId.value });
 		} else {
-			return trpc.movie.getExternalDetails.query({ externalMovieId: movieId.value });
+			return trpc.movie.getExternalDetails.query({ externalMovieId: routeMovieId.value });
 		}
 	},
 	{
@@ -222,7 +223,7 @@ const { data: movieDetails, pending: loadingDetails } = useClientAsyncData<Movie
 );
 
 // The user's movie, writable to reflect additions, edits and removals on the page
-const myMovieDetails = computed<Movie | undefined>({
+const userMovie = computed<Movie | undefined>({
 	get: () => movieDetails.value?.movie ?? undefined,
 	set: (movie) => {
 		if (movieDetails.value) {
@@ -232,9 +233,10 @@ const myMovieDetails = computed<Movie | undefined>({
 });
 
 // The TMDB details, only available for external movies
-const tmdbMovieDetails = computed(() => (movieDetails.value?.details ? movieDetails.value : undefined));
+const tmdbDetails = computed(() => (movieDetails.value?.details ? movieDetails.value : undefined));
 
-watch(myMovieDetails, (newValue) => {
+// Reset the editable fields whenever the user's movie changes (loaded, added, edited or removed)
+watch(userMovie, (newValue) => {
 	rating.value = newValue?.media.rating ?? undefined;
 	status.value = newValue?.media.status ?? undefined;
 
@@ -243,14 +245,14 @@ watch(myMovieDetails, (newValue) => {
 	}
 });
 
-// Get the tmdb movie details
-const image = computed(() => tmdbMovieDetails.value?.details?.poster_path ?? undefined);
-const tagline = computed(() => tmdbMovieDetails.value?.details?.tagline ?? undefined);
-const genres = computed(() => tmdbMovieDetails.value?.details?.genres);
-const credits = computed(() => tmdbMovieDetails.value?.credits);
-const hasSaga = computed(() => !!tmdbMovieDetails.value?.saga && tmdbMovieDetails.value?.saga.movies.length > 1);
-const sagaName = computed(() => tmdbMovieDetails.value?.saga?.name ?? "Unknown");
-const sagaMovies = computed(() => tmdbMovieDetails.value?.saga?.movies);
+// Values derived from the TMDB details
+const image = computed(() => tmdbDetails.value?.details?.poster_path ?? undefined);
+const tagline = computed(() => tmdbDetails.value?.details?.tagline ?? undefined);
+const genres = computed(() => tmdbDetails.value?.details?.genres);
+const credits = computed(() => tmdbDetails.value?.credits);
+const hasSaga = computed(() => !!tmdbDetails.value?.saga && tmdbDetails.value?.saga.movies.length > 1);
+const sagaName = computed(() => tmdbDetails.value?.saga?.name ?? "Unknown");
+const sagaMovies = computed(() => tmdbDetails.value?.saga?.movies);
 
 // Sync the selected collections with the movie collections
 watch(
@@ -260,8 +262,8 @@ watch(
 	},
 );
 
-// Derived UI state
-const isLoading = computed(() => loadingDetails.value);
+// Derived UI state: tabs are only shown for external movies (credits, and saga when it has several movies)
+const isPageLoading = computed(() => isFetchingDetails.value);
 const tabs = computed<TabsItem[]>(() => [
 	...(isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : []),
 	...(isExternal.value && hasSaga.value
@@ -308,20 +310,20 @@ const sagaColumns: TableColumn<TmdbMovieSagaMovie>[] = [
 	},
 ];
 
-// Helper methods
-const _updateSagaMovieInternalMovie = (externalId?: string, internalMovie?: Movie) => {
+// Helper: keep the saga table in sync by attaching (or clearing) the user's movie on the matching saga entry
+const _syncSagaMovieUserEntry = (externalId?: string, internalMovie?: Movie) => {
 	if (!externalId) {
 		return;
 	}
 
-	const target = tmdbMovieDetails.value?.saga?.movies?.find((m) => m?.id === externalId);
+	const target = tmdbDetails.value?.saga?.movies?.find((m) => m?.id === externalId);
 	if (target) {
 		target.internal_movie = internalMovie;
 	}
 };
 
-// Methods
-const _removeMovie = () =>
+// Remove the movie from my list after confirmation
+const _removeFromMyList = () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
@@ -330,7 +332,7 @@ const _removeMovie = () =>
 		// Confirm the deletion of the movie
 		const result = await openConfirmationModal(
 			async () => {
-				await movieStore.deleteMovie({ id: myMovieDetails.value!.id });
+				await movieStore.deleteMovie({ id: userMovie.value!.id });
 			},
 			{
 				icon: "i-lucide-trash",
@@ -343,8 +345,8 @@ const _removeMovie = () =>
 			return;
 		}
 
-		myMovieDetails.value = undefined;
-		_updateSagaMovieInternalMovie(movieId.value, undefined);
+		userMovie.value = undefined;
+		_syncSagaMovieUserEntry(routeMovieId.value, undefined);
 
 		// Go back to the main movies page in the current movie is internal
 		if (isInternal.value) {
@@ -352,40 +354,42 @@ const _removeMovie = () =>
 		}
 	});
 
-const { loading: isRemovingMovie, execute: removeMovie } = useLoadingWrapper(_removeMovie);
+const { loading: isRemovingFromMyList, execute: removeFromMyList } = useLoadingWrapper(_removeFromMyList);
 
-const _addMovie = () =>
+// Add the external movie to my list
+const _addToMyList = () =>
 	toast.withErrorToast(async () => {
 		if (isInMyList.value) {
 			return;
 		}
 
-		const movie = await movieStore.createMovieFromExternal({ externalMovieId: movieId.value });
-		myMovieDetails.value = movie;
-		_updateSagaMovieInternalMovie(movieId.value, movie);
+		const movie = await movieStore.createMovieFromExternal({ externalMovieId: routeMovieId.value });
+		userMovie.value = movie;
+		_syncSagaMovieUserEntry(routeMovieId.value, movie);
 	});
 
-const { loading: isAddingMovie, execute: addMovie } = useLoadingWrapper(_addMovie);
+const { loading: isAddingToMyList, execute: addToMyList } = useLoadingWrapper(_addToMyList);
 
+// Open the edit modal and apply the returned changes to the page
 const _editMovie = async () =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
 		}
 
-		const instance = movieFormModal.open({ id: myMovieDetails.value!.id });
+		const instance = movieFormModal.open({ id: userMovie.value!.id });
 		const result = await instance.result;
 
 		if (result) {
-			myMovieDetails.value = result.movie;
+			userMovie.value = result.movie;
 			selectedCollectionIds.value = result.collections.map((c) => c.id);
-			_updateSagaMovieInternalMovie(result.movie.media.externalId ?? undefined, result.movie);
+			_syncSagaMovieUserEntry(result.movie.media.externalId ?? undefined, result.movie);
 		}
 	});
 
 const { loading: isEditingMovie, execute: editMovie } = useLoadingWrapper(_editMovie);
 
-// Metadata updates
+// Metadata updates: persist the new value for the user's movie
 const _updateStatus = (newStatus?: MediaStatus) =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
@@ -393,7 +397,7 @@ const _updateStatus = (newStatus?: MediaStatus) =>
 		}
 
 		await trpc.movie.update.mutate({
-			id: internalId.value!,
+			id: userMovieId.value!,
 			status: newStatus ?? null,
 		});
 	});
@@ -407,7 +411,7 @@ const _updateCollections = () =>
 		}
 
 		await trpc.media.updateCollections.mutate({
-			id: internalId.value!,
+			id: userMovieId.value!,
 			collectionIds: selectedCollectionIds.value,
 		});
 	});
@@ -421,14 +425,15 @@ const _updateRating = () =>
 		}
 
 		await trpc.movie.update.mutate({
-			id: internalId.value!,
+			id: userMovieId.value!,
 			rating: rating.value ?? null,
 		});
 	});
 
+// Debounced so that dragging/typing a rating doesn't send a request per change
 const updateRating = useDebounceFn(_updateRating, DEBOUNCE_TIMER);
 
-// Saga table actions
+// Saga table actions: add or remove a saga movie from my list, keeping the current page in sync
 const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 	toast.withErrorToast(async () => {
 		// If already in my list
@@ -440,11 +445,11 @@ const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 			externalMovieId: tmdbSagaMovie.id,
 		});
 
-		_updateSagaMovieInternalMovie(tmdbSagaMovie.id, movie);
+		_syncSagaMovieUserEntry(tmdbSagaMovie.id, movie);
 
 		// If the saga movie is the current movie details
-		if (tmdbSagaMovie.id === movieId.value && !!myMovieDetails.value) {
-			myMovieDetails.value = movie;
+		if (tmdbSagaMovie.id === routeMovieId.value && !!userMovie.value) {
+			userMovie.value = movie;
 		}
 	});
 
@@ -457,14 +462,15 @@ const removeSagaMovieFromMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 
 		await movieStore.deleteMovie({ id: tmdbSagaMovie.internal_movie.id });
 
-		_updateSagaMovieInternalMovie(tmdbSagaMovie.id, undefined);
+		_syncSagaMovieUserEntry(tmdbSagaMovie.id, undefined);
 
 		// If the saga movie is the current movie details
-		if (tmdbSagaMovie.internal_movie.id === myMovieDetails.value?.id) {
-			myMovieDetails.value = undefined;
+		if (tmdbSagaMovie.internal_movie.id === userMovie.value?.id) {
+			userMovie.value = undefined;
 		}
 	});
 
-const onSagaMovieSelected = (tmdbMovie: TmdbMovieSagaMovie) =>
+// Navigate to the selected saga movie's external details page
+const openSagaMovie = (tmdbMovie: TmdbMovieSagaMovie) =>
 	navigateTo({ path: `/app/movies/external/${tmdbMovie.id}` });
 </script>
