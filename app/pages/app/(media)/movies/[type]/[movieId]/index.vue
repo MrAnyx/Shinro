@@ -229,38 +229,38 @@ const userCollections = computed<Collection[]>({
 });
 
 // Selecting collections persists them; the displayed selection follows the collections returned by the server
+const pendingCollectionIds = usePendingValue<string[]>();
+
 const selectedCollectionIds = computed<string[]>({
-	get: () => userCollections.value.map((c) => c.id),
+	get: () => pendingCollectionIds.pending.value?.value ?? userCollections.value.map((c) => c.id),
 	set: (collectionIds) => {
-		updateCollections(collectionIds);
+		updateCollections(collectionIds, pendingCollectionIds.start(collectionIds));
 	},
 });
 
 // The TMDB details, only available for external movies
 const tmdbDetails = computed(() => (movieDetails.value?.details ? movieDetails.value : undefined));
 
-// Pending values are shown right away while the update (debounced for rating) is in flight; they are
-// wrapped so that "cleared" (undefined) can be told apart from "nothing pending"
-const pendingStatus = shallowRef<{ value?: MediaStatus }>();
+// Pending values are shown right away while the update (debounced for rating) is in flight.
+const pendingStatus = usePendingValue<MediaStatus>();
 
 // Status and rating derive from the user's movie; the saved movie is only replaced once the update succeeds
 const status = computed<MediaStatus | undefined>({
-	get: () => (pendingStatus.value ? pendingStatus.value.value : (userMovie.value?.media.status ?? undefined)),
+	get: () =>
+		pendingStatus.pending.value ? pendingStatus.pending.value.value : (userMovie.value?.media.status ?? undefined),
 	set: (newStatus) => {
-		pendingStatus.value = { value: newStatus };
-		updateStatus(newStatus, pendingStatus.value);
+		updateStatus(newStatus, pendingStatus.start(newStatus));
 	},
 });
 
-// Pending rating works similarly to pending status: it shows the new value immediately while the update is in flight
-const pendingRating = shallowRef<{ value?: number }>();
+const pendingRating = usePendingValue<number>();
 
 // The rating, derived from the user's movie; pending changes are shown immediately while the update is in flight
 const rating = computed<number | undefined>({
-	get: () => (pendingRating.value ? pendingRating.value.value : (userMovie.value?.media.rating ?? undefined)),
+	get: () =>
+		pendingRating.pending.value ? pendingRating.pending.value.value : (userMovie.value?.media.rating ?? undefined),
 	set: (newRating) => {
-		pendingRating.value = { value: newRating };
-		updateRating(newRating, pendingRating.value);
+		updateRating(newRating, pendingRating.start(newRating));
 	},
 });
 
@@ -397,7 +397,7 @@ const _editMovie = async () =>
 const { loading: isEditingMovie, execute: editMovie } = useLoadingWrapper(_editMovie);
 
 // Metadata updates: persist the new value for the user's movie
-const _updateStatus = (newStatus: MediaStatus | undefined, pending: { value?: MediaStatus }) =>
+const _updateStatus = (newStatus: MediaStatus | undefined, pending: PendingValue<MediaStatus>) =>
 	toast.withErrorToast(async () => {
 		try {
 			if (!isInMyList.value) {
@@ -409,30 +409,31 @@ const _updateStatus = (newStatus: MediaStatus | undefined, pending: { value?: Me
 				status: newStatus ?? null,
 			});
 		} finally {
-			// A newer selection keeps its own pending value
-			if (pendingStatus.value === pending) {
-				pendingStatus.value = undefined;
-			}
+			pendingStatus.clear(pending);
 		}
 	});
 
 const { loading: isUpdatingStatus, execute: updateStatus } = useLoadingWrapper(_updateStatus);
 
-const _updateCollections = (collectionIds: string[]) =>
+const _updateCollections = (collectionIds: string[], pending: PendingValue<string[]>) =>
 	toast.withErrorToast(async () => {
-		if (!isInMyList.value) {
-			return;
-		}
+		try {
+			if (!isInMyList.value) {
+				return;
+			}
 
-		userCollections.value = await trpc.media.updateCollections.mutate({
-			id: userMovieId.value!,
-			collectionIds,
-		});
+			userCollections.value = await trpc.media.updateCollections.mutate({
+				id: userMovieId.value!,
+				collectionIds,
+			});
+		} finally {
+			pendingCollectionIds.clear(pending);
+		}
 	});
 
 const { loading: isUpdatingCollections, execute: updateCollections } = useLoadingWrapper(_updateCollections);
 
-const _updateRating = (newRating: number | undefined, pending: { value?: number }) =>
+const _updateRating = (newRating: number | undefined, pending: PendingValue<number>) =>
 	toast.withErrorToast(async () => {
 		try {
 			if (!isInMyList.value) {
@@ -444,10 +445,7 @@ const _updateRating = (newRating: number | undefined, pending: { value?: number 
 				rating: newRating ?? null,
 			});
 		} finally {
-			// A newer rating keeps its own pending value
-			if (pendingRating.value === pending) {
-				pendingRating.value = undefined;
-			}
+			pendingRating.clear(pending);
 		}
 	});
 
