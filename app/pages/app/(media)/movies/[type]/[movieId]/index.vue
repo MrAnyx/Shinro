@@ -230,11 +230,10 @@ const userCollections = computed<Collection[]>({
 
 // Selecting collections persists them; the displayed selection follows the collections returned by the server
 const pendingCollectionIds = usePendingValue<string[]>();
-
 const selectedCollectionIds = computed<string[]>({
-	get: () => pendingCollectionIds.pending.value?.value ?? userCollections.value.map((c) => c.id),
+	get: () => pendingCollectionIds.get(userCollections.value.map((c) => c.id)),
 	set: (collectionIds) => {
-		updateCollections(collectionIds, pendingCollectionIds.start(collectionIds));
+		updateCollections(collectionIds, pendingCollectionIds.set(collectionIds));
 	},
 });
 
@@ -243,24 +242,19 @@ const tmdbDetails = computed(() => (movieDetails.value?.details ? movieDetails.v
 
 // Pending values are shown right away while the update (debounced for rating) is in flight.
 const pendingStatus = usePendingValue<MediaStatus>();
-
-// Status and rating derive from the user's movie; the saved movie is only replaced once the update succeeds
 const status = computed<MediaStatus | undefined>({
-	get: () =>
-		pendingStatus.pending.value ? pendingStatus.pending.value.value : (userMovie.value?.media.status ?? undefined),
+	get: () => pendingStatus.get(userMovie.value?.media.status ?? undefined),
 	set: (newStatus) => {
-		updateStatus(newStatus, pendingStatus.start(newStatus));
+		updateStatus(newStatus, pendingStatus.set(newStatus));
 	},
 });
 
-const pendingRating = usePendingValue<number>();
-
 // The rating, derived from the user's movie; pending changes are shown immediately while the update is in flight
+const pendingRating = usePendingValue<number>();
 const rating = computed<number | undefined>({
-	get: () =>
-		pendingRating.pending.value ? pendingRating.pending.value.value : (userMovie.value?.media.rating ?? undefined),
+	get: () => pendingRating.get(userMovie.value?.media.rating ?? undefined),
 	set: (newRating) => {
-		updateRating(newRating, pendingRating.start(newRating));
+		updateRating(newRating, pendingRating.set(newRating));
 	},
 });
 
@@ -409,7 +403,7 @@ const _updateStatus = (newStatus: MediaStatus | undefined, pending: PendingValue
 				status: newStatus ?? null,
 			});
 		} finally {
-			pendingStatus.clear(pending);
+			pendingStatus.flush(pending);
 		}
 	});
 
@@ -427,7 +421,7 @@ const _updateCollections = (collectionIds: string[], pending: PendingValue<strin
 				collectionIds,
 			});
 		} finally {
-			pendingCollectionIds.clear(pending);
+			pendingCollectionIds.flush(pending);
 		}
 	});
 
@@ -445,7 +439,7 @@ const _updateRating = (newRating: number | undefined, pending: PendingValue<numb
 				rating: newRating ?? null,
 			});
 		} finally {
-			pendingRating.clear(pending);
+			pendingRating.flush(pending);
 		}
 	});
 
