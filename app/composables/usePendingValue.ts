@@ -18,7 +18,7 @@ export const usePendingValue = <T>() => {
 		return token;
 	};
 
-	const flush = (token: PendingValue<T>) => {
+	const clear = (token: PendingValue<T>) => {
 		if (pending.value === token) {
 			pending.value = undefined;
 		}
@@ -27,6 +27,6 @@ export const usePendingValue = <T>() => {
 	return {
 		get,
 		set,
-		flush,
+		clear,
 	};
 };

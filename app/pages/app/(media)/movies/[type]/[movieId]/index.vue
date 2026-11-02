@@ -403,7 +403,7 @@ const _updateStatus = (newStatus: MediaStatus | undefined, pending: PendingValue
 				status: newStatus ?? null,
 			});
 		} finally {
-			pendingStatus.flush(pending);
+			pendingStatus.clear(pending);
 		}
 	});
 
@@ -421,7 +421,7 @@ const _updateCollections = (collectionIds: string[], pending: PendingValue<strin
 				collectionIds,
 			});
 		} finally {
-			pendingCollectionIds.flush(pending);
+			pendingCollectionIds.clear(pending);
 		}
 	});
 
@@ -439,7 +439,7 @@ const _updateRating = (newRating: number | undefined, pending: PendingValue<numb
 				rating: newRating ?? null,
 			});
 		} finally {
-			pendingRating.flush(pending);
+			pendingRating.clear(pending);
 		}
 	});
 
