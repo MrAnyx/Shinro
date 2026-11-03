@@ -24,9 +24,21 @@ export const usePendingValue = <T>() => {
 		}
 	};
 
+	// Show the value while `fn` runs, then drop it unless a newer value has replaced it in the meantime
+	const track = async <V extends T | undefined>(value: V, fn: (value: V) => Promise<unknown> | unknown) => {
+		const token = set(value);
+
+		try {
+			await fn(value);
+		} finally {
+			clear(token);
+		}
+	};
+
 	return {
 		get,
 		set,
 		clear,
+		track,
 	};
 };

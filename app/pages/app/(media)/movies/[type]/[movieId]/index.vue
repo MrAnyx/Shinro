@@ -4,10 +4,16 @@
 		<aside>
 			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle" class="w-80">
 				<!-- Image -->
-				<ImageFallback provider="tmdb" :src="image" :height="400" class="rounded-md" :loading="isPageLoading" />
+				<ImageFallback
+					provider="tmdb"
+					:src="movieDetails?.details?.poster_path ?? undefined"
+					:height="400"
+					class="rounded-md"
+					:loading="isFetchingDetails"
+				/>
 
 				<!-- Actions -->
-				<template v-if="isPageLoading">
+				<template v-if="isFetchingDetails">
 					<USkeleton class="w-full h-[32px] rounded-sm" />
 					<USkeleton class="w-full h-[32px] rounded-sm" />
 				</template>
@@ -59,44 +65,55 @@
 		<!-- Main section -->
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
 			<!-- Title and tagline -->
-			<DetailsTitleHeader :loading="isPageLoading" :title="title" :subtitle="tagline" />
+			<DetailsTitleHeader
+				:loading="isFetchingDetails"
+				:title="movieDetails?.movie?.media.name ?? movieDetails?.details?.title ?? undefined"
+				:subtitle="movieDetails?.details?.tagline ?? undefined"
+			/>
 
 			<!-- Details badges -->
 			<div class="flex gap-2 flex-wrap" v-if="isExternal">
-				<template v-if="isPageLoading">
+				<template v-if="isFetchingDetails">
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
 				</template>
 				<template v-else>
-					<AdultBadge :adult="tmdbDetails?.details?.adult ?? undefined" />
-					<DetailsDateBadge :date="tmdbDetails?.details?.release_date ?? undefined" />
-					<DetailsReleaseBadge :start-date="tmdbDetails?.details?.release_date ?? undefined" />
-					<DetailsDurationBadge :duration="tmdbDetails?.details?.runtime ?? undefined" />
+					<AdultBadge :adult="movieDetails?.details?.adult ?? undefined" />
+					<DetailsDateBadge :date="movieDetails?.details?.release_date ?? undefined" />
+					<DetailsReleaseBadge :start-date="movieDetails?.details?.release_date ?? undefined" />
+					<DetailsDurationBadge :duration="movieDetails?.details?.runtime ?? undefined" />
 					<VoteBadge
-						:score="tmdbDetails?.details?.vote_average ?? undefined"
-						:count="tmdbDetails?.details?.vote_count ?? undefined"
+						:score="movieDetails?.details?.vote_average ?? undefined"
+						:count="movieDetails?.details?.vote_count ?? undefined"
 					/>
 				</template>
 			</div>
 
 			<!-- Synopsis -->
 			<DetailsOverview
-				:loading="isPageLoading"
-				:overview="movieDetails?.movie?.overview ?? tmdbDetails?.details?.overview ?? undefined"
+				:loading="isFetchingDetails"
+				:overview="movieDetails?.movie?.overview ?? movieDetails?.details?.overview ?? undefined"
 			/>
 
 			<!-- Genres -->
-			<DetailsGenreBadges :loading="isPageLoading" v-if="isExternal" :genres="genres" />
+			<DetailsGenreBadges
+				:loading="isFetchingDetails"
+				v-if="isExternal"
+				:genres="movieDetails?.details?.genres"
+			/>
 
 			<!-- Note -->
-			<DetailsPersonalNote :description="note" v-if="note && !isPageLoading" />
+			<DetailsPersonalNote
+				:description="movieDetails?.movie?.media.note ?? undefined"
+				v-if="movieDetails?.movie?.media.note && !isFetchingDetails"
+			/>
 
 			<UTabs :items="tabs" variant="link">
 				<template #credits>
 					<!-- Credits -->
 					<DetailsCreditCards
-						:credits="credits"
+						:credits="movieDetails?.credits"
 						image-provider="tmdb"
-						:loading="isPageLoading"
+						:loading="isFetchingDetails"
 						:show-more-to="`https://www.themoviedb.org/movie/${routeMovieId}/cast`"
 						:credit-card-to-fn="(c: TmdbCredit) => `https://www.themoviedb.org/person/${c.id}`"
 					/>
@@ -104,7 +121,7 @@
 				<template #saga>
 					<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 						<UTable
-							:data="sagaMovies"
+							:data="movieDetails?.saga?.movies"
 							:columns="sagaColumns"
 							@select="(_e, row) => openSagaMovie(row.original)"
 						>
@@ -185,7 +202,6 @@ const sourceType = computed(() => route.params.type as MediaSourceType);
 const routeMovieId = computed(() => route.params.movieId as string);
 const isExternal = computed(() => sourceType.value === MediaSourceTypes.external);
 const isInternal = computed(() => sourceType.value === MediaSourceTypes.internal);
-const isPageLoading = computed(() => isFetchingDetails.value);
 
 // Fetch the page data: internal movies come from my list, external ones from TMDB (NOT_FOUND shows no toast)
 const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<MovieDetails | undefined>(async () => {
@@ -196,54 +212,35 @@ const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<Mo
 	}
 });
 
-// The collections of the user's movie, writable to reflect the collections returned by the server
-const userCollections = computed({
-	get: () => movieDetails.value?.collections ?? [],
-	set: (collections) => {
-		if (movieDetails.value) {
-			movieDetails.value.collections = collections;
-		}
-	},
-});
-
-// Selecting collections persists them; the displayed selection follows the collections returned by the server
+// Pending values are shown right away while the update (debounced for rating) is in flight
+const pendingCollectionIds = usePendingValue<string[]>();
 const selectedCollectionIds = computed({
-	get: () => userCollections.value.map((c) => c.id),
+	get: () => pendingCollectionIds.get(movieDetails.value?.collections.map((c) => c.id) ?? []),
 	set: (collectionIds) => {
-		updateCollections(collectionIds);
+		pendingCollectionIds.track(collectionIds, updateCollections);
 	},
 });
 
+const pendingStatus = usePendingValue<MediaStatus>();
 const status = computed({
-	get: () => movieDetails.value?.movie?.media.status ?? undefined,
+	get: () => pendingStatus.get(movieDetails.value?.movie?.media.status ?? undefined),
 	set: (newStatus) => {
-		updateStatus(newStatus);
+		pendingStatus.track(newStatus, updateStatus);
 	},
 });
 
-// The rating is derived from the user's movie; updates are debounced.
+const pendingRating = usePendingValue<number>();
 const rating = computed({
-	get: () => movieDetails.value?.movie?.media.rating ?? undefined,
+	get: () => pendingRating.get(movieDetails.value?.movie?.media.rating ?? undefined),
 	set: (newRating) => {
-		updateRating(newRating);
+		pendingRating.track(newRating, updateRating);
 	},
 });
 
-// The TMDB details, only available for external movies
-const tmdbDetails = computed(() => (movieDetails.value?.details ? movieDetails.value : undefined));
-
-// Values derived from the TMDB details
 const isInMyList = computed(() => !!movieDetails.value?.movie);
 const userMovieId = computed(() => movieDetails.value?.movie?.id);
-const note = computed(() => movieDetails.value?.movie?.media.note ?? undefined);
-const title = computed(() => movieDetails.value?.movie?.media.name ?? tmdbDetails.value?.details?.title ?? undefined);
-const image = computed(() => tmdbDetails.value?.details?.poster_path ?? undefined);
-const tagline = computed(() => tmdbDetails.value?.details?.tagline ?? undefined);
-const genres = computed(() => tmdbDetails.value?.details?.genres);
-const credits = computed(() => tmdbDetails.value?.credits);
-const hasSaga = computed(() => !!tmdbDetails.value?.saga && tmdbDetails.value.saga.movies.length > 1);
-const sagaName = computed(() => tmdbDetails.value?.saga?.name ?? "Unknown");
-const sagaMovies = computed(() => tmdbDetails.value?.saga?.movies);
+const hasSaga = computed(() => (movieDetails.value?.saga?.movies.length ?? 0) > 1);
+const sagaName = computed(() => movieDetails.value?.saga?.name ?? "Unknown");
 
 // Derived UI state: tabs are only shown for external movies (credits, and saga when it has several movies)
 const tabs = computed<TabsItem[]>(() => [
@@ -298,7 +295,7 @@ const _syncSagaMovieUserEntry = (externalId?: string, internalMovie?: Movie) => 
 		return;
 	}
 
-	const target = tmdbDetails.value?.saga?.movies?.find((m) => m?.id === externalId);
+	const target = movieDetails.value?.saga?.movies?.find((m) => m?.id === externalId);
 	if (target) {
 		target.internal_movie = internalMovie;
 	}
@@ -371,7 +368,7 @@ const { loading: isEditingMovie, execute: editMovie } = useLoadingWrapper(() =>
 
 		if (result) {
 			_setMovieDetailsMovie(result.movie);
-			userCollections.value = result.collections;
+			movieDetails.value!.collections = result.collections;
 		}
 	}),
 );
@@ -398,7 +395,7 @@ const { loading: isUpdatingCollections, execute: updateCollections } = useLoadin
 			return;
 		}
 
-		userCollections.value = await trpc.media.updateCollections.mutate({
+		movieDetails.value!.collections = await trpc.media.updateCollections.mutate({
 			id: userMovieId.value!,
 			collectionIds,
 		});
