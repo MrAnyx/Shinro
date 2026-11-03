@@ -20,6 +20,7 @@
 - Zod schemas shared by client and server live in `shared/utils/*.models.ts`, with inferred types in `shared/types/*.models.d.ts`.
 - Movie details use dedicated procedures, `movie.getInternalDetails` and `movie.getExternalDetails`. Both return the common `MovieDetailsSchema` (`movie`, `details`, `credits`, `saga`, `collections`), and the details page picks one by route type.
 - Serie, season, and episode features were removed. Do not reintroduce them unless requested.
+- When a value shown in the UI is changed through a tRPC query or mutation, keep a writable computed and use `usePendingValue()`: read `isPending` / `value` in the getter (falling back to the server-derived value when idle) and call `track(value, update)` in the setter, so the new value displays immediately while the request is in flight. Do not hand-roll optimistic state.
 - Use `useTrpc()` for client calls and `getTRPCErrorCode()` to handle expected errors such as `NOT_FOUND`.
 
 ## Feature And Improvement Checklist Rule

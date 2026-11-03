@@ -1,44 +1,28 @@
-export type PendingValue<T> = {
-	value: T | undefined;
-};
-
 export const usePendingValue = <T>() => {
-	const pending = shallowRef<PendingValue<T>>();
+	let latest: symbol | undefined;
 
-	function get(fallback: T): T;
-	function get(fallback?: T): T | undefined;
-	function get(): T;
-	function get(fallback?: T) {
-		return pending.value ? pending.value.value : fallback;
-	}
+	const state = shallowReactive({
+		// True while an update is in flight; `value` holds the value being saved (which may be `undefined`)
+		isPending: false,
+		value: undefined as T | undefined,
 
-	const set = (value?: T) => {
-		const token = { value };
-		pending.value = token;
-		return token;
-	};
+		// Show the value while `fn` runs, then drop it unless a newer value has replaced it in the meantime
+		track: async <V extends T | undefined>(value: V, fn: (value: V) => Promise<unknown> | unknown) => {
+			const token = Symbol();
+			latest = token;
+			state.value = value;
+			state.isPending = true;
 
-	const clear = (token: PendingValue<T>) => {
-		if (pending.value === token) {
-			pending.value = undefined;
-		}
-	};
+			try {
+				await fn(value);
+			} finally {
+				if (latest === token) {
+					state.isPending = false;
+					state.value = undefined;
+				}
+			}
+		},
+	});
 
-	// Show the value while `fn` runs, then drop it unless a newer value has replaced it in the meantime
-	const track = async <V extends T | undefined>(value: V, fn: (value: V) => Promise<unknown> | unknown) => {
-		const token = set(value);
-
-		try {
-			await fn(value);
-		} finally {
-			clear(token);
-		}
-	};
-
-	return {
-		get,
-		set,
-		clear,
-		track,
-	};
+	return state;
 };

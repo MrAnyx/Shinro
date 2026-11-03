@@ -215,7 +215,10 @@ const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<Mo
 // Pending values are shown right away while the update (debounced for rating) is in flight
 const pendingCollectionIds = usePendingValue<string[]>();
 const selectedCollectionIds = computed({
-	get: () => pendingCollectionIds.get(movieDetails.value?.collections.map((c) => c.id) ?? []),
+	get: () =>
+		pendingCollectionIds.isPending
+			? pendingCollectionIds.value!
+			: (movieDetails.value?.collections.map((c) => c.id) ?? []),
 	set: (collectionIds) => {
 		pendingCollectionIds.track(collectionIds, updateCollections);
 	},
@@ -223,7 +226,7 @@ const selectedCollectionIds = computed({
 
 const pendingStatus = usePendingValue<MediaStatus>();
 const status = computed({
-	get: () => pendingStatus.get(movieDetails.value?.movie?.media.status ?? undefined),
+	get: () => (pendingStatus.isPending ? pendingStatus.value : (movieDetails.value?.movie?.media.status ?? undefined)),
 	set: (newStatus) => {
 		pendingStatus.track(newStatus, updateStatus);
 	},
@@ -231,7 +234,7 @@ const status = computed({
 
 const pendingRating = usePendingValue<number>();
 const rating = computed({
-	get: () => pendingRating.get(movieDetails.value?.movie?.media.rating ?? undefined),
+	get: () => (pendingRating.isPending ? pendingRating.value : (movieDetails.value?.movie?.media.rating ?? undefined)),
 	set: (newRating) => {
 		pendingRating.track(newRating, updateRating);
 	},
