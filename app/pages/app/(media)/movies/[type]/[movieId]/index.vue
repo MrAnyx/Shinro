@@ -81,7 +81,7 @@
 			<!-- Synopsis -->
 			<DetailsOverview
 				:loading="isPageLoading"
-				:overview="userMovie?.overview ?? tmdbDetails?.details?.overview ?? undefined"
+				:overview="movieDetails?.movie?.overview ?? tmdbDetails?.details?.overview ?? undefined"
 			/>
 
 			<!-- Genres -->
@@ -187,12 +187,6 @@ const isExternal = computed(() => sourceType.value === MediaSourceTypes.external
 const isInternal = computed(() => sourceType.value === MediaSourceTypes.internal);
 const isPageLoading = computed(() => isFetchingDetails.value);
 
-// Values derived from the user's own movie entry, falling back to TMDB data when it isn't in my list
-const isInMyList = computed(() => !!userMovie.value);
-const userMovieId = computed(() => userMovie.value?.id);
-const note = computed(() => userMovie.value?.media.note ?? undefined);
-const title = computed(() => userMovie.value?.media.name ?? tmdbDetails.value?.details?.title ?? undefined);
-
 // Fetch the page data: internal movies come from my list, external ones from TMDB (NOT_FOUND shows no toast)
 const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<MovieDetails | undefined>(async () => {
 	if (isInternal.value) {
@@ -202,68 +196,52 @@ const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<Mo
 	}
 });
 
-// The user's movie, writable to reflect additions, edits and removals on the page
-const userMovie = computed<Movie | undefined>({
-	get: () => movieDetails.value?.movie ?? undefined,
-	set: (movie) => {
-		if (movieDetails.value) {
-			movieDetails.value = {
-				...movieDetails.value,
-				movie: movie ?? null,
-				collections: movie ? movieDetails.value.collections : [],
-			};
-		}
-
-		_syncSagaMovieUserEntry(routeMovieId.value, movie);
-	},
-});
-
 // The collections of the user's movie, writable to reflect the collections returned by the server
-const userCollections = computed<Collection[]>({
+const userCollections = computed({
 	get: () => movieDetails.value?.collections ?? [],
 	set: (collections) => {
 		if (movieDetails.value) {
-			movieDetails.value = { ...movieDetails.value, collections };
+			movieDetails.value.collections = collections;
 		}
 	},
 });
 
 // Selecting collections persists them; the displayed selection follows the collections returned by the server
-const pendingCollectionIds = usePendingValue<string[]>();
-const selectedCollectionIds = computed<string[]>({
-	get: () => pendingCollectionIds.get(userCollections.value.map((c) => c.id)),
+const selectedCollectionIds = computed({
+	get: () => userCollections.value.map((c) => c.id),
 	set: (collectionIds) => {
-		updateCollections(collectionIds, pendingCollectionIds.set(collectionIds));
+		updateCollections(collectionIds);
+	},
+});
+
+const status = computed({
+	get: () => movieDetails.value?.movie?.media.status ?? undefined,
+	set: (newStatus) => {
+		updateStatus(newStatus);
+	},
+});
+
+// The rating is derived from the user's movie; updates are debounced.
+const rating = computed({
+	get: () => movieDetails.value?.movie?.media.rating ?? undefined,
+	set: (newRating) => {
+		updateRating(newRating);
 	},
 });
 
 // The TMDB details, only available for external movies
 const tmdbDetails = computed(() => (movieDetails.value?.details ? movieDetails.value : undefined));
 
-// Pending values are shown right away while the update (debounced for rating) is in flight.
-const pendingStatus = usePendingValue<MediaStatus>();
-const status = computed<MediaStatus | undefined>({
-	get: () => pendingStatus.get(userMovie.value?.media.status ?? undefined),
-	set: (newStatus) => {
-		updateStatus(newStatus, pendingStatus.set(newStatus));
-	},
-});
-
-// The rating, derived from the user's movie; pending changes are shown immediately while the update is in flight
-const pendingRating = usePendingValue<number>();
-const rating = computed<number | undefined>({
-	get: () => pendingRating.get(userMovie.value?.media.rating ?? undefined),
-	set: (newRating) => {
-		updateRating(newRating, pendingRating.set(newRating));
-	},
-});
-
 // Values derived from the TMDB details
+const isInMyList = computed(() => !!movieDetails.value?.movie);
+const userMovieId = computed(() => movieDetails.value?.movie?.id);
+const note = computed(() => movieDetails.value?.movie?.media.note ?? undefined);
+const title = computed(() => movieDetails.value?.movie?.media.name ?? tmdbDetails.value?.details?.title ?? undefined);
 const image = computed(() => tmdbDetails.value?.details?.poster_path ?? undefined);
 const tagline = computed(() => tmdbDetails.value?.details?.tagline ?? undefined);
 const genres = computed(() => tmdbDetails.value?.details?.genres);
 const credits = computed(() => tmdbDetails.value?.credits);
-const hasSaga = computed(() => !!tmdbDetails.value?.saga && tmdbDetails.value?.saga.movies.length > 1);
+const hasSaga = computed(() => !!tmdbDetails.value?.saga && tmdbDetails.value.saga.movies.length > 1);
 const sagaName = computed(() => tmdbDetails.value?.saga?.name ?? "Unknown");
 const sagaMovies = computed(() => tmdbDetails.value?.saga?.movies);
 
@@ -326,8 +304,21 @@ const _syncSagaMovieUserEntry = (externalId?: string, internalMovie?: Movie) => 
 	}
 };
 
+// Update the movie details when the user's movie is added, edited, or removed
+const _setMovieDetailsMovie = (movie?: Movie) => {
+	if (movieDetails.value) {
+		movieDetails.value = {
+			...movieDetails.value,
+			movie: movie ?? null,
+			collections: movie ? movieDetails.value.collections : [],
+		};
+	}
+
+	_syncSagaMovieUserEntry(routeMovieId.value, movie);
+};
+
 // Remove the movie from my list after confirmation
-const _removeFromMyList = () =>
+const { loading: isRemovingFromMyList, execute: removeFromMyList } = useLoadingWrapper(() =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
@@ -335,9 +326,7 @@ const _removeFromMyList = () =>
 
 		// Confirm the deletion of the movie
 		const result = await openConfirmationModal(
-			async () => {
-				await movieStore.deleteMovie({ id: userMovie.value!.id });
-			},
+			() => movieStore.deleteMovie({ id: movieDetails.value!.movie!.id }),
 			{
 				icon: "i-lucide-trash",
 				title: "Delete this movie",
@@ -349,102 +338,90 @@ const _removeFromMyList = () =>
 			return;
 		}
 
-		userMovie.value = undefined;
+		_setMovieDetailsMovie();
 
 		// Go back to the main movies page in the current movie is internal
 		if (isInternal.value) {
 			await navigateTo("/app/movies");
 		}
-	});
-
-const { loading: isRemovingFromMyList, execute: removeFromMyList } = useLoadingWrapper(_removeFromMyList);
+	}),
+);
 
 // Add the external movie to my list
-const _addToMyList = () =>
+const { loading: isAddingToMyList, execute: addToMyList } = useLoadingWrapper(() =>
 	toast.withErrorToast(async () => {
 		if (isInMyList.value) {
 			return;
 		}
 
 		const movie = await movieStore.createMovieFromExternal({ externalMovieId: routeMovieId.value });
-		userMovie.value = movie;
-	});
-
-const { loading: isAddingToMyList, execute: addToMyList } = useLoadingWrapper(_addToMyList);
+		_setMovieDetailsMovie(movie);
+	}),
+);
 
 // Open the edit modal and apply the returned changes to the page
-const _editMovie = async () =>
+const { loading: isEditingMovie, execute: editMovie } = useLoadingWrapper(() =>
 	toast.withErrorToast(async () => {
 		if (!isInMyList.value) {
 			return;
 		}
 
-		const instance = movieFormModal.open({ id: userMovie.value!.id });
+		const instance = movieFormModal.open({ id: movieDetails.value!.movie!.id });
 		const result = await instance.result;
 
 		if (result) {
-			userMovie.value = result.movie;
+			_setMovieDetailsMovie(result.movie);
 			userCollections.value = result.collections;
 		}
-	});
-
-const { loading: isEditingMovie, execute: editMovie } = useLoadingWrapper(_editMovie);
+	}),
+);
 
 // Metadata updates: persist the new value for the user's movie
-const _updateStatus = (newStatus: MediaStatus | undefined, pending: PendingValue<MediaStatus>) =>
+const { loading: isUpdatingStatus, execute: updateStatus } = useLoadingWrapper((newStatus: MediaStatus | undefined) =>
 	toast.withErrorToast(async () => {
-		try {
-			if (!isInMyList.value) {
-				return;
-			}
-
-			userMovie.value = await trpc.movie.update.mutate({
-				id: userMovieId.value!,
-				status: newStatus ?? null,
-			});
-		} finally {
-			pendingStatus.clear(pending);
+		if (!isInMyList.value) {
+			return;
 		}
-	});
 
-const { loading: isUpdatingStatus, execute: updateStatus } = useLoadingWrapper(_updateStatus);
+		const movie = await trpc.movie.update.mutate({
+			id: userMovieId.value!,
+			status: newStatus ?? null,
+		});
 
-const _updateCollections = (collectionIds: string[], pending: PendingValue<string[]>) =>
+		_setMovieDetailsMovie(movie);
+	}),
+);
+
+const { loading: isUpdatingCollections, execute: updateCollections } = useLoadingWrapper((collectionIds: string[]) =>
 	toast.withErrorToast(async () => {
-		try {
-			if (!isInMyList.value) {
-				return;
-			}
-
-			userCollections.value = await trpc.media.updateCollections.mutate({
-				id: userMovieId.value!,
-				collectionIds,
-			});
-		} finally {
-			pendingCollectionIds.clear(pending);
+		if (!isInMyList.value) {
+			return;
 		}
-	});
 
-const { loading: isUpdatingCollections, execute: updateCollections } = useLoadingWrapper(_updateCollections);
-
-const _updateRating = (newRating: number | undefined, pending: PendingValue<number>) =>
-	toast.withErrorToast(async () => {
-		try {
-			if (!isInMyList.value) {
-				return;
-			}
-
-			userMovie.value = await trpc.movie.update.mutate({
-				id: userMovieId.value!,
-				rating: newRating ?? null,
-			});
-		} finally {
-			pendingRating.clear(pending);
-		}
-	});
+		userCollections.value = await trpc.media.updateCollections.mutate({
+			id: userMovieId.value!,
+			collectionIds,
+		});
+	}),
+);
 
 // Debounced so that dragging/typing a rating doesn't send a request per change
-const updateRating = useDebounceFn(_updateRating, DEBOUNCE_TIMER);
+const updateRating = useDebounceFn(
+	(newRating: number | undefined) =>
+		toast.withErrorToast(async () => {
+			if (!isInMyList.value) {
+				return;
+			}
+
+			_setMovieDetailsMovie(
+				await trpc.movie.update.mutate({
+					id: userMovieId.value!,
+					rating: newRating ?? null,
+				}),
+			);
+		}),
+	DEBOUNCE_TIMER,
+);
 
 // Saga table actions: add or remove a saga movie from my list, keeping the current page in sync
 const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
@@ -462,7 +439,7 @@ const addSagaMovieToMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 
 		// If the saga movie is the current movie details
 		if (tmdbSagaMovie.id === routeMovieId.value) {
-			userMovie.value = movie;
+			_setMovieDetailsMovie(movie);
 		}
 	});
 
@@ -474,7 +451,7 @@ const removeSagaMovieFromMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 			return;
 		}
 
-		const isCurrentMovie = movieId === userMovie.value?.id;
+		const isCurrentMovie = movieId === movieDetails.value?.movie?.id;
 
 		await movieStore.deleteMovie({ id: movieId });
 
@@ -482,7 +459,7 @@ const removeSagaMovieFromMyList = (tmdbSagaMovie: TmdbMovieSagaMovie) =>
 
 		// If the saga movie is the current movie details
 		if (isCurrentMovie) {
-			userMovie.value = undefined;
+			_setMovieDetailsMovie();
 		}
 	});
 
