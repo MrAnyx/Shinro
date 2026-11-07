@@ -2,49 +2,65 @@
 
 ## Project Context
 
-- Shinro is a Nuxt application using Vue, Pinia, tRPC, Prisma, PostgreSQL, and Redis.
+- This is a client-rendered Nuxt 4 application (`ssr: false`) using Vue, Nuxt UI, Pinia, Tailwind, tRPC, Prisma, PostgreSQL, and Redis.
 - Use `pnpm` and follow the versions recorded in `package.json` and `pnpm-lock.yaml`.
 - Preserve existing project conventions, public APIs, and user changes. Keep edits focused.
+- Pages, middleware, composables, components, and stores under `app/` use Nuxt auto-imports.
 
 ## Required Workflow
 
 - Before changing code, inspect the owning implementation and nearby validation or usage patterns.
 - Prefer existing components, composables, stores, utilities, server routers, and validation schemas over new abstractions.
 - Validate behavior at the appropriate boundary. Client-side validation must not replace server-side validation.
-- Do not run destructive database commands against production. Use an isolated or disposable database for migrations and reset operations.
+- Do not run destructive database commands against production. Use an isolated or disposable database for migrations and reset operations; never run `db:reset` or destructive migration commands against production.
 - Do not commit changes or create branches unless explicitly requested.
+
+## Skills
+
+- For tasks matching a repository skill, read its `SKILL.md` and follow its instructions, loading only the relevant references for the task.
+- `nuxt-ui` (`.agents/skills/nuxt-ui/SKILL.md`): use when creating or changing interfaces built with Nuxt UI, including components, forms, theming, and layouts.
 
 ## Architecture Conventions
 
-- tRPC routers live in `server/trpc/routers` and query Prisma inline. Do not add a repository or service layer for procedure queries.
-- Zod schemas shared by client and server live in `shared/utils/*.models.ts`, with inferred types in `shared/types/*.models.d.ts`.
-- Movie details use dedicated procedures, `movie.getInternalDetails` and `movie.getExternalDetails`. Both return the common `MovieDetailsSchema` (`movie`, `details`, `credits`, `saga`, `collections`), and the details page picks one by route type.
-- Serie, season, and episode features were removed. Do not reintroduce them unless requested.
+- Browser calls go through the typed tRPC client supplied by `app/plugins/trpc.ts`, exposed by `useTrpc()`, to the `/api/trpc` Nitro handler. `server/trpc/router.ts` composes feature routers.
+- Server routers in `server/trpc/routers/` own procedures and query Prisma directly. Use `publicProcedure`, `protectedProcedure`, or `adminProcedure` from `server/trpc/init.ts`; protected procedures authenticate the HttpOnly `session_id` cookie and provide `ctx.user`. Keep router queries inline; do not introduce a repository or service layer for procedures.
+- Validate inputs and declare Zod outputs at the tRPC boundary. Every user-owned read or mutation must constrain ownership with `ctx.user.id`.
+- PostgreSQL schema and migrations live in `server/prisma/`. Prisma generates its client into `lib/prisma/`; do not edit generated files. The server configures Prisma with the PostgreSQL adapter in `server/utils/prisma.ts`; Redis is mounted as Nitro storage at `redis:` by `server/plugins/redisStorage.ts`.
+- Shared Zod models and validations live in `shared/utils/*.models.ts` and `shared/utils/*.validations.ts`, with inferred types in the parallel `shared/types/*.d.ts` files.
+- Client stores use `TRPCProcedureInput`/`TRPCProcedureOutput` from `app/utils/trpc.ts` to stay aligned with router procedures.
+- For optional Prisma updates, default omitted inputs to `Prisma.skip` rather than writing `undefined`; Prisma strict undefined checks are enabled.
+- Pages that fetch browser-only tRPC data use `useClientAsyncData()`, which is lazy and client-only and routes unhandled errors to the status toast. Use `getTRPCErrorCode()` to branch on expected failures such as `NOT_FOUND`, rather than treating them as generic errors.
+- Movie detail procedures are `movie.getInternalDetails` and `movie.getExternalDetails`. Both return the common `MovieDetailsSchema` (`movie`, `details`, `credits`, `saga`, `collections`), and the details page selects the procedure by route source type.
+- The documented product scope excludes series, seasons, and episodes. Do not reintroduce or extend those features unless requested.
 - When a value shown in the UI is changed through a tRPC query or mutation, keep a writable computed and use `usePendingValue()`: read `isPending` / `value` in the getter (falling back to the server-derived value when idle) and call `track(value, update)` in the setter, so the new value displays immediately while the request is in flight. Do not hand-roll optimistic state.
-- Use `useTrpc()` for client calls and `getTRPCErrorCode()` to handle expected errors such as `NOT_FOUND`.
 
 ## Feature And Improvement Checklist Rule
 
-For every new feature or improvement:
+Every feature or improvement must update `RELEASE_CHECKLIST.md` with an explicit, testable release check in the same change. Include applicable edge cases, failure states, permissions, feature flags, migrations, and responsive or accessibility behavior. Do not consider the work complete until the checklist update is included and the affected checks have been validated.
 
-1. Update `RELEASE_CHECKLIST.md` in the same change.
-2. Add or revise the relevant verification item so the changed behavior has an explicit, testable release check.
-3. Include important edge cases, failure states, permissions, feature flags, migrations, and responsive or accessibility behavior when they apply.
-4. Do not consider the feature or improvement complete until the checklist update is included and the affected checks have been validated.
+## Commands
 
-## Validation Commands
+Use `pnpm clean-install` (the CI command) or `pnpm install` for local work.
 
-Run the narrowest relevant checks first, then broaden as needed:
+```bash
+pnpm dev             # start Nuxt at http://localhost:3000
+pnpm build           # production build
+pnpm lint            # oxlint
+pnpm fmt             # check formatting with oxfmt
+pnpm typecheck       # Nuxt/TypeScript type check
+pnpm db:generate     # regenerate Prisma client after schema changes
+pnpm db:migrate      # create/apply a development migration
+```
 
-- `pnpm lint`
-- `pnpm fmt`
-- `pnpm typecheck`
+CI runs `pnpm db:generate`, `pnpm lint`, `pnpm fmt`, and `pnpm typecheck`. There is currently no test script or tracked automated test suite, so there is no single-test command. Run the narrowest relevant checks first, then broaden as needed.
 
-For database schema changes, review the generated migration and test it against a disposable database before release validation.
+For database schema changes, use `pnpm db:generate`, review the generated migration, and test it against an isolated or disposable database before release validation.
 
 ## Code Style
 
 - Follow the existing TypeScript, Vue, Nuxt, and Prisma patterns.
+- Formatting is enforced by oxfmt: 120 columns, semicolons, double quotes, LF endings, and automatically sorted imports.
+- Oxlint treats correctness and performance rules as errors; avoid direct `process.env` access and use validated server configuration instead.
 - Keep code self-explanatory; add comments only when they clarify non-obvious decisions.
 - Use ASCII by default for new text.
 - Keep user-facing errors useful without exposing secrets, credentials, stack traces, or internal implementation details.
