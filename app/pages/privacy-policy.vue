@@ -13,7 +13,7 @@
 		</template>
 	</UPageHero>
 
-	<div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+	<div class="mx-auto mb-20 max-w-6xl px-4 sm:px-6 lg:px-8">
 		<section aria-labelledby="short-version" class="mb-20">
 			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<UPageCard

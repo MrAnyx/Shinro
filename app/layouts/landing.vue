@@ -27,27 +27,43 @@
 
 	<slot />
 
-	<UFooter>
-		<template #left>
-			<p class="text-muted text-sm">Copyright © {{ new Date().getFullYear() }}</p>
+	<UFooter class="border-t border-default bg-elevated/30" :ui="{ container: 'border-t border-default' }">
+		<template #top>
+			<UContainer>
+				<UFooterColumns :columns="footerColumns" aria-label="Footer navigation">
+					<template #left>
+						<NuxtLink to="/" class="inline-flex items-center gap-2 text-highlighted">
+							<NuxtImg src="/images/icone.svg" alt="" class="size-10" />
+							<span class="font-brand text-3xl font-medium">Shinro</span>
+						</NuxtLink>
+						<p class="mt-4 max-w-xs text-sm leading-6 text-muted">
+							A home for your media collection, and all the things you swear you'll watch eventually.
+						</p>
+					</template>
+				</UFooterColumns>
+			</UContainer>
 		</template>
 
-		<NuxtImg src="/images/icone.svg" class="size-8" />
+		<template #left>
+			<p class="text-muted text-sm">© {{ new Date().getFullYear() }} Shinro</p>
+		</template>
 
 		<template #right>
 			<UButton
 				icon="i-simple-icons-github"
+				aria-label="Shinro on GitHub (opens in a new tab)"
 				color="neutral"
 				variant="ghost"
-				to="https://github.com/nuxt/nuxt"
+				to="https://github.com/MrAnyx/Shinro"
 				target="_blank"
+				rel="noopener noreferrer"
 			/>
 		</template>
 	</UFooter>
 </template>
 
 <script setup lang="ts">
-import type { NavigationMenuItem } from "@nuxt/ui";
+import type { FooterColumn, NavigationMenuItem } from "@nuxt/ui";
 
 const navbarItems = ref<NavigationMenuItem[]>([
 	{
@@ -96,21 +112,34 @@ const navbarItems = ref<NavigationMenuItem[]>([
 	},
 ]);
 
-const footerItems: NavigationMenuItem[] = [
+const footerColumns: FooterColumn[] = [
 	{
-		label: "Figma Kit",
-		to: "https://go.nuxt.com/figma-ui",
-		target: "_blank",
+		label: "Explore",
+		children: [
+			{ label: "Home", to: "/" },
+			{ label: "Open Shinro", to: "/app" },
+			{ label: "Privacy policy", to: "/privacy-policy" },
+		],
 	},
 	{
-		label: "Playground",
-		to: "https://stackblitz.com/edit/nuxt-ui",
-		target: "_blank",
+		label: "Project",
+		children: [
+			{ label: "Documentation", to: "https://github.com/MrAnyx/Shinro#readme", target: "_blank" },
+			{
+				label: "Roadmap",
+				to: "https://sites.plane.so/issues/cc8e5191c1414100b523437ec8cf82b4",
+				target: "_blank",
+			},
+			{ label: "Source code", to: "https://github.com/MrAnyx/Shinro", target: "_blank" },
+		],
 	},
 	{
-		label: "Releases",
-		to: "https://github.com/nuxt/ui/releases",
-		target: "_blank",
+		label: "Community",
+		children: [
+			{ label: "Report an issue", to: "https://github.com/MrAnyx/Shinro/issues", target: "_blank" },
+			{ label: "Contribute", to: "https://github.com/MrAnyx/Shinro#contributing", target: "_blank" },
+			{ label: "License", to: "https://github.com/MrAnyx/Shinro/blob/HEAD/LICENSE", target: "_blank" },
+		],
 	},
 ];
 </script>
