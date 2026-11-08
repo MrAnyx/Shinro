@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { Prisma } from "#prisma/client";
+import { MediaType, Prisma } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -62,6 +62,7 @@ export default router({
 				z.object({
 					type: z.literal("externalId"),
 					externalId: ServerMediaValidation.externalId,
+					mediaType: z.enum(MediaType),
 				}),
 			]),
 		)
@@ -72,7 +73,7 @@ export default router({
 			if (input.type === "id") {
 				mediaFilter = { id: input.id };
 			} else if (input.type === "externalId") {
-				mediaFilter = { externalId: input.externalId };
+				mediaFilter = { externalId: input.externalId, type: input.mediaType };
 			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",

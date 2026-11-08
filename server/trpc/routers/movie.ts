@@ -56,48 +56,59 @@ export default router({
 				schema: TmdbMovieDetailsResponseSchema,
 			});
 
-			return await prisma.$transaction(async (tx) => {
-				const movieExist = await tx.movie.findFirst({
-					where: {
-						media: {
-							ownerId: ctx.user.id,
-							externalId: input.externalMovieId,
-						},
-					},
-					select: {
-						id: true,
-					},
-				});
-
-				if (movieExist) {
-					throw new TRPCError({
-						code: "CONFLICT",
-						message: "This movie as already been added",
-					});
-				}
-
-				const movie = await tx.movie.create({
-					data: {
-						media: {
-							create: {
-								externalId: tmdbMovie.id,
-								name: tmdbMovie.title ?? null,
-								type: MediaType.MOVIE,
+			try {
+				return await prisma.$transaction(async (tx) => {
+					const movieExist = await tx.movie.findFirst({
+						where: {
+							media: {
 								ownerId: ctx.user.id,
-								imagePath: tmdbMovie.poster_path ?? null,
-								imageType: ImageType.TMDB,
-								source: SourceType.EXTERNAL,
+								externalId: input.externalMovieId,
 							},
 						},
-						overview: tmdbMovie.overview ?? null,
-					},
-					include: {
-						media: true,
-					},
-				});
+						select: {
+							id: true,
+						},
+					});
 
-				return movie;
-			});
+					if (movieExist) {
+						throw new TRPCError({
+							code: "CONFLICT",
+							message: "This movie as already been added",
+						});
+					}
+
+					const movie = await tx.movie.create({
+						data: {
+							media: {
+								create: {
+									externalId: tmdbMovie.id,
+									name: tmdbMovie.title ?? null,
+									type: MediaType.MOVIE,
+									ownerId: ctx.user.id,
+									imagePath: tmdbMovie.poster_path ?? null,
+									imageType: ImageType.TMDB,
+									source: SourceType.EXTERNAL,
+								},
+							},
+							overview: tmdbMovie.overview ?? null,
+						},
+						include: {
+							media: true,
+						},
+					});
+
+					return movie;
+				});
+			} catch (error) {
+				if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "This movie has already been added",
+						cause: error,
+					});
+				}
+				throw error;
+			}
 		}),
 
 	/**
@@ -331,9 +342,7 @@ export default router({
 			const movie = await prisma.movie.findFirst({
 				where: {
 					...movieFilter,
-					media: {
-						ownerId: ctx.user.id,
-					},
+					AND: [{ media: { ownerId: ctx.user.id } }],
 				},
 				include: {
 					media: true,
