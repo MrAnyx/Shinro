@@ -67,7 +67,8 @@ const features = ref<PageFeatureProps[][]>([
 	[
 		{
 			title: "All-in-One Library",
-			description: "Organize books, movies, series, and more in a single, searchable space.",
+			description:
+				"Put your books, movies, series, and other unfinished commitments in one searchable place. Your memory can take the day off.",
 			icon: "i-lucide-component",
 		},
 		{
@@ -81,7 +82,7 @@ const features = ref<PageFeatureProps[][]>([
 		{
 			title: "Consumption Stats",
 			description:
-				'Track your reading/watching habits with stats like "Most Binge-Watched Genre" or "Books You Started But Never Finished"',
+				'Get hard numbers on your reading and watching habits, including "Most Binge-Watched Genre" and "Books You Started But Never Finished." At least the chart won’t judge you.',
 			icon: "i-lucide-pie-chart",
 		},
 		{

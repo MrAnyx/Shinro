@@ -83,7 +83,8 @@ const navbarItems = ref<NavigationMenuItem[]>([
 			{
 				label: "Privacy Policy",
 				icon: "i-lucide-shield-alert",
-				description: "Display a modal within your application.",
+				description: "Learn what information Shinro handles and how to manage it.",
+				to: "/privacy-policy",
 			},
 		],
 	},
