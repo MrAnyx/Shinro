@@ -18,8 +18,13 @@ export const useInitializationStore = defineStore("initialization", {
 				const collectionStore = useCollectionStore();
 				const movieStore = useMovieStore();
 				const serieStore = useSerieStore();
+				const config = useClientConfig();
 
-				await Promise.all([collectionStore.initialize(), movieStore.initialize(), serieStore.initialize()]);
+				await Promise.all([
+					collectionStore.initialize(),
+					...(config.enableMovies ? [movieStore.initialize()] : []),
+					...(config.enableSeries ? [serieStore.initialize()] : []),
+				]);
 
 				this.isReady = true;
 			} finally {

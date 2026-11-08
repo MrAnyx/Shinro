@@ -1,9 +1,10 @@
 import { z } from "zod";
 
-import { router, protectedProcedure } from "#server/trpc/init";
+import { router, protectedProcedure, movieEnabledMiddleware } from "#server/trpc/init";
 
 export default router({
 	search: protectedProcedure
+		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				search: ServerPaginationValidation.search,

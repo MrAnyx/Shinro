@@ -1,9 +1,10 @@
 import { z } from "zod";
 
-import { router, protectedProcedure } from "#server/trpc/init";
+import { router, protectedProcedure, serieEnabledMiddleware } from "#server/trpc/init";
 
 export default router({
 	search: protectedProcedure
+		.use(serieEnabledMiddleware)
 		.input(z.object({ search: ServerPaginationValidation.search, page: ServerPaginationValidation.page }))
 		.output(PaginatedSchema(TmdbSerieSearchSchema))
 		.query(async ({ input, ctx }) => {

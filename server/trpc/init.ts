@@ -94,6 +94,18 @@ export const protectedProcedure = publicProcedure
 		return next();
 	});
 
+const requireEnabledFeature = (isEnabled: () => boolean) =>
+	trpc.middleware(({ next }) => {
+		if (!isEnabled()) {
+			throw new TRPCError({ code: "NOT_FOUND", message: "Feature not found" });
+		}
+
+		return next();
+	});
+
+export const movieEnabledMiddleware = requireEnabledFeature(() => serverEnv.NUXT_PUBLIC_ENABLE_MOVIES);
+export const serieEnabledMiddleware = requireEnabledFeature(() => serverEnv.NUXT_PUBLIC_ENABLE_SERIES);
+
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 	if (ctx.user.role !== "ADMIN") {
 		throw new TRPCError({

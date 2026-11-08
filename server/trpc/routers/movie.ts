@@ -2,13 +2,14 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { ImageType, MediaType, Prisma, SourceType } from "#prisma/client";
-import { router, protectedProcedure } from "#server/trpc/init";
+import { router, protectedProcedure, movieEnabledMiddleware } from "#server/trpc/init";
 
 export default router({
 	/**
 	 * Create a new movie for the authenticated user. The movie will be created with a media of type MOVIE.
 	 */
 	createFromInternal: protectedProcedure
+		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				name: ServerMediaValidation.name,
@@ -45,6 +46,7 @@ export default router({
 	 * Create a new movie for the authenticated user from an external source.
 	 */
 	createFromExternal: protectedProcedure
+		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				externalMovieId: ServerTmdbMovieValidation.id,
@@ -115,6 +117,7 @@ export default router({
 	 * Update an existing movie for the authenticated user.
 	 */
 	update: protectedProcedure
+		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				id: ServerMovieValidation.id,
@@ -189,6 +192,7 @@ export default router({
 	 * Delete an existing movie for the authenticated user.
 	 */
 	delete: protectedProcedure
+		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				id: ServerMovieValidation.id,
@@ -235,6 +239,7 @@ export default router({
 	 * Count the number of movies for the authenticated user.
 	 */
 	count: protectedProcedure
+		.use(movieEnabledMiddleware)
 		.input(z.void())
 		.output(z.number())
 		.query(async ({ ctx }) => {
@@ -252,6 +257,7 @@ export default router({
 	 * If the force flag is set to true, all the movies will be returned without pagination.
 	 */
 	getAll: protectedProcedure
+		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				page: ServerPaginationValidation.page,
@@ -312,6 +318,7 @@ export default router({
 	 * Get a movie by its ID for the authenticated user.
 	 */
 	getById: protectedProcedure
+		.use(movieEnabledMiddleware)
 		.input(
 			z.discriminatedUnion("type", [
 				z.object({
@@ -363,6 +370,7 @@ export default router({
 	 * Get the details of an internal movie (created manually by the user).
 	 */
 	getInternalDetails: protectedProcedure
+		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				id: ServerMovieValidation.id,
@@ -414,6 +422,7 @@ export default router({
 	 * Get the details of an external movie from TMDB, along with the user's movie if it is in their list.
 	 */
 	getExternalDetails: protectedProcedure
+		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				externalMovieId: ServerTmdbMovieValidation.id,

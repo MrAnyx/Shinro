@@ -2,10 +2,11 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { ImageType, MediaType, Prisma, SourceType } from "#prisma/client";
-import { router, protectedProcedure } from "#server/trpc/init";
+import { router, protectedProcedure, serieEnabledMiddleware } from "#server/trpc/init";
 
 export default router({
 	createFromInternal: protectedProcedure
+		.use(serieEnabledMiddleware)
 		.input(
 			z.object({
 				name: ServerMediaValidation.name,
@@ -37,6 +38,7 @@ export default router({
 		),
 
 	createFromExternal: protectedProcedure
+		.use(serieEnabledMiddleware)
 		.input(z.object({ externalSerieId: ServerTmdbSerieValidation.id }))
 		.output(SerieSchema)
 		.mutation(async ({ input, ctx }) => {
@@ -72,6 +74,7 @@ export default router({
 		}),
 
 	update: protectedProcedure
+		.use(serieEnabledMiddleware)
 		.input(
 			z.object({
 				id: ServerSerieValidation.id,
@@ -106,6 +109,7 @@ export default router({
 		}),
 
 	delete: protectedProcedure
+		.use(serieEnabledMiddleware)
 		.input(z.object({ id: ServerSerieValidation.id }))
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
@@ -145,11 +149,13 @@ export default router({
 		}),
 
 	count: protectedProcedure
+		.use(serieEnabledMiddleware)
 		.input(z.void())
 		.output(z.number())
 		.query(({ ctx }) => prisma.serie.count({ where: { media: { ownerId: ctx.user.id } } })),
 
 	getAll: protectedProcedure
+		.use(serieEnabledMiddleware)
 		.input(
 			z.object({
 				page: ServerPaginationValidation.page,
@@ -185,6 +191,7 @@ export default router({
 		}),
 
 	getById: protectedProcedure
+		.use(serieEnabledMiddleware)
 		.input(
 			z.discriminatedUnion("type", [
 				z.object({ type: z.literal("id"), id: ServerSerieValidation.id }),
@@ -207,6 +214,7 @@ export default router({
 		}),
 
 	getInternalDetails: protectedProcedure
+		.use(serieEnabledMiddleware)
 		.input(z.object({ id: ServerSerieValidation.id }))
 		.output(SerieDetailsSchema)
 		.query(async ({ input, ctx }) => {
@@ -225,6 +233,7 @@ export default router({
 		}),
 
 	getExternalDetails: protectedProcedure
+		.use(serieEnabledMiddleware)
 		.input(z.object({ externalSerieId: ServerTmdbSerieValidation.id }))
 		.output(SerieDetailsSchema)
 		.query(async ({ input, ctx }) => {

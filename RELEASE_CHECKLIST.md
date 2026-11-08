@@ -133,13 +133,13 @@ Use only the disposable staging database/accounts.
 - [ ] Change each supported status/rating/note field. Expected: data persists after refresh and remains associated with the correct account.
 - [ ] Assign and unassign the series from collections. Expected: membership is correct and no duplicate links appear.
 - [ ] Simulate TMDb empty results, timeout/rate limit, and unavailable service. Expected: useful recoverable state and no leaked token.
-- [ ] Set `NUXT_PUBLIC_ENABLE_SERIES=false`; try navigation and direct series URLs. Expected: series navigation is hidden and pages are blocked; authenticated series APIs remain accessible, matching movie feature-flag behavior.
+- [ ] Set `NUXT_PUBLIC_ENABLE_SERIES=false`; try navigation, direct series URLs, and authenticated `serie` and `tmdbSerie` queries and mutations. Expected: navigation is hidden, pages and procedures return not found, and the dashboard and enabled movie feature still initialize.
 - [ ] Apply the media external-ID migration on an isolated database with existing data. Verify all rows remain and a user can save a movie and a series with the same TMDB ID, but cannot save a duplicate of the same type; verify movie and series external-ID and collection lookups return the correct type and owner.
 - [ ] Create, edit, rate, set status, organize and delete internal and TMDB series; check listing/search pagination, saved badges, counts, dashboard and collections. Verify both details routes use the same page, with TMDB-only metadata shown only for external series.
 - [ ] Check series access as another user and logged out, malformed IDs, missing TMDB fields, empty search and TMDB errors. Expected: no cross-user data, controlled errors, and no fabricated saved state.
 - [ ] Delete a series with saved seasons and episodes in an isolated database. Verify all descendant media and collection links are removed atomically; mismatched descendant ownership rejects the deletion without removing anything.
 - [ ] Check series pages and controls with keyboard navigation and narrow/mobile viewports; ensure labels, focus, confirmation dialogs and responsive layout remain usable.
-- [ ] Set `NUXT_PUBLIC_ENABLE_MOVIES=false`; try navigation, direct movie URLs, and direct movie APIs. Expected: movies are inaccessible through UI and server/API paths.
+- [ ] Set `NUXT_PUBLIC_ENABLE_MOVIES=false`; try navigation, direct movie URLs, and authenticated `movie` and `tmdbMovie` queries and mutations. Expected: navigation is hidden, pages and procedures return not found, and the dashboard and enabled series feature still initialize. Repeat with both flags disabled.
 - [ ] Restore the release's intended movie/series flags and verify enabled routes work again.
 - [ ] Inspect season rows and season add/remove/detail controls. Expected: treat season/episode management as incomplete; an active control leading to a dead route or false success is a defect, not a passed workflow.
 
