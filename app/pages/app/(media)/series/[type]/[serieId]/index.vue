@@ -178,7 +178,6 @@ const { data: serieDetails, pending: isFetchingDetails } = useClientAsyncData<Se
 		}
 	},
 	{
-		watch: [routeSerieId, isExternal],
 		onError: (err) => {
 			if (getTRPCErrorCode(err) === "NOT_FOUND") {
 				notFound.value = true;
@@ -188,10 +187,6 @@ const { data: serieDetails, pending: isFetchingDetails } = useClientAsyncData<Se
 		},
 	},
 );
-
-watch([routeSerieId, isExternal], () => {
-	notFound.value = false;
-});
 
 // Pending values are shown right away while the update (debounced for rating) is in flight
 const pendingCollectionIds = usePendingValue<string[]>();
