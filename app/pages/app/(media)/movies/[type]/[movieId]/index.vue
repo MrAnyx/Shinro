@@ -5,10 +5,10 @@
 		description="This movie is not available."
 		icon="i-lucide-search-x"
 	/>
-	<div v-else class="flex gap-8 w-full">
+	<div v-else class="flex flex-col lg:flex-row gap-8 w-full">
 		<!-- Side bar with image and actions -->
-		<aside>
-			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle" class="w-80">
+		<aside class="w-full lg:w-80 shrink-0">
+			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle">
 				<!-- Image -->
 				<ImageFallback
 					provider="tmdb"

@@ -11,6 +11,6 @@ const internalCount = computed(() => props.count ?? 0);
 const label = computed(() =>
 	internalCount.value > 0
 		? `${internalCount.value} ${internalCount.value > 1 ? "episodes" : "episode"}`
-		: "No episode",
+		: "No episodes",
 );
 </script>

@@ -83,21 +83,20 @@
 			/>
 
 			<!-- Details badges -->
-			<div class="flex gap-2 flex-wrap" v-if="isExternal && serieDetails?.details">
-				<AdultBadge :adult="serieDetails.details.adult ?? undefined" />
-				<DetailsReleaseBadge :start-date="serieDetails.details.first_air_date ?? undefined" />
-				<DetailsSeasonCountBadge
-					v-if="serieDetails.details.number_of_seasons != null"
-					:count="serieDetails.details.number_of_seasons"
-				/>
-				<DetailsEpisodeCountBadge
-					v-if="serieDetails.details.number_of_episodes != null"
-					:count="serieDetails.details.number_of_episodes"
-				/>
-				<VoteBadge
-					:score="serieDetails.details.vote_average ?? undefined"
-					:count="serieDetails.details.vote_count ?? undefined"
-				/>
+			<div class="flex gap-2 flex-wrap" v-if="isExternal">
+				<template v-if="isFetchingDetails">
+					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
+				</template>
+				<template v-else>
+					<AdultBadge :adult="serieDetails?.details?.adult ?? undefined" />
+					<DetailsReleaseBadge :start-date="serieDetails?.details?.first_air_date ?? undefined" />
+					<DetailsSeasonCountBadge :count="serieDetails?.details?.number_of_seasons ?? undefined" />
+					<DetailsEpisodeCountBadge :count="serieDetails?.details?.number_of_episodes ?? undefined" />
+					<VoteBadge
+						:score="serieDetails?.details?.vote_average ?? undefined"
+						:count="serieDetails?.details?.vote_count ?? undefined"
+					/>
+				</template>
 			</div>
 
 			<!-- Synopsis -->
