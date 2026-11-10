@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { ofetch } from "ofetch";
 import type { ZodType } from "zod";
 
@@ -24,7 +25,17 @@ export const tmdb = async <T = unknown>(url: string, options?: FetchOptions<T>):
 	const { schema, ...fetchOptions } = options ?? {};
 	const fetch = await _tmdb();
 
-	const raw = await fetch(url, fetchOptions);
+	const raw = await fetch(url, fetchOptions).catch((error: unknown) => {
+		if (
+			error instanceof Error &&
+			"response" in error &&
+			error.response instanceof Response &&
+			error.response.status === 404
+		) {
+			throw new TRPCError({ code: "NOT_FOUND", message: "TMDB resource not found", cause: error });
+		}
+		throw error;
+	});
 
 	if (schema) {
 		return schema.parseAsync(raw);
