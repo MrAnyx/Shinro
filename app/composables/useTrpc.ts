@@ -1,1 +1,4 @@
-export const useTrpc = () => useNuxtApp().$trpc;
+export const useTrpc = () => {
+	const nuxtApp = useNuxtApp();
+	return nuxtApp.$trpc;
+};

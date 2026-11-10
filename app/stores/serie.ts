@@ -4,25 +4,31 @@ export const useSerieStore = defineStore("serie", {
 	}),
 	actions: {
 		async initialize() {
-			this.total = await useTrpc().serie.count.query();
+			const trpc = useTrpc();
+			this.total = await trpc.serie.count.query();
 		},
 		async createSerieFromInternal(payload: TRPCProcedureInput<"serie", "createFromInternal">) {
-			const serie = await useTrpc().serie.createFromInternal.mutate(payload);
+			const trpc = useTrpc();
+			const serie = await trpc.serie.createFromInternal.mutate(payload);
 			this.total += 1;
 			return serie;
 		},
 		async createSerieFromExternal(payload: TRPCProcedureInput<"serie", "createFromExternal">) {
-			const serie = await useTrpc().serie.createFromExternal.mutate(payload);
+			const trpc = useTrpc();
+			const serie = await trpc.serie.createFromExternal.mutate(payload);
 			this.total += 1;
 			return serie;
 		},
 		async deleteSerie(payload: TRPCProcedureInput<"serie", "delete">) {
-			await useTrpc().serie.delete.mutate(payload);
+			const trpc = useTrpc();
+			await trpc.serie.delete.mutate(payload);
 			this.total -= 1;
 			try {
-				await useSeasonStore().initialize();
+				const seasonStore = useSeasonStore();
+				await seasonStore.initialize();
 			} catch (error) {
-				useStatusToast().error(error, {
+				const statusToast = useStatusToast();
+				statusToast.error(error, {
 					description: "Series deleted, but the season count could not be refreshed. Reload to try again.",
 				});
 			}

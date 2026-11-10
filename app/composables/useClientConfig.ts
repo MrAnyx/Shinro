@@ -1,1 +1,4 @@
-export const useClientConfig = () => clientEnvSchema.parse(useRuntimeConfig().public);
+export const useClientConfig = () => {
+	const runtimeConfig = useRuntimeConfig();
+	return clientEnvSchema.parse(runtimeConfig.public);
+};
