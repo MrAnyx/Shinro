@@ -13,7 +13,7 @@
 		</template>
 	</UPageHero>
 
-	<div class="mx-auto mb-20 max-w-6xl px-4 sm:px-6 lg:px-8">
+	<UPageSection class="mb-20" :ui="{ container: 'gap-0 sm:gap-0 py-0 sm:py-0 lg:py-0' }">
 		<section aria-labelledby="short-version" class="mb-20">
 			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				<UPageCard
@@ -43,7 +43,7 @@
 			</div>
 		</section>
 
-		<article class="mx-auto max-w-6xl space-y-10">
+		<article class="space-y-10">
 			<section class="space-y-3">
 				<h3 class="text-2xl font-semibold text-highlighted">
 					<span class="text-primary">1.</span> Who is responsible?
@@ -205,7 +205,7 @@
 				</p>
 			</section>
 		</article>
-	</div>
+	</UPageSection>
 </template>
 
 <script setup lang="ts">
