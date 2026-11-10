@@ -13,5 +13,6 @@ export const SerieDetailsSchema = z.object({
 	serie: SerieSchema.nullable(),
 	details: z.lazy(() => TmdbSerieDetailsSchema).nullable(),
 	credits: z.array(z.lazy(() => TmdbSerieCreditSchema)),
+	seasons: z.array(z.lazy(() => TmdbSerieSeasonSchema)),
 	collections: z.array(z.lazy(() => BaseCollectionSchema)),
 });

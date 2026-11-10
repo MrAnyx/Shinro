@@ -1,5 +1,17 @@
 import { z } from "zod";
 
+export const TmdbSerieSeasonSchema = z.object({
+	id: z.string(),
+	name: z.string().nullish(),
+	overview: z.string().nullish(),
+	poster_path: z.string().nullish(),
+	air_date: z.string().nullish(),
+	episode_count: z.number().nullish(),
+	season_number: z.number().int().nonnegative(),
+	vote_average: z.number().nullish(),
+	internal_season: z.lazy(() => SeasonSchema).nullish(),
+});
+
 export const TmdbSerieSearchSchema = z.object({
 	id: z.string(),
 	name: z.string().nullish(),

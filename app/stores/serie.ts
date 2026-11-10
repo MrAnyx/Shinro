@@ -19,6 +19,13 @@ export const useSerieStore = defineStore("serie", {
 		async deleteSerie(payload: TRPCProcedureInput<"serie", "delete">) {
 			await useTrpc().serie.delete.mutate(payload);
 			this.total -= 1;
+			try {
+				await useSeasonStore().initialize();
+			} catch (error) {
+				useStatusToast().error(error, {
+					description: "Series deleted, but the season count could not be refreshed. Reload to try again.",
+				});
+			}
 		},
 	},
 });

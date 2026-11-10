@@ -18,12 +18,13 @@ export const useInitializationStore = defineStore("initialization", {
 				const collectionStore = useCollectionStore();
 				const movieStore = useMovieStore();
 				const serieStore = useSerieStore();
+				const seasonStore = useSeasonStore();
 				const config = useClientConfig();
 
 				await Promise.all([
 					collectionStore.initialize(),
 					...(config.enableMovies ? [movieStore.initialize()] : []),
-					...(config.enableSeries ? [serieStore.initialize()] : []),
+					...(config.enableSeries ? [serieStore.initialize(), seasonStore.initialize()] : []),
 				]);
 
 				this.isReady = true;

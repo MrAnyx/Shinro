@@ -229,7 +229,13 @@ export default router({
 				where: { mediaId: serie.id, collection: { ownerId: ctx.user.id } },
 				select: { collection: true },
 			});
-			return { serie, details: null, credits: [], collections: collections.map((item) => item.collection) };
+			return {
+				serie,
+				details: null,
+				credits: [],
+				seasons: [],
+				collections: collections.map((item) => item.collection),
+			};
 		}),
 
 	getExternalDetails: protectedProcedure
@@ -239,7 +245,7 @@ export default router({
 		.query(async ({ input, ctx }) => {
 			const id = input.externalSerieId;
 			const [response, creditsResponse, serie] = await Promise.all([
-				useCache(`tmdb:serie:${id}:details`, () =>
+				useCache(`tmdb:serie:${id}:details:v2`, () =>
 					tmdb(`/tv/${id}`, { schema: TmdbSerieDetailsResponseSchema }),
 				),
 				useCache(`tmdb:serie:${id}:credits`, () =>
@@ -256,6 +262,13 @@ export default router({
 						select: { collection: true },
 					})
 				: [];
+			const savedSeasons = serie
+				? await prisma.season.findMany({
+						where: { serieId: serie.id, media: { ownerId: ctx.user.id } },
+						include: { media: true },
+					})
+				: [];
+			const savedByNumber = new Map(savedSeasons.map((season) => [season.number, season]));
 			return {
 				serie,
 				details: {
@@ -263,6 +276,9 @@ export default router({
 					genres: response.genres?.flatMap((genre) => (genre?.name?.trim() ? [genre.name.trim()] : [])) ?? [],
 				},
 				credits: creditsResponse.cast?.filter((item) => !!item) ?? [],
+				seasons: (response.seasons?.filter((item) => !!item) ?? []).map((season) =>
+					Object.assign({}, season, { internal_season: savedByNumber.get(season.season_number) }),
+				),
 				collections: collections.map((item) => item.collection),
 			};
 		}),

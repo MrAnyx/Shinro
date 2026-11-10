@@ -129,13 +129,53 @@
 						:credit-card-to-fn="(c: TmdbCredit) => `https://www.themoviedb.org/person/${c.id}`"
 					/>
 				</template>
+				<template #seasons>
+					<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
+						<UTable :data="serieDetails?.seasons" :columns="seasonColumns" :loading="isFetchingDetails">
+							<template #empty>
+								<UEmpty title="No seasons found" variant="naked" icon="i-lucide-ban" />
+							</template>
+							<template #image-cell="{ row }">
+								<ImageFallback
+									:width="60"
+									:height="90"
+									class="rounded-sm"
+									provider="tmdb"
+									:src="row.original.poster_path"
+								/>
+							</template>
+							<template #date-cell="{ row }">
+								<NuxtTime
+									v-if="row.original.air_date"
+									:datetime="row.original.air_date"
+									year="numeric"
+									month="short"
+									day="numeric"
+									timezone="UTC"
+								/>
+							</template>
+							<template #vote-cell="{ row }">
+								<VoteBadge :score="row.original.vote_average ?? undefined" />
+							</template>
+							<template #actions-cell="{ row }">
+								<ToggleButton
+									variant="ghost"
+									:is-added="!!row.original.internal_season"
+									:aria-label="`${row.original.internal_season ? 'Remove' : 'Add'} ${row.original.name || `season ${row.original.season_number}`} ${row.original.internal_season ? 'from' : 'to'} My List`"
+									:onClickOn="() => addSeasonToMyList(row.original)"
+									:onClickOff="() => removeSeasonFromMyList(row.original)"
+								/>
+							</template>
+						</UTable>
+					</UCard>
+				</template>
 			</UTabs>
 		</main>
 	</div>
 </template>
 
 <script setup lang="ts">
-import type { TabsItem } from "@nuxt/ui";
+import type { TabsItem, TableColumn } from "@nuxt/ui";
 import { useDebounceFn } from "@vueuse/core";
 
 import { LazySerieFormModal } from "#components";
@@ -155,6 +195,7 @@ definePageMeta({
 const route = useRoute();
 const trpc = useTrpc();
 const serieStore = useSerieStore();
+const seasonStore = useSeasonStore();
 const toast = useStatusToast();
 const overlay = useOverlay();
 const serieFormModal = overlay.create(LazySerieFormModal);
@@ -220,8 +261,42 @@ const userSerieId = computed(() => serieDetails.value?.serie?.id);
 
 // Derived UI state: tabs are only shown for external series
 const tabs = computed<TabsItem[]>(() =>
-	isExternal.value ? [{ icon: "i-lucide-users", label: "Credits", slot: "credits" }] : [],
+	isExternal.value
+		? [
+				{ icon: "i-lucide-users", label: "Credits", slot: "credits" },
+				{ icon: "i-lucide-layers", label: "Seasons", slot: "seasons" },
+			]
+		: [],
 );
+
+const seasonColumns: TableColumn<TmdbSerieSeason>[] = [
+	{ id: "image", meta: { class: { td: "w-[60px]" } } },
+	{
+		id: "title",
+		header: "Title",
+		cell: ({ row }) =>
+			row.original.internal_season?.media.name ?? row.original.name ?? `Season ${row.original.season_number}`,
+		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
+	},
+	{
+		id: "synopsis",
+		header: "Synopsis",
+		cell: ({ row }) => row.original.internal_season?.overview ?? row.original.overview,
+		meta: { class: { td: "max-w-[300px] truncate" } },
+	},
+	{
+		accessorKey: "episode_count",
+		header: "Episodes",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		id: "date",
+		header: "Released At",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{ id: "vote", header: "Vote", meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } } },
+	{ id: "actions", meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } } },
+];
 
 // Update the series details when the user's series is added, edited, or removed
 const _setSerieDetailsSerie = (serie?: Serie) => {
@@ -230,6 +305,9 @@ const _setSerieDetailsSerie = (serie?: Serie) => {
 			...serieDetails.value,
 			serie: serie ?? null,
 			collections: serie ? serieDetails.value.collections : [],
+			seasons: serie
+				? serieDetails.value.seasons
+				: serieDetails.value.seasons.map((season) => ({ ...season, internal_season: undefined })),
 		};
 	}
 };
@@ -339,4 +417,33 @@ const updateRating = useDebounceFn(
 		}),
 	DEBOUNCE_TIMER,
 );
+
+const addSeasonToMyList = (season: TmdbSerieSeason) =>
+	toast.withErrorToast(async () => {
+		if (season.internal_season) {
+			return;
+		}
+		const result = await seasonStore.createSeasonFromExternal({
+			externalSerieId: routeSerieId.value,
+			seasonNumber: season.season_number,
+		});
+		season.internal_season = result.season;
+		_setSerieDetailsSerie(result.serie);
+	});
+
+const removeSeasonFromMyList = (season: TmdbSerieSeason) =>
+	toast.withErrorToast(async () => {
+		if (!season.internal_season) {
+			return;
+		}
+		const { id } = season.internal_season;
+		const result = await openConfirmationModal(() => seasonStore.deleteSeason({ id }), {
+			icon: "i-lucide-trash",
+			title: "Delete this season",
+			message: "This also deletes its saved episodes. Press confirm to proceed.",
+		});
+		if (result) {
+			season.internal_season = undefined;
+		}
+	});
 </script>

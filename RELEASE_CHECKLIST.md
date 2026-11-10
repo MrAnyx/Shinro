@@ -135,7 +135,7 @@ Use only the disposable staging database/accounts.
 - [ ] Change each supported status/rating/note field. Expected: data persists after refresh and remains associated with the correct account.
 - [ ] Assign and unassign the series from collections. Expected: membership is correct and no duplicate links appear.
 - [ ] Simulate TMDb empty results, timeout/rate limit, and unavailable service. Expected: useful recoverable state and no leaked token.
-- [ ] Set `NUXT_PUBLIC_ENABLE_SERIES=false`; try navigation, direct series URLs, and authenticated `serie` and `tmdbSerie` queries and mutations. Expected: navigation is hidden, pages and procedures return not found, and the dashboard and enabled movie feature still initialize.
+- [ ] Set `NUXT_PUBLIC_ENABLE_SERIES=false`; try navigation, direct series URLs, and authenticated `serie`, `season`, and `tmdbSerie` queries and mutations. Expected: navigation is hidden, pages and procedures return not found, and the dashboard and enabled movie feature still initialize.
 - [ ] Apply the media external-ID migration on an isolated database with existing data. Verify all rows remain and a user can save a movie and a series with the same TMDB ID, but cannot save a duplicate of the same type; verify movie and series external-ID and collection lookups return the correct type and owner.
 - [ ] Create, edit, rate, set status, organize and delete internal and TMDB series; check listing/search pagination, saved badges, counts, dashboard and collections. Verify both details routes use the same page, with TMDB-only metadata shown only for external series.
 - [ ] Check series access as another user and logged out, malformed IDs, missing TMDB fields, empty search and TMDB errors. Expected: no cross-user data, controlled errors, and no fabricated saved state.
@@ -143,7 +143,11 @@ Use only the disposable staging database/accounts.
 - [ ] Check series pages and controls with keyboard navigation and narrow/mobile viewports; ensure labels, focus, confirmation dialogs and responsive layout remain usable.
 - [ ] Set `NUXT_PUBLIC_ENABLE_MOVIES=false`; try navigation, direct movie URLs, and authenticated `movie` and `tmdbMovie` queries and mutations. Expected: navigation is hidden, pages and procedures return not found, and the dashboard and enabled series feature still initialize. Repeat with both flags disabled.
 - [ ] Restore the release's intended movie/series flags and verify enabled routes work again.
-- [ ] Inspect season rows and season add/remove/detail controls. Expected: treat season/episode management as incomplete; an active control leading to a dead route or false success is a defect, not a passed workflow.
+- [ ] Open an external series with multiple seasons, specials (season 0), missing artwork and an empty season list. Expected: the Seasons tab shows TMDB metadata and saved state, including after refresh; it remains usable by keyboard and on narrow screens.
+- [ ] With an older cached series-details response present, open its external details page. Expected: the season list loads from the new cache entry without waiting for the old entry to expire.
+- [ ] Add and remove seasons on saved and unsaved series. Expected: adding the first season also saves its series atomically; rows, sidebar and library counts update and persist after refresh. Canceling removal changes nothing; confirming removes the season, its owned episodes and collection links, but not the series or other seasons. Deleting the series clears all season rows and counts.
+- [ ] Delete a series while the season count request fails. Expected: the series remains deleted, the page reflects the deletion, and an error explains that the season count could not be refreshed.
+- [ ] Try duplicate, nonexistent and another user's seasons, mismatched descendant ownership, and TMDB failures. Expected: controlled errors, no cross-user changes or partial records, and no false saved state.
 
 ## 9. Check Collections
 
@@ -244,5 +248,5 @@ After deployment, run only non-destructive production smoke checks: open the app
 
 - Books, music, games, statistics, and Spotify-backed workflows are not currently complete user features.
 - Collection detail is currently a placeholder; verify collection CRUD, favorites, and media assignment rather than treating the detail page as complete.
-- Series season/episode controls are incomplete and should not be accepted as functional.
+- Season detail and episode management are incomplete and should not be accepted as functional.
 - There is currently no dedicated test/spec suite or test script; manual staging validation remains necessary until automated coverage is added.
