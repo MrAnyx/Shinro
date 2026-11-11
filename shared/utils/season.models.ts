@@ -15,6 +15,7 @@ export const SeasonWithSerieSchema = SeasonSchema.extend({
 });
 
 export const SeasonEpisodeSchema = z.object({
+	id: z.uuid().optional(),
 	number: z.number().int().nonnegative(),
 	name: z.string().nullish(),
 	overview: z.string().nullish(),

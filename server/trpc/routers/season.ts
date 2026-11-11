@@ -131,6 +131,35 @@ export default router({
 			return season;
 		}),
 
+	getTmdbMetadata: protectedProcedure
+		.use(serieEnabledMiddleware)
+		.input(z.object({ id: ServerSeasonValidation.id }))
+		.output(TmdbSerieSeasonSchema.nullable())
+		.query(async ({ input, ctx }) => {
+			const season = await prisma.season.findFirst({
+				where: { id: input.id, media: { ownerId: ctx.user.id }, serie: { media: { ownerId: ctx.user.id } } },
+				include: { media: true, serie: { include: { media: true } } },
+			});
+			if (!season) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Season not found" });
+			}
+			if (season.media.source !== SourceType.EXTERNAL) {
+				return null;
+			}
+			const serieId = season.serie.media.externalId;
+			if (!serieId) {
+				throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Season has no external series ID" });
+			}
+			const details = await useCache(`tmdb:serie:${serieId}:details:v2`, () =>
+				tmdb(`/tv/${serieId}`, { schema: TmdbSerieDetailsResponseSchema }),
+			);
+			const metadata = details.seasons?.find((item) => item?.season_number === season.number);
+			if (!metadata) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Season not found on TMDB" });
+			}
+			return metadata;
+		}),
+
 	getExternalDetails: protectedProcedure
 		.use(serieEnabledMiddleware)
 		.input(
@@ -225,6 +254,7 @@ export default router({
 					}
 					const own = saved.get(episode.episode_number);
 					episodes.push({
+						...(own ? { id: own.id } : {}),
 						number: episode.episode_number,
 						name: own?.media.name ?? episode.name,
 						overview: own?.overview ?? episode.overview,
@@ -239,6 +269,7 @@ export default router({
 			}
 			for (const episode of saved.values()) {
 				episodes.push({
+					id: episode.id,
 					number: episode.number,
 					name: episode.media.name,
 					overview: episode.overview,
@@ -309,6 +340,7 @@ export default router({
 				},
 				create: {
 					number: input.number,
+					overview: episode.overview ?? null,
 					season: { connect: { id: season.id } },
 					media: {
 						create: {
@@ -316,6 +348,9 @@ export default router({
 							source: SourceType.EXTERNAL,
 							ownerId: ctx.user.id,
 							externalId: episode.id,
+							name: episode.name ?? null,
+							imagePath: episode.still_path ?? null,
+							imageType: ImageType.TMDB,
 							status: input.status,
 						},
 					},

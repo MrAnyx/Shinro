@@ -51,6 +51,8 @@ export const useUserStore = defineStore("user", {
 				await trpc.user.logout.mutate();
 			} finally {
 				this.user = null;
+				useEpisodeStore().resetSession();
+				useInitializationStore().$reset();
 				clearNuxtData();
 			}
 		},
@@ -81,6 +83,8 @@ export const useUserStore = defineStore("user", {
 
 			await trpc.user.deleteMe.mutate();
 			this.user = null;
+			useEpisodeStore().resetSession();
+			useInitializationStore().$reset();
 		},
 	},
 });

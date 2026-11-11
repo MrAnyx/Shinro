@@ -86,6 +86,7 @@ const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
 const serieStore = useSerieStore();
 const seasonStore = useSeasonStore();
+const episodeStore = useEpisodeStore();
 const userStore = useUserStore();
 const mediaStore = useMediaStore();
 const config = useClientConfig();
@@ -153,6 +154,12 @@ const mediaItems = computed<NavigationMenuItem[]>(() => {
 					to: "/app/seasons",
 					icon: "i-lucide-layers",
 					badge: seasonStore.total,
+				},
+				{
+					label: "Episodes",
+					to: "/app/episodes",
+					icon: "i-lucide-list-video",
+					badge: episodeStore.total,
 				},
 			],
 		},

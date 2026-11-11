@@ -12,6 +12,10 @@ export const useInitializationStore = defineStore("initialization", {
 				return;
 			}
 
+			const userStore = useUserStore();
+			const userId = userStore.user?.id;
+			const episodeStore = useEpisodeStore();
+			const { sessionRevision } = episodeStore;
 			try {
 				this.isLoading = true;
 
@@ -24,12 +28,18 @@ export const useInitializationStore = defineStore("initialization", {
 				await Promise.all([
 					collectionStore.initialize(),
 					...(config.enableMovies ? [movieStore.initialize()] : []),
-					...(config.enableSeries ? [serieStore.initialize(), seasonStore.initialize()] : []),
+					...(config.enableSeries
+						? [serieStore.initialize(), seasonStore.initialize(), episodeStore.initialize()]
+						: []),
 				]);
 
-				this.isReady = true;
+				if (userStore.user?.id === userId && episodeStore.sessionRevision === sessionRevision) {
+					this.isReady = true;
+				}
 			} finally {
-				this.isLoading = false;
+				if (userStore.user?.id === userId && episodeStore.sessionRevision === sessionRevision) {
+					this.isLoading = false;
+				}
 			}
 		},
 	},

@@ -23,6 +23,8 @@ export const useSerieStore = defineStore("serie", {
 			const trpc = useTrpc();
 			await trpc.serie.delete.mutate(payload);
 			this.total -= 1;
+			const episodeStore = useEpisodeStore();
+			episodeStore.invalidate();
 			try {
 				const seasonStore = useSeasonStore();
 				await seasonStore.initialize();
@@ -30,6 +32,14 @@ export const useSerieStore = defineStore("serie", {
 				const statusToast = useStatusToast();
 				statusToast.error(error, {
 					description: "Series deleted, but the season count could not be refreshed. Reload to try again.",
+				});
+			}
+			try {
+				await episodeStore.initialize();
+			} catch (error) {
+				const statusToast = useStatusToast();
+				statusToast.error(error, {
+					description: "Series deleted, but the episode count could not be refreshed. Reload to try again.",
 				});
 			}
 		},

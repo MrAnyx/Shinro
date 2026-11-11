@@ -1,6 +1,7 @@
 import { router } from "#server/trpc/init";
 import cacheRouter from "#server/trpc/routers/cache";
 import collectionRouter from "#server/trpc/routers/collection";
+import episodeRouter from "#server/trpc/routers/episode";
 import mediaRouter from "#server/trpc/routers/media";
 import movieRouter from "#server/trpc/routers/movie";
 import seasonRouter from "#server/trpc/routers/season";
@@ -18,6 +19,7 @@ export const appRouter = router({
 	movie: movieRouter,
 	serie: serieRouter,
 	season: seasonRouter,
+	episode: episodeRouter,
 	media: mediaRouter,
 });
 
