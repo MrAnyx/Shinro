@@ -107,38 +107,58 @@
 							<UButton label="Retry" color="error" variant="subtle" @click="refreshEpisodes()" />
 						</template>
 					</UAlert>
-					<UCard v-else :ui="{ body: 'p-0! h-full' }" class="h-full">
-						<UTable :data="episodes" :columns="episodeColumns" :loading="loadingEpisodes">
-							<template #empty>
-								<UEmpty title="No episodes found" variant="naked" icon="i-lucide-ban" />
-							</template>
-							<template #image-cell="{ row }">
-								<ImageFallback
-									:width="100"
-									:height="56"
-									class="rounded-sm"
-									provider="tmdb"
-									:src="row.original.imagePath"
-								/>
-							</template>
-							<template #date-cell="{ row }">
-								<NuxtTime
-									v-if="row.original.airDate"
-									:datetime="row.original.airDate"
-									year="numeric"
-									month="short"
-									day="numeric"
-									timezone="UTC"
-								/>
-							</template>
-							<template #duration-cell="{ row }">
-								<DetailsDurationBadge :duration="row.original.runtime ?? undefined" />
-							</template>
-							<template #vote-cell="{ row }">
-								<VoteBadge :score="row.original.voteAverage ?? undefined" />
-							</template>
-						</UTable>
-					</UCard>
+					<div v-else class="flex flex-col gap-4">
+						<UAlert
+							v-if="!season"
+							color="info"
+							variant="subtle"
+							title="Add this season to My List to edit episode statuses"
+						/>
+						<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
+							<UTable :data="episodes" :columns="episodeColumns" :loading="loadingEpisodes">
+								<template #empty>
+									<UEmpty title="No episodes found" variant="naked" icon="i-lucide-ban" />
+								</template>
+								<template #image-cell="{ row }">
+									<ImageFallback
+										:width="100"
+										:height="56"
+										class="rounded-sm"
+										provider="tmdb"
+										:src="row.original.imagePath"
+									/>
+								</template>
+								<template #date-cell="{ row }">
+									<NuxtTime
+										v-if="row.original.airDate"
+										:datetime="row.original.airDate"
+										year="numeric"
+										month="short"
+										day="numeric"
+										timezone="UTC"
+									/>
+								</template>
+								<template #duration-cell="{ row }">
+									<DetailsDurationBadge :duration="row.original.runtime ?? undefined" />
+								</template>
+								<template #vote-cell="{ row }">
+									<VoteBadge :score="row.original.voteAverage ?? undefined" />
+								</template>
+								<template #status-cell="{ row }">
+									<StatusSelectMenu
+										:model-value="episodeStatus(row.original)"
+										:type="MediaType.EPISODE"
+										class="w-full"
+										variant="subtle"
+										:aria-label="`Status for ${row.original.name ?? `episode ${row.original.number}`}`"
+										:disabled="!season"
+										:loading="pendingEpisodeStatuses.has(row.original.number)"
+										@update:model-value="updateEpisodeStatus(row.original.number, $event)"
+									/>
+								</template>
+							</UTable>
+						</UCard>
+					</div>
 				</template>
 			</UTabs>
 		</main>
@@ -288,16 +308,16 @@ const episodeColumns: TableColumn<SeasonEpisode>[] = [
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
 	{ id: "vote", header: "Vote", meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } } },
+	{ id: "status", header: "Status", meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } } },
 ];
 
-// Internal seasons load episodes/credits separately (merged with saved edits); external ones come with the details
 const {
 	data: internalEpisodes,
 	pending: loadingInternalEpisodes,
 	error: internalEpisodesError,
 	refresh: refreshInternalEpisodes,
 	clear: clearInternalEpisodes,
-} = useClientAsyncData(() => trpc.season.getEpisodes.query({ id: routeSeasonId.value }), {
+} = useClientAsyncData(() => trpc.season.getEpisodes.query({ id: id.value! }), {
 	immediate: false,
 	onError: () => {},
 });
@@ -311,28 +331,61 @@ const {
 	immediate: false,
 	onError: () => {},
 });
-watch([sourceType, routeSerieId, routeSeasonId], () => {
-	clearInternalEpisodes();
-	clearInternalCredits();
-});
 watch(
-	() => internalData.value?.id,
-	(seasonId) => {
-		if (seasonId && !isExternal.value && seasonId === routeSeasonId.value) {
+	[id, sourceType, routeSerieId, routeSeasonId],
+	([seasonId, type, serieId, seasonRouteId]) => {
+		clearInternalEpisodes();
+		clearInternalCredits();
+		const matchesRoute =
+			type === MediaSourceTypes.internal
+				? seasonId === seasonRouteId
+				: season.value?.serie.media.externalId === serieId && season.value.number === Number(seasonRouteId);
+		if (seasonId && matchesRoute) {
 			refreshInternalEpisodes();
-			refreshInternalCredits();
+			if (type === MediaSourceTypes.internal) {
+				refreshInternalCredits();
+			}
 		}
 	},
 	{ immediate: true },
 );
-const episodes = computed(() => (isExternal.value ? externalData.value?.episodes : internalEpisodes.value));
+const episodes = computed(() => (id.value ? internalEpisodes.value : externalData.value?.episodes));
 const credits = computed(() => (isExternal.value ? externalData.value?.credits : internalCredits.value));
-const loadingEpisodes = computed(() => (isExternal.value ? pendingExternal.value : loadingInternalEpisodes.value));
+const loadingEpisodes = computed(() => (id.value ? loadingInternalEpisodes.value : pendingExternal.value));
 const loadingCredits = computed(() => (isExternal.value ? pendingExternal.value : loadingInternalCredits.value));
-const episodesError = computed(() => (isExternal.value ? null : internalEpisodesError.value));
+const episodesError = computed(() => (id.value ? internalEpisodesError.value : null));
 const creditsError = computed(() => (isExternal.value ? null : internalCreditsError.value));
 const refreshEpisodes = () => refreshInternalEpisodes();
 const refreshCredits = () => refreshInternalCredits();
+
+const pendingEpisodeStatuses = reactive(new Map<number, MediaStatus | undefined>());
+watch([id, sourceType, routeSerieId, routeSeasonId], () => pendingEpisodeStatuses.clear());
+const episodeStatus = (episode: SeasonEpisode) =>
+	pendingEpisodeStatuses.has(episode.number)
+		? pendingEpisodeStatuses.get(episode.number)
+		: (episode.status ?? undefined);
+const updateEpisodeStatus = async (number: number, status: MediaStatus | undefined) => {
+	const seasonId = id.value;
+	if (!seasonId || pendingEpisodeStatuses.has(number)) {
+		return;
+	}
+	pendingEpisodeStatuses.set(number, status);
+	try {
+		await trpc.season.updateEpisodeStatus.mutate({ seasonId, number, status: status ?? null });
+		if (id.value === seasonId && internalEpisodes.value) {
+			const episode = internalEpisodes.value.find((item) => item.number === number);
+			if (episode) {
+				episode.status = status ?? null;
+			}
+		}
+	} catch (error) {
+		toast.error(error, { description: "Failed to update episode status" });
+	} finally {
+		if (id.value === seasonId) {
+			pendingEpisodeStatuses.delete(number);
+		}
+	}
+};
 
 const setSeason = (updated: Season) => {
 	if (isExternal.value && externalData.value?.internalSeason) {

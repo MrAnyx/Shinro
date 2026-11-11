@@ -232,6 +232,7 @@ export default router({
 						airDate: episode.air_date,
 						voteAverage: episode.vote_average,
 						runtime: episode.runtime,
+						status: own?.media.status ?? null,
 					});
 					saved.delete(episode.episode_number);
 				}
@@ -244,9 +245,83 @@ export default router({
 					imagePath: episode.media.imagePath,
 					airDate: null,
 					voteAverage: null,
+					status: episode.media.status,
 				});
 			}
 			return episodes.sort((a, b) => a.number - b.number);
+		}),
+
+	updateEpisodeStatus: protectedProcedure
+		.use(serieEnabledMiddleware)
+		.input(
+			z.object({
+				seasonId: ServerSeasonValidation.id,
+				number: z.number().int().nonnegative(),
+				status: ServerMediaValidation.status.nullable(),
+			}),
+		)
+		.output(z.void())
+		.mutation(async ({ input, ctx }) => {
+			const season = await prisma.season.findFirst({
+				where: {
+					id: input.seasonId,
+					media: { ownerId: ctx.user.id },
+					serie: { media: { ownerId: ctx.user.id } },
+				},
+				include: { media: true, serie: { include: { media: true } } },
+			});
+			if (!season) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Season not found" });
+			}
+
+			const existing = await prisma.episode.findUnique({
+				where: { seasonId_number: { seasonId: season.id, number: input.number } },
+				include: { media: true },
+			});
+			if (existing) {
+				if (existing.media.ownerId !== ctx.user.id) {
+					throw new TRPCError({ code: "FORBIDDEN", message: "Episode belongs to another user" });
+				}
+				await prisma.media.update({
+					where: { id: existing.id, ownerId: ctx.user.id },
+					data: { status: input.status },
+				});
+				return;
+			}
+			if (season.media.source !== SourceType.EXTERNAL || !season.serie.media.externalId) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Episode not found" });
+			}
+			const serieId = season.serie.media.externalId;
+			const response = await useCache(`tmdb:serie:${serieId}:season:${season.number}:details:v2`, () =>
+				tmdb(`/tv/${serieId}/season/${season.number}`, { schema: TmdbSeasonDetailsResponseSchema }),
+			);
+			const episode = response.episodes?.find((item) => item?.episode_number === input.number);
+			if (!episode) {
+				throw new TRPCError({ code: "NOT_FOUND", message: "Episode not found" });
+			}
+			if (input.status === null) {
+				return;
+			}
+			await prisma.episode.upsert({
+				where: {
+					seasonId_number: { seasonId: season.id, number: input.number },
+					media: { ownerId: ctx.user.id },
+				},
+				create: {
+					number: input.number,
+					season: { connect: { id: season.id } },
+					media: {
+						create: {
+							type: MediaType.EPISODE,
+							source: SourceType.EXTERNAL,
+							ownerId: ctx.user.id,
+							externalId: episode.id,
+							status: input.status,
+						},
+					},
+				},
+				update: { media: { update: { status: input.status } } },
+			});
 		}),
 
 	getCredits: protectedProcedure

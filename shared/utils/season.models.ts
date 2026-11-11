@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { MediaStatus } from "#prisma/enums";
+
 export const SeasonSchema = z.object({
 	id: z.uuid(),
 	number: z.number().int(),
@@ -20,6 +22,7 @@ export const SeasonEpisodeSchema = z.object({
 	airDate: z.string().nullish(),
 	voteAverage: z.number().nullish(),
 	runtime: z.number().nullish(),
+	status: z.enum(MediaStatus).nullish(),
 });
 
 export const ExternalSeasonDetailsSchema = z.object({
