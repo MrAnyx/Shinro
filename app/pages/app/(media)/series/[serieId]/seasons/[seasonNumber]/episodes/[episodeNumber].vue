@@ -60,11 +60,15 @@
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
 			<UBreadcrumb
 				v-if="data"
-				color="neutral"
+				color="primary"
 				:items="[
-					{ label: data.serieName ?? 'Series', to: serieUrl },
-					{ label: data.seasonName ?? 'Season', to: seasonUrl },
-					{ label: episode?.media.name ?? data.details.name ?? `Episode ${episodeNumber}`, active: true },
+					{ label: data.serieName ?? 'Series', icon: 'i-lucide-tv-minimal-play', to: serieUrl },
+					{ label: data.seasonName ?? 'Season', icon: 'i-lucide-layers', to: seasonUrl },
+					{
+						label: episode?.media.name ?? data.details.name ?? `Episode ${episodeNumber}`,
+						icon: 'i-lucide-list-video',
+						active: true,
+					},
 				]"
 			/>
 			<DetailsTitleHeader

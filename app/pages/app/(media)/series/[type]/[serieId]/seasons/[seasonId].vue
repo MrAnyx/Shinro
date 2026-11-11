@@ -73,10 +73,14 @@
 		<main class="flex-1 min-w-0 flex flex-col gap-y-6">
 			<UBreadcrumb
 				v-if="view"
-				color="neutral"
+				color="primary"
 				:items="[
-					{ label: view.serieName ?? 'Series', to: `/app/series/${sourceType}/${routeSerieId}` },
-					{ label: view.name, active: true },
+					{
+						label: view.serieName ?? 'Series',
+						icon: 'i-lucide-tv-minimal-play',
+						to: `/app/series/${sourceType}/${routeSerieId}`,
+					},
+					{ label: view.name, icon: 'i-lucide-layers', active: true },
 				]"
 			/>
 			<DetailsTitleHeader :loading="pending" :title="view?.name" />
