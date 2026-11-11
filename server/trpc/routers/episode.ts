@@ -4,8 +4,12 @@ import { z } from "zod";
 import { ImageType, MediaType, Prisma, SourceType } from "#prisma/client";
 import { protectedProcedure, router, serieEnabledMiddleware } from "#server/trpc/init";
 
-const parents = { media: true, season: { include: { media: true, serie: { include: { media: true } } } } } as const;
-const numberSchema = SeasonNumberSchemaBase;
+const episodeParents = {
+	media: true,
+	season: { include: { media: true, serie: { include: { media: true } } } },
+} as const;
+const seasonOrEpisodeNumberSchema = SeasonNumberSchemaBase;
+// Require ownership of the entire hierarchy, not just the episode's media.
 const ownedEpisodes = (userId: string): Prisma.EpisodeWhereInput => ({
 	media: { ownerId: userId },
 	season: { media: { ownerId: userId }, serie: { media: { ownerId: userId } } },
@@ -13,11 +17,11 @@ const ownedEpisodes = (userId: string): Prisma.EpisodeWhereInput => ({
 
 const externalInput = z.object({
 	externalSerieId: ServerTmdbSerieValidation.id,
-	seasonNumber: numberSchema,
-	episodeNumber: numberSchema,
+	seasonNumber: seasonOrEpisodeNumberSchema,
+	episodeNumber: seasonOrEpisodeNumberSchema,
 });
 
-async function externalData(input: z.infer<typeof externalInput>) {
+async function fetchExternalEpisodeData(input: z.infer<typeof externalInput>) {
 	const [serie, seasonDetails] = await Promise.all([
 		useCache(`tmdb:serie:${input.externalSerieId}:details:v2`, () =>
 			tmdb(`/tv/${input.externalSerieId}`, { schema: TmdbSerieDetailsResponseSchema }),
@@ -36,7 +40,7 @@ async function externalData(input: z.infer<typeof externalInput>) {
 	return { serie, season, episode };
 }
 
-const toDetails = (episode: Awaited<ReturnType<typeof externalData>>["episode"]) => ({
+const toEpisodeDetails = (episode: Awaited<ReturnType<typeof fetchExternalEpisodeData>>["episode"]) => ({
 	number: episode.episode_number,
 	name: episode.name,
 	overview: episode.overview,
@@ -47,12 +51,14 @@ const toDetails = (episode: Awaited<ReturnType<typeof externalData>>["episode"])
 });
 
 export default router({
+	/** Count episodes only when the episode and both parents belong to the user. */
 	count: protectedProcedure
 		.use(serieEnabledMiddleware)
 		.input(z.void())
 		.output(z.number())
 		.query(({ ctx }) => prisma.episode.count({ where: ownedEpisodes(ctx.user.id) })),
 
+	/** List owned episodes with their parents, using a stable order for pagination. */
 	getAll: protectedProcedure
 		.use(serieEnabledMiddleware)
 		.input(z.object({ page: ServerPaginationValidation.page }))
@@ -63,7 +69,7 @@ export default router({
 				prisma.episode.count({ where }),
 				prisma.episode.findMany({
 					where,
-					include: parents,
+					include: episodeParents,
 					orderBy: [{ media: { name: "asc" } }, { id: "asc" }],
 					skip: (input.page - 1) * ITEMS_PER_PAGE,
 					take: ITEMS_PER_PAGE,
@@ -72,6 +78,7 @@ export default router({
 			return { total, results };
 		}),
 
+	/** Resolve a saved episode by ID or hierarchy; imported episodes also load TMDB metadata. */
 	getInternalDetails: protectedProcedure
 		.use(serieEnabledMiddleware)
 		.input(
@@ -79,8 +86,8 @@ export default router({
 				z.object({ id: ServerMediaValidation.id }),
 				z.object({
 					serieId: ServerSerieValidation.id,
-					seasonNumber: numberSchema,
-					episodeNumber: numberSchema,
+					seasonNumber: seasonOrEpisodeNumberSchema,
+					episodeNumber: seasonOrEpisodeNumberSchema,
 				}),
 			]),
 		)
@@ -96,7 +103,7 @@ export default router({
 						serie: { media: { ownerId: ctx.user.id } },
 					},
 				},
-				include: parents,
+				include: episodeParents,
 			});
 			if (!episode) {
 				throw new TRPCError({ code: "NOT_FOUND", message: "Episode not found" });
@@ -115,12 +122,12 @@ export default router({
 						message: "Episode has no external series ID",
 					});
 				}
-				const data = await externalData({
+				const data = await fetchExternalEpisodeData({
 					externalSerieId,
 					seasonNumber: episode.season.number,
 					episodeNumber: episode.number,
 				});
-				details = toDetails(data.episode);
+				details = toEpisodeDetails(data.episode);
 			}
 			return {
 				episode,
@@ -130,13 +137,14 @@ export default router({
 			};
 		}),
 
+	/** Return TMDB details and the user's saved episode, if one exists. */
 	getExternalDetails: protectedProcedure
 		.use(serieEnabledMiddleware)
 		.input(externalInput)
 		.output(EpisodeDetailsSchema)
 		.query(async ({ input, ctx }) => {
 			const [data, episode] = await Promise.all([
-				externalData(input),
+				fetchExternalEpisodeData(input),
 				prisma.episode.findFirst({
 					where: {
 						number: input.episodeNumber,
@@ -147,23 +155,24 @@ export default router({
 							serie: { media: { ownerId: ctx.user.id, externalId: input.externalSerieId } },
 						},
 					},
-					include: parents,
+					include: episodeParents,
 				}),
 			]);
 			return {
 				episode,
-				details: toDetails(data.episode),
+				details: toEpisodeDetails(data.episode),
 				seasonName: data.season.name,
 				serieName: data.serie.name,
 			};
 		}),
 
+	/** Save a TMDB episode and create missing parents in the same transaction. */
 	createFromExternal: protectedProcedure
 		.use(serieEnabledMiddleware)
 		.input(externalInput)
 		.output(EpisodeWithParentsSchema)
 		.mutation(async ({ input, ctx }) => {
-			const data = await externalData(input);
+			const data = await fetchExternalEpisodeData(input);
 			try {
 				return await prisma.$transaction(
 					async (tx) => {
@@ -230,7 +239,7 @@ export default router({
 									},
 								},
 							},
-							include: parents,
+							include: episodeParents,
 						});
 					},
 					{ isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
@@ -247,42 +256,114 @@ export default router({
 			}
 		}),
 
+	/**
+	 * Update saved fields and optional collection membership atomically.
+	 * Imported episodes keep their TMDB season and number; internal episodes may move to an owned internal season.
+	 */
 	update: protectedProcedure
 		.use(serieEnabledMiddleware)
 		.input(
 			z.object({
 				id: ServerMediaValidation.id,
+				seasonId: ServerSeasonValidation.id.optional(),
+				number: seasonOrEpisodeNumberSchema.optional(),
+				name: ServerMediaValidation.name.optional(),
+				overview: ServerSerieValidation.overview.nullable().optional(),
+				note: ServerMediaValidation.note.nullable().optional(),
 				status: ServerMediaValidation.status.nullable().optional(),
 				rating: ServerMediaValidation.rating.nullable().optional(),
+				collectionIds: z.array(ServerCollectionValidation.id).optional(),
 			}),
 		)
 		.output(EpisodeWithParentsSchema)
 		.mutation(async ({ input, ctx }) => {
-			const episode = await prisma.episode.findFirst({
-				where: {
-					id: input.id,
-					media: { ownerId: ctx.user.id },
-					season: { media: { ownerId: ctx.user.id }, serie: { media: { ownerId: ctx.user.id } } },
-				},
-				select: { id: true },
-			});
-			if (!episode) {
-				throw new TRPCError({ code: "NOT_FOUND", message: "Episode not found" });
-			}
-			return prisma.episode.update({
-				where: { id: episode.id, media: { ownerId: ctx.user.id } },
-				data: {
-					media: {
-						update: {
-							status: input.status === undefined ? Prisma.skip : input.status,
-							rating: input.rating === undefined ? Prisma.skip : input.rating,
+			try {
+				return await prisma.$transaction(async (tx) => {
+					const episode = await tx.episode.findFirst({
+						where: { id: input.id, ...ownedEpisodes(ctx.user.id) },
+						select: { id: true, seasonId: true, number: true, media: { select: { source: true } } },
+					});
+					if (!episode) {
+						throw new TRPCError({ code: "NOT_FOUND", message: "Episode not found" });
+					}
+					const changesSeason = input.seasonId !== undefined && input.seasonId !== episode.seasonId;
+					const changesNumber = input.number !== undefined && input.number !== episode.number;
+					if (episode.media.source === SourceType.EXTERNAL && (changesSeason || changesNumber)) {
+						throw new TRPCError({
+							code: "BAD_REQUEST",
+							message: "The season and number of an external episode can not be changed",
+						});
+					}
+					if (input.seasonId !== undefined && episode.media.source === SourceType.INTERNAL) {
+						const season = await tx.season.findFirst({
+							where: {
+								id: input.seasonId,
+								media: { ownerId: ctx.user.id, source: SourceType.INTERNAL },
+								serie: { media: { ownerId: ctx.user.id } },
+							},
+							select: { id: true },
+						});
+						if (!season) {
+							throw new TRPCError({
+								code: "BAD_REQUEST",
+								message: "An episode can only belong to one of your internal seasons",
+							});
+						}
+					}
+					// Omitted collections leave membership untouched; an empty array clears it.
+					if (input.collectionIds !== undefined) {
+						const ownedCollections = await tx.collection.findMany({
+							where: { id: { in: input.collectionIds }, ownerId: ctx.user.id },
+							select: { id: true },
+						});
+						if (ownedCollections.length !== input.collectionIds.length) {
+							throw new TRPCError({
+								code: "FORBIDDEN",
+								message: "One or more selected collections are invalid",
+							});
+						}
+						await tx.collectionMedia.deleteMany({ where: { mediaId: episode.id } });
+						if (input.collectionIds.length) {
+							await tx.collectionMedia.createMany({
+								data: input.collectionIds.map((collectionId) => ({
+									mediaId: episode.id,
+									collectionId,
+								})),
+							});
+						}
+					}
+					// Preserve omitted values, while allowing nullable fields to be cleared.
+					return tx.episode.update({
+						where: { id: episode.id, media: { ownerId: ctx.user.id } },
+						data: {
+							...(input.seasonId !== undefined ? { season: { connect: { id: input.seasonId } } } : {}),
+							number: input.number ?? Prisma.skip,
+							overview: input.overview === undefined ? Prisma.skip : input.overview,
+							media: {
+								update: {
+									name: input.name === undefined ? Prisma.skip : input.name,
+									note: input.note === undefined ? Prisma.skip : input.note,
+									status: input.status === undefined ? Prisma.skip : input.status,
+									rating: input.rating === undefined ? Prisma.skip : input.rating,
+								},
+							},
 						},
-					},
-				},
-				include: parents,
-			});
+						include: episodeParents,
+					});
+				});
+			} catch (error) {
+				if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: "This season already has an episode with this number",
+						cause: error,
+					});
+				}
+				throw error;
+			}
 		}),
 
+	/** Delete the owned episode's media, cascading to the episode and collection links. */
 	delete: protectedProcedure
 		.use(serieEnabledMiddleware)
 		.input(z.object({ id: ServerMediaValidation.id }))

@@ -76,6 +76,7 @@ export default router({
 		.output(z.number())
 		.query(({ ctx }) => prisma.season.count({ where: { media: { ownerId: ctx.user.id } } })),
 
+	/** Search owned seasons by season or series details, optionally filtering by source and series. */
 	getAll: protectedProcedure
 		.use(serieEnabledMiddleware)
 		.input(
@@ -84,12 +85,13 @@ export default router({
 				search: ServerPaginationValidation.search.nullish(),
 				force: ServerPaginationValidation.force,
 				serieId: ServerSerieValidation.id.optional(),
+				source: ServerMediaValidation.source.optional(),
 			}),
 		)
 		.output(PaginatedSchema(SeasonWithSerieSchema))
 		.query(async ({ input, ctx }) => {
 			const where: Prisma.SeasonWhereInput = {
-				media: { ownerId: ctx.user.id },
+				media: { ownerId: ctx.user.id, ...(input.source ? { source: input.source } : {}) },
 				serie: { media: { ownerId: ctx.user.id } },
 				...(input.serieId ? { serieId: input.serieId } : {}),
 				...(input.search

@@ -30,6 +30,15 @@
 							:loading="isRemoving"
 							@click="removeEpisode"
 						/>
+						<UButton
+							label="Edit the episode"
+							block
+							leading-icon="i-lucide-square-pen"
+							variant="subtle"
+							color="info"
+							:loading="isEditing"
+							@click="editEpisode"
+						/>
 						<StatusSelectMenu
 							v-model="status"
 							variant="subtle"
@@ -91,6 +100,7 @@
 import { useDebounceFn } from "@vueuse/core";
 import { z } from "zod";
 
+import { LazyEpisodeFormModal } from "#components";
 import { MediaStatus, MediaType } from "#prisma/enums";
 
 definePageMeta({
@@ -115,6 +125,7 @@ const toast = useStatusToast();
 const serieStore = useSerieStore();
 const seasonStore = useSeasonStore();
 const episodeStore = useEpisodeStore();
+const episodeFormModal = useOverlay().create(LazyEpisodeFormModal);
 const { openConfirmationModal } = useConfirmation();
 const serieId = computed(() => String(route.params.serieId));
 const isExternal = computed(() => /^\d+$/.test(serieId.value));
@@ -162,7 +173,7 @@ const serieUrl = computed(() =>
 		? `/app/series/external/${serieId.value}`
 		: `/app/series/internal/${episode.value?.season.serieId}`,
 );
-const { data: collections } = useClientAsyncData(
+const { data: collections, refresh: refreshCollections } = useClientAsyncData(
 	() => (savedId.value ? trpc.media.getCollections.query({ type: "id", id: savedId.value }) : Promise.resolve(null)),
 	{ watch: [savedId], defaultErrorMessage: "Failed to fetch collections" },
 );
@@ -209,6 +220,26 @@ const setEpisode = (updated: EpisodeWithParents) => {
 		data.value = { ...data.value, episode: updated };
 	}
 };
+const { loading: isEditing, execute: editEpisode } = useLoadingWrapper(() =>
+	toast.withErrorToast(async () => {
+		if (!episode.value) {
+			return;
+		}
+		const path = route.fullPath;
+		const updated = await episodeFormModal.open({ episode: episode.value }).result;
+		if (!updated || route.fullPath !== path || savedId.value !== updated.id) {
+			return;
+		}
+		if (updated.seasonId !== episode.value?.seasonId || updated.number !== episode.value?.number) {
+			await navigateTo(episodeDetailsPath(updated.season.serieId, updated.season.number, updated.number), {
+				replace: true,
+			});
+			return;
+		}
+		setEpisode(updated);
+		await refreshCollections();
+	}),
+);
 const pendingStatus = usePendingValue<MediaStatus>();
 const status = computed({
 	get: () => (pendingStatus.isPending ? pendingStatus.value : (episode.value?.media.status ?? undefined)),
