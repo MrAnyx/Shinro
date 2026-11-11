@@ -64,6 +64,7 @@ export const TmdbSeasonDetailsResponseSchema = z.object({
 					still_path: z.string().nullish(),
 					air_date: z.string().nullish(),
 					vote_average: z.number().nullish(),
+					runtime: z.number().nullish(),
 				})
 				.nullish(),
 		)

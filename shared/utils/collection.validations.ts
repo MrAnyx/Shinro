@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const CollectionIdSchemaBase = z.uuid("Collection id must be a valid UUID");
-export const CollectionIdsSchemaBase = z.array(CollectionIdSchemaBase);
 export const COLLECTION_NAME_MAX_LENGTH = 255;
 export const COLLECTION_DESCRIPTION_MAX_LENGTH = 500;
 

@@ -169,7 +169,6 @@
 								<ToggleButton
 									variant="ghost"
 									:is-added="!!row.original.internal_season"
-									:aria-label="`${row.original.internal_season ? 'Remove' : 'Add'} ${row.original.name || `season ${row.original.season_number}`} ${row.original.internal_season ? 'from' : 'to'} My List`"
 									:onClickOn="() => addSeasonToMyList(row.original)"
 									:onClickOff="() => removeSeasonFromMyList(row.original)"
 									@click.stop

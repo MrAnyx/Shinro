@@ -101,11 +101,11 @@ const isLoading = computed(() => isInitializing.value || isSubmitting.value);
 
 const schema = z.object({
 	name: ClientMediaValidation.name,
-	status: ClientMediaValidation.status,
-	collections: ClientCollectionValidation.ids,
+	status: ClientMediaValidation.status.optional(),
+	collections: z.array(ClientCollectionValidation.id),
 	overview: ClientMovieValidation.overview,
 	note: ClientMediaValidation.note,
-	rating: ClientMediaValidation.rating,
+	rating: ClientMediaValidation.rating.optional(),
 });
 type Schema = z.infer<typeof schema>;
 

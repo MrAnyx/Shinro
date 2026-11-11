@@ -2,8 +2,8 @@ export const ClientMediaValidation = {
 	id: MediaIdSchemaBase,
 	externalId: MediaExternalIdSchemaBase,
 	name: MediaNameSchemaBase,
-	rating: MediaRatingSchemaBase.optional(),
+	rating: MediaRatingSchemaBase,
 	note: MediaNoteSchemaBase,
-	status: MediaStatusSchemaBase.optional(),
+	status: MediaStatusSchemaBase,
 	source: MediaSourceTypeSchemaBase,
 };

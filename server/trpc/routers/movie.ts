@@ -13,10 +13,10 @@ export default router({
 		.input(
 			z.object({
 				name: ServerMediaValidation.name,
-				overview: ServerMovieValidation.overview,
-				status: ServerMediaValidation.status,
-				rating: ServerMediaValidation.rating,
-				note: ServerMediaValidation.note,
+				overview: ServerMovieValidation.overview.nullable(),
+				status: ServerMediaValidation.status.nullable(),
+				rating: ServerMediaValidation.rating.nullable(),
+				note: ServerMediaValidation.note.nullable(),
 			}),
 		)
 		.output(MovieSchema)
@@ -122,10 +122,10 @@ export default router({
 			z.object({
 				id: ServerMovieValidation.id,
 				name: ServerMediaValidation.name.optional(),
-				overview: ServerMovieValidation.overview.optional(),
-				status: ServerMediaValidation.status.optional(),
-				rating: ServerMediaValidation.rating.optional(),
-				note: ServerMediaValidation.note.optional(),
+				overview: ServerMovieValidation.overview.nullable().optional(),
+				status: ServerMediaValidation.status.nullable().optional(),
+				rating: ServerMediaValidation.rating.nullable().optional(),
+				note: ServerMediaValidation.note.nullable().optional(),
 			}),
 		)
 		.output(MovieSchema)
@@ -261,7 +261,7 @@ export default router({
 		.input(
 			z.object({
 				page: ServerPaginationValidation.page,
-				search: ServerPaginationValidation.search,
+				search: ServerPaginationValidation.search.nullish(),
 				force: ServerPaginationValidation.force,
 				source: ServerMediaValidation.source.optional(),
 				orderBy: SortableSchema(ServerMovieValidation.sort),

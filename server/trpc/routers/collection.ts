@@ -12,7 +12,7 @@ export default router({
 		.input(
 			z.object({
 				name: ServerCollectionValidation.name,
-				description: ServerCollectionValidation.description,
+				description: ServerCollectionValidation.description.nullable(),
 				favorite: ServerCollectionValidation.favorite,
 			}),
 		)
@@ -38,7 +38,7 @@ export default router({
 			z.object({
 				id: ServerCollectionValidation.id,
 				name: ServerCollectionValidation.name.optional(),
-				description: ServerCollectionValidation.description.optional(),
+				description: ServerCollectionValidation.description.nullable().optional(),
 				favorite: ServerCollectionValidation.favorite.optional(),
 			}),
 		)
@@ -166,7 +166,7 @@ export default router({
 		.input(
 			z.object({
 				page: ServerPaginationValidation.page,
-				search: ServerPaginationValidation.search,
+				search: ServerPaginationValidation.search.nullish(),
 				force: ServerPaginationValidation.force,
 				orderBy: SortableSchema(ServerCollectionValidation.sort),
 			}),

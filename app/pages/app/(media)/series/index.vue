@@ -56,7 +56,7 @@
 			</template>
 			<template #actions-cell="{ row }">
 				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row.original)">
-					<UButton variant="ghost" icon="i-lucide-ellipsis-vertical" color="neutral" />
+					<UButton variant="ghost" icon="i-lucide-ellipsis-vertical" color="neutral" @click.stop />
 				</UDropdownMenu>
 			</template>
 		</UTable>

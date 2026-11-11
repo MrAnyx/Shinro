@@ -55,6 +55,7 @@
 					:is-added="!!row.original.internal_movie"
 					:onClickOn="() => addMovieToMyList(row.original)"
 					:onClickOff="() => removeMovieFromMyList(row.original)"
+					@click.stop
 				/>
 			</template>
 		</UTable>

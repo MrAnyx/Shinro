@@ -19,6 +19,7 @@ export const SeasonEpisodeSchema = z.object({
 	imagePath: z.string().nullish(),
 	airDate: z.string().nullish(),
 	voteAverage: z.number().nullish(),
+	runtime: z.number().nullish(),
 });
 
 export const ExternalSeasonDetailsSchema = z.object({

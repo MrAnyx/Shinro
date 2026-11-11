@@ -61,9 +61,20 @@ Use only the disposable staging database/accounts.
 - [ ] Try registering a username that already exists. Expected: request is rejected with a useful error; no second account is created.
 - [ ] Try blank, too-short, too-long, and otherwise invalid usernames/passwords at the UI. Expected: field validation explains the problem and no account is created.
 - [ ] Repeat invalid registration attempts through the server/API boundary if available. Expected: server validation also rejects them; client checks alone are not relied upon.
+- [ ] Try matching and mismatched password confirmations during registration and profile updates. Expected: mismatches appear on the confirmation field and valid passwords save normally.
+- [ ] Confirm an action both with and without password re-verification, including an incorrect password. Expected: password is required only when re-verification is needed, and an incorrect password does not run the action.
 - [ ] Set `NUXT_PUBLIC_ALLOW_REGISTRATION=false` and try the registration route directly.
 - [ ] Try registration through the server/API while registration is disabled. Expected: registration is rejected server-side, not merely hidden in the UI.
 - [ ] Restore the release's intended registration flag after testing.
+
+## Series/Season Cleanup Checks
+
+- [ ] Open a season form with and without a preselected series. Expected: the selected series name or the placeholder remains visible; opening the selector without typing does not request the complete series list.
+- [ ] Search for internal series, type rapidly, clear the search, and simulate a failed request. Expected: only the first matching page is offered, stale results do not replace newer ones, and errors are visible.
+- [ ] Exercise table action buttons and dropdowns across movies, series, seasons, and collections. Expected: the action runs without triggering row navigation; clicking the row still navigates normally.
+- [ ] Navigate between internal and external series and season routes, including missing items. Expected: details, collections, episodes, credits, and not-found states match the current route without stale data.
+- [ ] Select user-created and TMDB-imported seasons from the season listing, including season 0. Expected: user-created seasons open their internal IDs; imported seasons open the external series ID and season number. If an imported season has no TMDB series ID, an error is shown instead of navigating to an invalid URL.
+- [ ] Create and update media with empty, null, omitted, and invalid optional fields and collection IDs. Expected: valid inputs retain existing normalization and invalid IDs or fields are rejected at the server boundary.
 
 ## 5. Verify Login, Session, And Route Protection
 
@@ -153,6 +164,7 @@ Use only the disposable staging database/accounts.
 - [ ] Cancel and confirm season deletion from the list and details, including the last row on a later page. Expected: cancellation changes nothing; confirmation removes the season and its saved episodes, updates the count and list, and leaves its series intact.
 - [ ] Check season pages with another user's ID, while logged out, and with series disabled; verify no data is exposed or modified. Exercise the list and edit/delete controls by keyboard and on narrow screens.
 - [ ] Open saved external seasons, including season 0, and check the Episodes and Credits tabs against TMDB. Verify episode order, saved episode overrides, missing artwork and dates, empty results, credit links, keyboard navigation and narrow-screen layout. Internal seasons show only owned saved episodes and an empty credits state.
+- [ ] Check episode durations on external season details and saved external seasons opened through their internal route. Expected: available TMDB runtimes are displayed; missing or null runtimes and episodes without stored runtimes leave the duration cell empty.
 - [ ] Simulate a TMDB episode or credits failure independently. Expected: the affected tab shows a retry action without hiding the season or the other tab; retry works. Verify logged-out users, another user's season ID, and disabled series cannot retrieve either endpoint.
 
 ## 9. Check Collections

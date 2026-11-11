@@ -63,9 +63,16 @@ const fields: AuthFormField[] = [
 	},
 ];
 
-const schema = ClientUserValidation.passwordConfirmation.safeExtend({
-	username: ClientUserValidation.username,
-});
+const schema = z
+	.object({
+		username: ClientUserValidation.username,
+		password: ClientUserValidation.password,
+		password_confirmation: ClientUserValidation.password,
+	})
+	.refine((data) => data.password === data.password_confirmation, {
+		message: "Passwords must match",
+		path: ["password_confirmation"],
+	});
 
 type Schema = z.output<typeof schema>;
 

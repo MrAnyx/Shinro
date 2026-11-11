@@ -7,7 +7,7 @@ type MediaSortField = `media.${Prisma.MediaScalarFieldEnum}`;
 
 export const ServerSerieValidation = {
 	id: SerieIdSchemaBase,
-	overview: SerieOverviewSchemaBase.nullable().transform((val) => (val === "" ? null : val)),
+	overview: SerieOverviewSchemaBase.transform((val) => (val === "" ? null : val)),
 	sort: z.enum([
 		...Object.values(Prisma.SerieScalarFieldEnum),
 		...Object.values(Prisma.MediaScalarFieldEnum).map((field): MediaSortField => `media.${field}`),

@@ -7,7 +7,7 @@ export default router({
 		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
-				search: ServerPaginationValidation.search,
+				search: ServerPaginationValidation.search.nullish(),
 				page: ServerPaginationValidation.page,
 			}),
 		)

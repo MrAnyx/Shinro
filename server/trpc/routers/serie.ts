@@ -10,10 +10,10 @@ export default router({
 		.input(
 			z.object({
 				name: ServerMediaValidation.name,
-				overview: ServerSerieValidation.overview,
-				status: ServerMediaValidation.status,
-				rating: ServerMediaValidation.rating,
-				note: ServerMediaValidation.note,
+				overview: ServerSerieValidation.overview.nullable(),
+				status: ServerMediaValidation.status.nullable(),
+				rating: ServerMediaValidation.rating.nullable(),
+				note: ServerMediaValidation.note.nullable(),
 			}),
 		)
 		.output(SerieSchema)
@@ -79,10 +79,10 @@ export default router({
 			z.object({
 				id: ServerSerieValidation.id,
 				name: ServerMediaValidation.name.optional(),
-				overview: ServerSerieValidation.overview.optional(),
-				status: ServerMediaValidation.status.optional(),
-				rating: ServerMediaValidation.rating.optional(),
-				note: ServerMediaValidation.note.optional(),
+				overview: ServerSerieValidation.overview.nullable().optional(),
+				status: ServerMediaValidation.status.nullable().optional(),
+				rating: ServerMediaValidation.rating.nullable().optional(),
+				note: ServerMediaValidation.note.nullable().optional(),
 			}),
 		)
 		.output(SerieSchema)
@@ -159,7 +159,7 @@ export default router({
 		.input(
 			z.object({
 				page: ServerPaginationValidation.page,
-				search: ServerPaginationValidation.search,
+				search: ServerPaginationValidation.search.nullish(),
 				force: ServerPaginationValidation.force,
 				source: ServerMediaValidation.source.optional(),
 				orderBy: SortableSchema(ServerSerieValidation.sort),

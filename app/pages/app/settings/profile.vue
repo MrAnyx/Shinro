@@ -153,7 +153,15 @@ const onSaveUsername = async (payload: FormSubmitEvent<UsernameSchema>) => {
 // Password
 const isLoadingPassword = ref(false);
 
-const passwordSchema = ClientUserValidation.passwordConfirmation;
+const passwordSchema = z
+	.object({
+		password: ClientUserValidation.password,
+		password_confirmation: ClientUserValidation.password,
+	})
+	.refine((data) => data.password === data.password_confirmation, {
+		message: "Passwords must match",
+		path: ["password_confirmation"],
+	});
 
 type PasswordSchema = z.output<typeof passwordSchema>;
 

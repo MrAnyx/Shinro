@@ -34,10 +34,10 @@ export default router({
 				serieId: ServerSerieValidation.id,
 				number: ServerSeasonValidation.number,
 				name: ServerMediaValidation.name,
-				overview: ServerSerieValidation.overview,
-				status: ServerMediaValidation.status,
-				rating: ServerMediaValidation.rating,
-				note: ServerMediaValidation.note,
+				overview: ServerSerieValidation.overview.nullable(),
+				status: ServerMediaValidation.status.nullable(),
+				rating: ServerMediaValidation.rating.nullable(),
+				note: ServerMediaValidation.note.nullable(),
 			}),
 		)
 		.output(SeasonSchema)
@@ -81,7 +81,7 @@ export default router({
 		.input(
 			z.object({
 				page: ServerPaginationValidation.page,
-				search: ServerPaginationValidation.search,
+				search: ServerPaginationValidation.search.nullish(),
 				force: ServerPaginationValidation.force,
 				serieId: ServerSerieValidation.id.optional(),
 			}),
@@ -145,7 +145,7 @@ export default router({
 				useCache(`tmdb:serie:${input.externalSerieId}:details:v2`, () =>
 					tmdb(`/tv/${input.externalSerieId}`, { schema: TmdbSerieDetailsResponseSchema }),
 				),
-				useCache(`tmdb:serie:${input.externalSerieId}:season:${input.seasonNumber}:details`, () =>
+				useCache(`tmdb:serie:${input.externalSerieId}:season:${input.seasonNumber}:details:v2`, () =>
 					tmdb(`/tv/${input.externalSerieId}/season/${input.seasonNumber}`, {
 						schema: TmdbSeasonDetailsResponseSchema,
 					}),
@@ -186,6 +186,7 @@ export default router({
 							imagePath: episode.still_path,
 							airDate: episode.air_date,
 							voteAverage: episode.vote_average,
+							runtime: episode.runtime,
 						})) ?? [],
 				credits: creditsResponse.cast?.filter((credit) => !!credit) ?? [],
 				internalSeason,
@@ -215,7 +216,7 @@ export default router({
 				if (!serieId) {
 					throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Season has no external series ID" });
 				}
-				const response = await useCache(`tmdb:serie:${serieId}:season:${season.number}:details`, () =>
+				const response = await useCache(`tmdb:serie:${serieId}:season:${season.number}:details:v2`, () =>
 					tmdb(`/tv/${serieId}/season/${season.number}`, { schema: TmdbSeasonDetailsResponseSchema }),
 				);
 				for (const episode of response.episodes ?? []) {
@@ -230,6 +231,7 @@ export default router({
 						imagePath: own?.media.imagePath ?? episode.still_path,
 						airDate: episode.air_date,
 						voteAverage: episode.vote_average,
+						runtime: episode.runtime,
 					});
 					saved.delete(episode.episode_number);
 				}
@@ -280,10 +282,10 @@ export default router({
 				serieId: ServerSerieValidation.id.optional(),
 				number: ServerSeasonValidation.number.optional(),
 				name: ServerMediaValidation.name.optional(),
-				overview: ServerSerieValidation.overview.optional(),
-				status: ServerMediaValidation.status.optional(),
-				rating: ServerMediaValidation.rating.optional(),
-				note: ServerMediaValidation.note.optional(),
+				overview: ServerSerieValidation.overview.nullable().optional(),
+				status: ServerMediaValidation.status.nullable().optional(),
+				rating: ServerMediaValidation.rating.nullable().optional(),
+				note: ServerMediaValidation.note.nullable().optional(),
 			}),
 		)
 		.output(SeasonSchema)

@@ -55,6 +55,7 @@
 					:is-added="!!row.original.internal_serie"
 					:onClickOn="() => addSerieToMyList(row.original)"
 					:onClickOff="() => removeSerieFromMyList(row.original)"
+					@click.stop
 				/>
 			</template>
 		</UTable>

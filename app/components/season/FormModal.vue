@@ -88,11 +88,11 @@ const schema = z.object({
 	serieId: ClientSerieValidation.id,
 	number: ClientSeasonValidation.number,
 	name: ClientMediaValidation.name,
-	status: ClientMediaValidation.status,
-	collections: ClientCollectionValidation.ids,
+	status: ClientMediaValidation.status.optional(),
+	collections: z.array(ClientCollectionValidation.id),
 	overview: ClientSerieValidation.overview,
 	note: ClientMediaValidation.note,
-	rating: ClientMediaValidation.rating,
+	rating: ClientMediaValidation.rating.optional(),
 });
 type Schema = z.infer<typeof schema>;
 const state = reactive<Partial<Pick<Schema, "serieId" | "number">> & Omit<Schema, "serieId" | "number">>({

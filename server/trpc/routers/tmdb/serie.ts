@@ -5,7 +5,7 @@ import { router, protectedProcedure, serieEnabledMiddleware } from "#server/trpc
 export default router({
 	search: protectedProcedure
 		.use(serieEnabledMiddleware)
-		.input(z.object({ search: ServerPaginationValidation.search, page: ServerPaginationValidation.page }))
+		.input(z.object({ search: ServerPaginationValidation.search.nullish(), page: ServerPaginationValidation.page }))
 		.output(PaginatedSchema(TmdbSerieSearchSchema))
 		.query(async ({ input, ctx }) => {
 			if (!input.search) {

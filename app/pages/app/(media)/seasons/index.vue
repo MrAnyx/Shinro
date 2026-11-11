@@ -13,7 +13,7 @@
 			:loading="pending"
 			sticky
 			class="h-full"
-			@select="(_e, row) => navigateTo(`/app/series/internal/${row.original.serieId}/seasons/${row.original.id}`)"
+			@select="(_e, row) => openSeasonDetails(row.original)"
 		>
 			<template #empty>
 				<UEmpty title="No seasons found" variant="naked" icon="i-lucide-ban" />
@@ -49,13 +49,7 @@
 			</template>
 			<template #actions-cell="{ row }">
 				<UDropdownMenu :content="{ align: 'end' }" :items="getRowActions(row.original)">
-					<UButton
-						variant="ghost"
-						icon="i-lucide-ellipsis-vertical"
-						color="neutral"
-						aria-label="Season actions"
-						@click.stop
-					/>
+					<UButton variant="ghost" icon="i-lucide-ellipsis-vertical" color="neutral" @click.stop />
 				</UDropdownMenu>
 			</template>
 		</UTable>
@@ -68,6 +62,7 @@ import type { DropdownMenuItem, TableColumn } from "@nuxt/ui";
 import { watchDebounced } from "@vueuse/core";
 
 import { LazySeasonFormModal } from "#components";
+import { SourceType } from "#prisma/enums";
 
 const trpc = useTrpc();
 const toast = useStatusToast();
@@ -108,6 +103,20 @@ const { data, pending, refresh } = useClientAsyncData(
 const total = computed(() => data.value?.total ?? 0);
 const seasons = computed(() => data.value?.results ?? []);
 watchDebounced(trimmedSearch, () => refresh(), { debounce: DEBOUNCE_TIMER });
+
+const openSeasonDetails = (season: SeasonWithSerie) => {
+	if (season.media.source === SourceType.INTERNAL) {
+		return navigateTo(`/app/series/internal/${season.serieId}/seasons/${season.id}`);
+	}
+
+	const externalSerieId = season.serie.media.externalId;
+	if (!externalSerieId) {
+		toast.error("This season's series has no TMDB ID");
+		return;
+	}
+
+	return navigateTo(`/app/series/external/${encodeURIComponent(externalSerieId)}/seasons/${season.number}`);
+};
 
 const openSeasonFormModal = (id?: string) =>
 	toast.withErrorToast(async () => {

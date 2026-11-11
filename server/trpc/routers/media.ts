@@ -13,7 +13,7 @@ export default router({
 		.input(
 			z.object({
 				page: ServerPaginationValidation.page,
-				search: ServerPaginationValidation.search,
+				search: ServerPaginationValidation.search.nullish(),
 				force: ServerPaginationValidation.force,
 				source: ServerMediaValidation.source.optional(),
 				orderBy: SortableSchema(ServerMediaValidation.sort),
@@ -123,7 +123,7 @@ export default router({
 		.input(
 			z.object({
 				id: ServerMediaValidation.id,
-				collectionIds: ServerCollectionValidation.ids,
+				collectionIds: z.array(ServerCollectionValidation.id),
 			}),
 		)
 		.output(z.array(BaseCollectionSchema))

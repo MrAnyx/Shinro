@@ -131,6 +131,9 @@
 									timezone="UTC"
 								/>
 							</template>
+							<template #duration-cell="{ row }">
+								<DetailsDurationBadge :duration="row.original.runtime ?? undefined" />
+							</template>
 							<template #vote-cell="{ row }">
 								<VoteBadge :score="row.original.voteAverage ?? undefined" />
 							</template>
@@ -172,10 +175,8 @@ const sourceType = computed(() => route.params.type as MediaSourceType);
 const routeSerieId = computed(() => route.params.serieId as string);
 const routeSeasonId = computed(() => route.params.seasonId as string);
 const isExternal = computed(() => sourceType.value === MediaSourceTypes.external);
-const routeKey = computed(() => `${sourceType.value}:${routeSerieId.value}:${routeSeasonId.value}`);
-
 const notFound = ref(false);
-watch(routeKey, () => {
+watch([sourceType, routeSerieId, routeSeasonId], () => {
 	notFound.value = false;
 });
 const handleLoadError = (error: unknown) => {
@@ -193,7 +194,7 @@ const {
 	refresh: refreshInternal,
 } = useClientAsyncData(
 	async () => (isExternal.value ? null : await trpc.season.getById.query({ id: routeSeasonId.value })),
-	{ watch: [routeKey], onError: handleLoadError },
+	{ watch: [sourceType, routeSerieId, routeSeasonId], onError: handleLoadError },
 );
 const {
 	data: externalData,
@@ -208,7 +209,7 @@ const {
 					seasonNumber: Number(routeSeasonId.value),
 				})
 			: null,
-	{ watch: [routeKey], onError: handleLoadError },
+	{ watch: [sourceType, routeSerieId, routeSeasonId], onError: handleLoadError },
 );
 const pending = computed(() => pendingInternal.value || pendingExternal.value);
 const fetchError = computed(() => !notFound.value && (internalError.value || externalError.value));
@@ -281,6 +282,11 @@ const episodeColumns: TableColumn<SeasonEpisode>[] = [
 		header: "Released At",
 		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
 	},
+	{
+		id: "duration",
+		header: "Duration",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
 	{ id: "vote", header: "Vote", meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } } },
 ];
 
@@ -305,7 +311,7 @@ const {
 	immediate: false,
 	onError: () => {},
 });
-watch(routeKey, () => {
+watch([sourceType, routeSerieId, routeSeasonId], () => {
 	clearInternalEpisodes();
 	clearInternalCredits();
 });
