@@ -33,7 +33,15 @@
 					tooltip
 					popover
 				/>
-				<UNavigationMenu :items="mediaItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
+				<UNavigationMenu
+					:items="mediaItems"
+					orientation="vertical"
+					:collapsed="collapsed"
+					type="single"
+					:collapsible="collapsed"
+					tooltip
+					popover
+				/>
 				<UNavigationMenu
 					:items="sidebarSecondaryItems"
 					orientation="vertical"
@@ -138,6 +146,7 @@ const mediaItems = computed<NavigationMenuItem[]>(() => {
 			badge: serieStore.total,
 			to: "/app/series",
 			defaultOpen: true,
+			ui: { linkTrailingIcon: "hidden" },
 			children: [
 				{
 					label: "Seasons",
