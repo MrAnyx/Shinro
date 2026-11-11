@@ -74,6 +74,7 @@
 			<div v-if="data" class="flex flex-wrap gap-2 items-center">
 				<DetailsDurationBadge v-if="data.details.runtime != null" :duration="data.details.runtime" />
 				<DetailsDateBadge v-if="data.details.airDate" :date="data.details.airDate" />
+				<DetailsReleaseBadge :start-date="data.details.airDate ?? undefined" />
 				<VoteBadge v-if="data.details.voteAverage != null" :score="data.details.voteAverage" />
 			</div>
 			<DetailsOverview :loading="pending" :overview="episode?.overview ?? data?.details.overview ?? undefined" />
