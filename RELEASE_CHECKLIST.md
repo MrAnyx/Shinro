@@ -148,6 +148,12 @@ Use only the disposable staging database/accounts.
 - [ ] Add and remove seasons on saved and unsaved series. Expected: adding the first season also saves its series atomically; rows, sidebar and library counts update and persist after refresh. Canceling removal changes nothing; confirming removes the season, its owned episodes and collection links, but not the series or other seasons. Deleting the series clears all season rows and counts.
 - [ ] Delete a series while the season count request fails. Expected: the series remains deleted, the page reflects the deletion, and an error explains that the season count could not be refreshed.
 - [ ] Try duplicate, nonexistent and another user's seasons, mismatched descendant ownership, and TMDB failures. Expected: controlled errors, no cross-user changes or partial records, and no false saved state.
+- [ ] Open Seasons from the sidebar with an empty list and with saved seasons across multiple pages. Search by title, overview and series name, clear the search, refresh, and select a row. Expected: only the current user's seasons appear, pagination works, and each row opens its saved-season details without requiring TMDB.
+- [ ] Edit a season from the list and details, including status, rating, note and collections; refresh and verify persistence. Reject invalid titles and ratings, and verify failed requests report errors without claiming success.
+- [ ] Cancel and confirm season deletion from the list and details, including the last row on a later page. Expected: cancellation changes nothing; confirmation removes the season and its saved episodes, updates the count and list, and leaves its series intact.
+- [ ] Check season pages with another user's ID, while logged out, and with series disabled; verify no data is exposed or modified. Exercise the list and edit/delete controls by keyboard and on narrow screens.
+- [ ] Open saved external seasons, including season 0, and check the Episodes and Credits tabs against TMDB. Verify episode order, saved episode overrides, missing artwork and dates, empty results, credit links, keyboard navigation and narrow-screen layout. Internal seasons show only owned saved episodes and an empty credits state.
+- [ ] Simulate a TMDB episode or credits failure independently. Expected: the affected tab shows a retry action without hiding the season or the other tab; retry works. Verify logged-out users, another user's season ID, and disabled series cannot retrieve either endpoint.
 
 ## 9. Check Collections
 

@@ -16,7 +16,7 @@
 						<UInput
 							v-model="usernameState.username"
 							class="w-full"
-							:maxlength="255"
+							:maxlength="USER_USERNAME_MAX_LENGTH"
 							placeholder="Username"
 							icon="i-lucide-user"
 						/>
@@ -153,15 +153,7 @@ const onSaveUsername = async (payload: FormSubmitEvent<UsernameSchema>) => {
 // Password
 const isLoadingPassword = ref(false);
 
-const passwordSchema = z
-	.object({
-		password: ClientUserValidation.password,
-		password_confirmation: ClientUserValidation.password,
-	})
-	.refine((data) => data.password === data.password_confirmation, {
-		message: "Passwords must match",
-		path: ["password_confirmation"],
-	});
+const passwordSchema = ClientUserValidation.passwordConfirmation;
 
 type PasswordSchema = z.output<typeof passwordSchema>;
 

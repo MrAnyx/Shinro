@@ -83,6 +83,9 @@
 			/>
 
 			<!-- Details badges -->
+			<div v-if="isInternal && !isFetchingDetails && serieDetails?.serie" class="flex gap-2 flex-wrap">
+				<DetailsSeasonCountBadge :count="internalSeasons.length" />
+			</div>
 			<div class="flex gap-2 flex-wrap" v-if="isExternal">
 				<template v-if="isFetchingDetails">
 					<USkeleton v-for="i in 3" :key="i" class="h-[24px] w-24 rounded-sm" />
@@ -131,7 +134,12 @@
 				</template>
 				<template #seasons>
 					<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
-						<UTable :data="serieDetails?.seasons" :columns="seasonColumns" :loading="isFetchingDetails">
+						<UTable
+							:data="serieDetails?.seasons"
+							:columns="seasonColumns"
+							:loading="isFetchingDetails"
+							@select="(_event, row) => openSeasonDetails(row.original)"
+						>
 							<template #empty>
 								<UEmpty title="No seasons found" variant="naked" icon="i-lucide-ban" />
 							</template>
@@ -164,12 +172,52 @@
 									:aria-label="`${row.original.internal_season ? 'Remove' : 'Add'} ${row.original.name || `season ${row.original.season_number}`} ${row.original.internal_season ? 'from' : 'to'} My List`"
 									:onClickOn="() => addSeasonToMyList(row.original)"
 									:onClickOff="() => removeSeasonFromMyList(row.original)"
+									@click.stop
 								/>
 							</template>
 						</UTable>
 					</UCard>
 				</template>
 			</UTabs>
+
+			<!-- Saved seasons of an internal series -->
+			<template v-if="isInternal && serieDetails?.serie">
+				<div class="flex justify-between items-center">
+					<h2 class="font-semibold">Seasons</h2>
+					<UButton label="New season" leading-icon="i-lucide-plus" @click="createInternalSeason" />
+				</div>
+				<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
+					<UTable
+						:data="internalSeasons"
+						:columns="internalSeasonColumns"
+						:loading="loadingInternalSeasons"
+						@select="(_event, row) => openInternalSeason(row.original)"
+					>
+						<template #empty>
+							<UEmpty title="No seasons found" variant="naked" icon="i-lucide-ban" />
+						</template>
+						<template #image-cell="{ row }">
+							<ImageFallback
+								:width="60"
+								:height="90"
+								class="rounded-sm"
+								provider="tmdb"
+								:src="row.original.media.imagePath"
+							/>
+						</template>
+						<template #status-cell="{ row }">
+							<StatusBadge
+								v-if="row.original.media.status"
+								:type="row.original.media.type"
+								:status="row.original.media.status"
+							/>
+						</template>
+						<template #rating-cell="{ row }">
+							<VoteBadge :score="row.original.media.rating ?? undefined" />
+						</template>
+					</UTable>
+				</UCard>
+			</template>
 		</main>
 	</div>
 </template>
@@ -178,7 +226,7 @@
 import type { TabsItem, TableColumn } from "@nuxt/ui";
 import { useDebounceFn } from "@vueuse/core";
 
-import { LazySerieFormModal } from "#components";
+import { LazySeasonFormModal, LazySerieFormModal } from "#components";
 import { MediaStatus, MediaType } from "#prisma/enums";
 import type { TmdbCredit } from "~/types/tmdb";
 
@@ -199,6 +247,7 @@ const seasonStore = useSeasonStore();
 const toast = useStatusToast();
 const overlay = useOverlay();
 const serieFormModal = overlay.create(LazySerieFormModal);
+const seasonFormModal = overlay.create(LazySeasonFormModal);
 const { openConfirmationModal } = useConfirmation();
 
 // Route-derived state: `type` is "internal" (series in my list) or "external" (TMDB), `serieId` is the matching id
@@ -268,6 +317,45 @@ const tabs = computed<TabsItem[]>(() =>
 			]
 		: [],
 );
+
+const {
+	data: internalSeasonsData,
+	pending: loadingInternalSeasons,
+	refresh: refreshInternalSeasons,
+} = useClientAsyncData(
+	async () =>
+		isInternal.value
+			? await trpc.season.getAll.query({ page: 1, search: "", force: true, serieId: routeSerieId.value })
+			: null,
+	{ watch: [routeSerieId], defaultErrorMessage: "Failed to fetch seasons" },
+);
+const internalSeasons = computed(() => internalSeasonsData.value?.results ?? []);
+const internalSeasonColumns: TableColumn<SeasonWithSerie>[] = [
+	{ id: "image", meta: { class: { td: "w-[60px]" } } },
+	{
+		accessorKey: "number",
+		header: "#",
+		meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } },
+	},
+	{
+		id: "title",
+		header: "Title",
+		cell: ({ row }) => row.original.media.name ?? `Season ${row.original.number}`,
+		meta: { class: { td: "max-w-[120px] truncate font-bold text-default" } },
+	},
+	{ accessorKey: "overview", header: "Overview", meta: { class: { td: "max-w-[300px] truncate" } } },
+	{ id: "status", header: "Status", meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } } },
+	{ id: "rating", header: "Rating", meta: { class: { th: "w-0 whitespace-nowrap", td: "w-0 whitespace-nowrap" } } },
+];
+const openInternalSeason = (season: SeasonWithSerie) =>
+	navigateTo(`/app/series/internal/${routeSerieId.value}/seasons/${season.id}`);
+const createInternalSeason = () =>
+	toast.withErrorToast(async () => {
+		const result = await seasonFormModal.open({ serieId: routeSerieId.value }).result;
+		if (result) {
+			await refreshInternalSeasons();
+		}
+	});
 
 const seasonColumns: TableColumn<TmdbSerieSeason>[] = [
 	{ id: "image", meta: { class: { td: "w-[60px]" } } },
@@ -430,6 +518,13 @@ const addSeasonToMyList = (season: TmdbSerieSeason) =>
 		season.internal_season = result.season;
 		_setSerieDetailsSerie(result.serie);
 	});
+
+const openSeasonDetails = (season: TmdbSerieSeason) =>
+	navigateTo(
+		isInternal.value && season.internal_season
+			? `/app/series/internal/${routeSerieId.value}/seasons/${season.internal_season.id}`
+			: `/app/series/external/${serieDetails.value?.details?.id ?? routeSerieId.value}/seasons/${season.season_number}`,
+	);
 
 const removeSeasonFromMyList = (season: TmdbSerieSeason) =>
 	toast.withErrorToast(async () => {

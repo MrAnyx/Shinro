@@ -43,7 +43,7 @@ const fields: AuthFormField[] = [
 		required: true,
 		leadingIcon: "i-lucide-user",
 		type: "text",
-		maxlength: 255,
+		maxlength: USER_USERNAME_MAX_LENGTH,
 	},
 	{
 		label: "Password",
@@ -63,16 +63,9 @@ const fields: AuthFormField[] = [
 	},
 ];
 
-const schema = z
-	.object({
-		username: ClientUserValidation.username,
-		password: ClientUserValidation.password,
-		password_confirmation: ClientUserValidation.password,
-	})
-	.refine((data) => data.password === data.password_confirmation, {
-		message: "Passwords must match",
-		path: ["password_confirmation"],
-	});
+const schema = ClientUserValidation.passwordConfirmation.safeExtend({
+	username: ClientUserValidation.username,
+});
 
 type Schema = z.output<typeof schema>;
 

@@ -51,3 +51,21 @@ export const TmdbSerieCreditsResponseSchema = z.object({
 		)
 		.nullish(),
 });
+
+export const TmdbSeasonDetailsResponseSchema = z.object({
+	episodes: z
+		.array(
+			z
+				.object({
+					id: z.coerce.string(),
+					episode_number: z.number().int().nonnegative(),
+					name: z.string().nullish(),
+					overview: z.string().nullish(),
+					still_path: z.string().nullish(),
+					air_date: z.string().nullish(),
+					vote_average: z.number().nullish(),
+				})
+				.nullish(),
+		)
+		.nullish(),
+});

@@ -20,7 +20,7 @@
 					<UInput
 						v-model="state.name"
 						class="w-full"
-						:maxlength="255"
+						:maxlength="COLLECTION_NAME_MAX_LENGTH"
 						autofocus
 						:disabled="isLoading"
 						:loading="loadingCollection"
@@ -30,7 +30,7 @@
 					<UInput
 						v-model="state.description"
 						class="w-full"
-						:maxlength="500"
+						:maxlength="COLLECTION_DESCRIPTION_MAX_LENGTH"
 						:disabled="isLoading"
 						:loading="loadingCollection"
 					/>

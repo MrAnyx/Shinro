@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { MediaType, Prisma } from "#prisma/client";
+import { Prisma } from "#prisma/client";
 import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
@@ -62,7 +62,7 @@ export default router({
 				z.object({
 					type: z.literal("externalId"),
 					externalId: ServerMediaValidation.externalId,
-					mediaType: z.enum(MediaType),
+					mediaType: ServerMediaValidation.type,
 				}),
 			]),
 		)
@@ -123,7 +123,7 @@ export default router({
 		.input(
 			z.object({
 				id: ServerMediaValidation.id,
-				collectionIds: z.array(ServerCollectionValidation.id),
+				collectionIds: ServerCollectionValidation.ids,
 			}),
 		)
 		.output(z.array(BaseCollectionSchema))

@@ -91,7 +91,7 @@ const needsPassword = computed(() => !!props.requirePassword && !recentlyVerifie
 const schema = computed(() =>
 	needsPassword.value
 		? z.object({ password: ClientUserValidation.password })
-		: z.object({ password: z.string().optional() }),
+		: z.object({ password: ClientUserValidation.passwordOptional }),
 );
 type Schema = z.infer<typeof schema.value>;
 

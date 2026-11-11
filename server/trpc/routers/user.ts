@@ -157,16 +157,7 @@ export default router({
 		}),
 
 	updateMe: protectedProcedure
-		.input(
-			z
-				.object({
-					username: ServerUserValidation.username.optional(),
-					password: ServerUserValidation.password.optional(),
-				})
-				.refine((input) => input.username !== undefined || input.password !== undefined, {
-					message: "At least one profile field must be provided",
-				}),
-		)
+		.input(ServerUserValidation.update)
 		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
