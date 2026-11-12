@@ -2,21 +2,20 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { ImageType, MediaType, Prisma, SourceType } from "#prisma/client";
-import { router, protectedProcedure, movieEnabledMiddleware } from "#server/trpc/init";
+import { router, protectedProcedure } from "#server/trpc/init";
 
 export default router({
 	/**
 	 * Create a new movie for the authenticated user. The movie will be created with a media of type MOVIE.
 	 */
 	createFromInternal: protectedProcedure
-		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				name: ServerMediaValidation.name,
-				overview: ServerMovieValidation.overview.nullable(),
-				status: ServerMediaValidation.status.nullable(),
-				rating: ServerMediaValidation.rating.nullable(),
-				note: ServerMediaValidation.note.nullable(),
+				overview: ServerMovieValidation.overview,
+				status: ServerMediaValidation.status,
+				rating: ServerMediaValidation.rating,
+				note: ServerMediaValidation.note,
 			}),
 		)
 		.output(MovieSchema)
@@ -46,7 +45,6 @@ export default router({
 	 * Create a new movie for the authenticated user from an external source.
 	 */
 	createFromExternal: protectedProcedure
-		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				externalMovieId: ServerTmdbMovieValidation.id,
@@ -58,74 +56,62 @@ export default router({
 				schema: TmdbMovieDetailsResponseSchema,
 			});
 
-			try {
-				return await prisma.$transaction(async (tx) => {
-					const movieExist = await tx.movie.findFirst({
-						where: {
-							media: {
-								ownerId: ctx.user.id,
-								externalId: input.externalMovieId,
-							},
+			return await prisma.$transaction(async (tx) => {
+				const movieExist = await tx.movie.findFirst({
+					where: {
+						media: {
+							ownerId: ctx.user.id,
+							externalId: input.externalMovieId,
 						},
-						select: {
-							id: true,
-						},
-					});
-
-					if (movieExist) {
-						throw new TRPCError({
-							code: "CONFLICT",
-							message: "This movie as already been added",
-						});
-					}
-
-					const movie = await tx.movie.create({
-						data: {
-							media: {
-								create: {
-									externalId: tmdbMovie.id,
-									name: tmdbMovie.title ?? null,
-									type: MediaType.MOVIE,
-									ownerId: ctx.user.id,
-									imagePath: tmdbMovie.poster_path ?? null,
-									imageType: ImageType.TMDB,
-									source: SourceType.EXTERNAL,
-								},
-							},
-							overview: tmdbMovie.overview ?? null,
-						},
-						include: {
-							media: true,
-						},
-					});
-
-					return movie;
+					},
+					select: {
+						id: true,
+					},
 				});
-			} catch (error) {
-				if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+
+				if (movieExist) {
 					throw new TRPCError({
 						code: "CONFLICT",
-						message: "This movie has already been added",
-						cause: error,
+						message: "This movie as already been added",
 					});
 				}
-				throw error;
-			}
+
+				const movie = await tx.movie.create({
+					data: {
+						media: {
+							create: {
+								externalId: tmdbMovie.id,
+								name: tmdbMovie.title ?? null,
+								type: MediaType.MOVIE,
+								ownerId: ctx.user.id,
+								imagePath: tmdbMovie.poster_path ?? null,
+								imageType: ImageType.TMDB,
+								source: SourceType.EXTERNAL,
+							},
+						},
+						overview: tmdbMovie.overview ?? null,
+					},
+					include: {
+						media: true,
+					},
+				});
+
+				return movie;
+			});
 		}),
 
 	/**
 	 * Update an existing movie for the authenticated user.
 	 */
 	update: protectedProcedure
-		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				id: ServerMovieValidation.id,
 				name: ServerMediaValidation.name.optional(),
-				overview: ServerMovieValidation.overview.nullable().optional(),
-				status: ServerMediaValidation.status.nullable().optional(),
-				rating: ServerMediaValidation.rating.nullable().optional(),
-				note: ServerMediaValidation.note.nullable().optional(),
+				overview: ServerMovieValidation.overview.optional(),
+				status: ServerMediaValidation.status.optional(),
+				rating: ServerMediaValidation.rating.optional(),
+				note: ServerMediaValidation.note.optional(),
 			}),
 		)
 		.output(MovieSchema)
@@ -192,7 +178,6 @@ export default router({
 	 * Delete an existing movie for the authenticated user.
 	 */
 	delete: protectedProcedure
-		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				id: ServerMovieValidation.id,
@@ -239,7 +224,6 @@ export default router({
 	 * Count the number of movies for the authenticated user.
 	 */
 	count: protectedProcedure
-		.use(movieEnabledMiddleware)
 		.input(z.void())
 		.output(z.number())
 		.query(async ({ ctx }) => {
@@ -257,11 +241,10 @@ export default router({
 	 * If the force flag is set to true, all the movies will be returned without pagination.
 	 */
 	getAll: protectedProcedure
-		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				page: ServerPaginationValidation.page,
-				search: ServerPaginationValidation.search.nullish(),
+				search: ServerPaginationValidation.search,
 				force: ServerPaginationValidation.force,
 				source: ServerMediaValidation.source.optional(),
 				orderBy: SortableSchema(ServerMovieValidation.sort),
@@ -318,7 +301,6 @@ export default router({
 	 * Get a movie by its ID for the authenticated user.
 	 */
 	getById: protectedProcedure
-		.use(movieEnabledMiddleware)
 		.input(
 			z.discriminatedUnion("type", [
 				z.object({
@@ -349,7 +331,9 @@ export default router({
 			const movie = await prisma.movie.findFirst({
 				where: {
 					...movieFilter,
-					AND: [{ media: { ownerId: ctx.user.id } }],
+					media: {
+						ownerId: ctx.user.id,
+					},
 				},
 				include: {
 					media: true,
@@ -370,7 +354,6 @@ export default router({
 	 * Get the details of an internal movie (created manually by the user).
 	 */
 	getInternalDetails: protectedProcedure
-		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				id: ServerMovieValidation.id,
@@ -422,7 +405,6 @@ export default router({
 	 * Get the details of an external movie from TMDB, along with the user's movie if it is in their list.
 	 */
 	getExternalDetails: protectedProcedure
-		.use(movieEnabledMiddleware)
 		.input(
 			z.object({
 				externalMovieId: ServerTmdbMovieValidation.id,

@@ -91,12 +91,12 @@ const needsPassword = computed(() => !!props.requirePassword && !recentlyVerifie
 const schema = computed(() =>
 	needsPassword.value
 		? z.object({ password: ClientUserValidation.password })
-		: z.object({ password: ClientUserValidation.password.optional() }),
+		: z.object({ password: z.string().optional() }),
 );
 type Schema = z.infer<typeof schema.value>;
 
 const state = reactive<Schema>({
-	password: undefined,
+	password: "",
 });
 
 const onCancel = () => {
@@ -112,11 +112,7 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) => {
 		isLoading.value = true;
 
 		if (needsPassword.value) {
-			if (!payload.data.password) {
-				form.value?.setErrors([{ name: "password", message: "Password is required" }]);
-				return;
-			}
-			const valid = await trpc.user.verifyPassword.mutate({ password: payload.data.password });
+			const valid = await trpc.user.verifyPassword.mutate({ password: payload.data.password! });
 
 			if (!valid) {
 				form.value?.setErrors([{ name: "password", message: "Incorrect password" }]);

@@ -1,6 +1,6 @@
 # Shinro
 
-Shinro is a modern personal media organization app built with Nuxt, TypeScript, tRPC, Prisma, and PostgreSQL. It helps users keep track of movies, series, collections, and their own viewing habits in a clean and intuitive experience.
+Shinro is a modern personal media organization app built with Nuxt, TypeScript, tRPC, Prisma, and PostgreSQL. It helps users keep track of movies, collections, and their own viewing habits in a clean and intuitive experience.
 
 ## Project Overview
 
@@ -9,9 +9,8 @@ Shinro was created as a personal project to make media management more intention
 ### What the app offers
 
 - Manage personal movie collections
-- Manage personal series libraries
 - Create and organize custom collections
-- Search and discover movies and series through TMDb integration
+- Search and discover movies through TMDb integration
 - Keep a structured and accessible personal library
 - Enjoy a fast, modern experience powered by Nuxt and tRPC
 

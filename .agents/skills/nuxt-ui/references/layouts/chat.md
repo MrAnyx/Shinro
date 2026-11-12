@@ -111,10 +111,10 @@ UDashboardPanel
 
 ```vue [pages/chat/[id].vue]
 <script setup lang="ts">
-import { useChat } from "@ai-sdk/vue";
-import highlight from "@comark/nuxt/plugins/highlight";
-import { isPartStreaming, isToolStreaming } from "@nuxt/ui/utils/ai";
 import { isReasoningUIPart, isTextUIPart, isToolUIPart, getToolName } from "ai";
+import { useChat } from "@ai-sdk/vue";
+import { isPartStreaming, isToolStreaming } from "@nuxt/ui/utils/ai";
+import highlight from "@comark/nuxt/plugins/highlight";
 
 definePageMeta({ layout: "dashboard" });
 

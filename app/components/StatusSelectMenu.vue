@@ -29,18 +29,16 @@
 <script setup lang="ts">
 import type { SelectMenuItem, SelectMenuProps } from "@nuxt/ui";
 
-import { MediaStatus, MediaType } from "#prisma/enums";
+import { MediaStatus } from "#prisma/enums";
 
 const status = defineModel<MediaStatus>();
 
-const props = defineProps<
-	{ type?: MediaType } & Pick<SelectMenuProps, "variant" | "loading" | "disabled" | "color" | "highlight">
->();
+const props = defineProps<{} & Pick<SelectMenuProps, "variant" | "loading" | "disabled" | "color" | "highlight">>();
 
 const statuses = computed<SelectMenuItem[]>(() =>
 	Object.values(MediaStatus).map((status) => ({
 		value: status,
-		label: STATUS_LABELS[props.type ?? MediaType.MOVIE][status],
+		label: MOVIE_STATUS_LABELS[status],
 		chip: {
 			color: STATUS_COLORS[status],
 		},

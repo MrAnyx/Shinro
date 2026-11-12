@@ -1,25 +1,17 @@
 import { router } from "#server/trpc/init";
 import cacheRouter from "#server/trpc/routers/cache";
 import collectionRouter from "#server/trpc/routers/collection";
-import episodeRouter from "#server/trpc/routers/episode";
 import mediaRouter from "#server/trpc/routers/media";
 import movieRouter from "#server/trpc/routers/movie";
-import seasonRouter from "#server/trpc/routers/season";
-import serieRouter from "#server/trpc/routers/serie";
 import tmdbMovieRouter from "#server/trpc/routers/tmdb/movie";
-import tmdbSerieRouter from "#server/trpc/routers/tmdb/serie";
 import userRouter from "#server/trpc/routers/user";
 
 export const appRouter = router({
 	user: userRouter,
 	tmdbMovie: tmdbMovieRouter,
-	tmdbSerie: tmdbSerieRouter,
 	collection: collectionRouter,
 	cache: cacheRouter,
 	movie: movieRouter,
-	serie: serieRouter,
-	season: seasonRouter,
-	episode: episodeRouter,
 	media: mediaRouter,
 });
 

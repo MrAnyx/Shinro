@@ -1,14 +1,8 @@
 <template>
-	<UEmpty
-		v-if="notFound"
-		title="Movie not found"
-		description="This movie is not available."
-		icon="i-lucide-search-x"
-	/>
-	<div v-else class="flex flex-col lg:flex-row gap-8 w-full">
+	<div class="flex gap-8 w-full">
 		<!-- Side bar with image and actions -->
-		<aside class="w-full lg:w-80 shrink-0">
-			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle">
+		<aside>
+			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle" class="w-80">
 				<!-- Image -->
 				<ImageFallback
 					provider="tmdb"
@@ -168,7 +162,6 @@
 									:is-added="!!row.original.internal_movie"
 									:onClickOn="() => addSagaMovieToMyList(row.original)"
 									:onClickOff="() => removeSagaMovieFromMyList(row.original)"
-									@click.stop
 								/>
 							</template>
 						</UTable>
@@ -210,26 +203,14 @@ const routeMovieId = computed(() => route.params.movieId as string);
 const isExternal = computed(() => sourceType.value === MediaSourceTypes.external);
 const isInternal = computed(() => sourceType.value === MediaSourceTypes.internal);
 
-// Fetch the page data: internal movies come from my list, external ones from TMDB (NOT_FOUND shows the empty state)
-const notFound = ref(false);
-const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<MovieDetails | undefined>(
-	async () => {
-		if (isInternal.value) {
-			return trpc.movie.getInternalDetails.query({ id: routeMovieId.value });
-		} else {
-			return trpc.movie.getExternalDetails.query({ externalMovieId: routeMovieId.value });
-		}
-	},
-	{
-		onError: (err) => {
-			if (getTRPCErrorCode(err) === "NOT_FOUND") {
-				notFound.value = true;
-			} else {
-				toast.error(err, { description: "Failed to fetch movie details" });
-			}
-		},
-	},
-);
+// Fetch the page data: internal movies come from my list, external ones from TMDB (NOT_FOUND shows no toast)
+const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<MovieDetails | undefined>(async () => {
+	if (isInternal.value) {
+		return trpc.movie.getInternalDetails.query({ id: routeMovieId.value });
+	} else {
+		return trpc.movie.getExternalDetails.query({ externalMovieId: routeMovieId.value });
+	}
+});
 
 // Pending values are shown right away while the update (debounced for rating) is in flight
 const pendingCollectionIds = usePendingValue<string[]>();

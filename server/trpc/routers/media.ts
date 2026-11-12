@@ -13,7 +13,7 @@ export default router({
 		.input(
 			z.object({
 				page: ServerPaginationValidation.page,
-				search: ServerPaginationValidation.search.nullish(),
+				search: ServerPaginationValidation.search,
 				force: ServerPaginationValidation.force,
 				source: ServerMediaValidation.source.optional(),
 				orderBy: SortableSchema(ServerMediaValidation.sort),
@@ -62,7 +62,6 @@ export default router({
 				z.object({
 					type: z.literal("externalId"),
 					externalId: ServerMediaValidation.externalId,
-					mediaType: ServerMediaValidation.type,
 				}),
 			]),
 		)
@@ -73,7 +72,7 @@ export default router({
 			if (input.type === "id") {
 				mediaFilter = { id: input.id };
 			} else if (input.type === "externalId") {
-				mediaFilter = { externalId: input.externalId, type: input.mediaType };
+				mediaFilter = { externalId: input.externalId };
 			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",

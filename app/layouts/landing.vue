@@ -30,7 +30,7 @@
 	<UFooter class="border-t border-default bg-elevated/30" :ui="{ container: 'border-t border-default' }">
 		<template #top>
 			<UContainer>
-				<UFooterColumns :columns="footerColumns">
+				<UFooterColumns :columns="footerColumns" aria-label="Footer navigation">
 					<template #left>
 						<NuxtLink to="/" class="inline-flex items-center gap-2 text-highlighted">
 							<NuxtImg src="/images/icone.svg" alt="" class="size-10" />
@@ -51,6 +51,7 @@
 		<template #right>
 			<UButton
 				icon="i-simple-icons-github"
+				aria-label="Shinro on GitHub (opens in a new tab)"
 				color="neutral"
 				variant="ghost"
 				to="https://github.com/MrAnyx/Shinro"

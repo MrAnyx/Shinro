@@ -33,15 +33,7 @@
 					tooltip
 					popover
 				/>
-				<UNavigationMenu
-					:items="mediaItems"
-					orientation="vertical"
-					:collapsed="collapsed"
-					type="single"
-					:collapsible="collapsed"
-					tooltip
-					popover
-				/>
+				<UNavigationMenu :items="mediaItems" orientation="vertical" :collapsed="collapsed" tooltip popover />
 				<UNavigationMenu
 					:items="sidebarSecondaryItems"
 					orientation="vertical"
@@ -86,7 +78,6 @@ const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
 const serieStore = useSerieStore();
 const seasonStore = useSeasonStore();
-const episodeStore = useEpisodeStore();
 const userStore = useUserStore();
 const mediaStore = useMediaStore();
 const config = useClientConfig();
@@ -147,19 +138,12 @@ const mediaItems = computed<NavigationMenuItem[]>(() => {
 			badge: serieStore.total,
 			to: "/app/series",
 			defaultOpen: true,
-			ui: { linkTrailingIcon: "hidden" },
 			children: [
 				{
 					label: "Seasons",
 					to: "/app/seasons",
 					icon: "i-lucide-layers",
 					badge: seasonStore.total,
-				},
-				{
-					label: "Episodes",
-					to: "/app/episodes",
-					icon: "i-lucide-list-video",
-					badge: episodeStore.total,
 				},
 			],
 		},

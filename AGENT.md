@@ -61,7 +61,6 @@ For database schema changes, use `pnpm db:generate`, review the generated migrat
 - Follow the existing TypeScript, Vue, Nuxt, and Prisma patterns.
 - Formatting is enforced by oxfmt: 120 columns, semicolons, double quotes, LF endings, and automatically sorted imports.
 - Oxlint treats correctness and performance rules as errors; avoid direct `process.env` access and use validated server configuration instead.
-- Include concise comments in generated or modified code to explain its purpose and important behavior. Avoid comments that merely restate obvious syntax or duplicate the code.
-- Initialize composables such as `useTrpc()` into a local variable before using their members (for example, `const trpc = useTrpc(); trpc.movie.get.query(...)`). Do not call members directly on the composable result (for example, `useTrpc().movie.get.query(...)`).
+- Keep code self-explanatory; add comments only when they clarify non-obvious decisions.
 - Use ASCII by default for new text.
 - Keep user-facing errors useful without exposing secrets, credentials, stack traces, or internal implementation details.

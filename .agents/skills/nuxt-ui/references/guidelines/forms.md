@@ -6,8 +6,8 @@ Nuxt UI forms use `UForm` + `UFormField` + Standard Schema validation (Zod, Vali
 
 ```vue
 <script setup lang="ts">
-import type { FormSubmitEvent } from "@nuxt/ui";
 import * as z from "zod";
+import type { FormSubmitEvent } from "@nuxt/ui";
 
 const schema = z.object({
 	email: z.email("Invalid email"),

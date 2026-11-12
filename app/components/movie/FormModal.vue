@@ -19,7 +19,7 @@
 					<UInput
 						v-model="state.name"
 						class="w-full"
-						:maxlength="MEDIA_NAME_MAX_LENGTH"
+						:maxlength="255"
 						autofocus
 						:disabled="isLoading"
 						:loading="loadingMovie"
@@ -57,7 +57,7 @@
 						class="w-full"
 						autoresize
 						:maxrows="4"
-						:maxlength="MEDIA_NOTE_MAX_LENGTH"
+						:maxlength="1000"
 						:disabled="isLoading"
 						:loading="loadingMovie"
 					/>
@@ -101,11 +101,11 @@ const isLoading = computed(() => isInitializing.value || isSubmitting.value);
 
 const schema = z.object({
 	name: ClientMediaValidation.name,
-	status: ClientMediaValidation.status.optional(),
+	status: ClientMediaValidation.status,
 	collections: z.array(ClientCollectionValidation.id),
 	overview: ClientMovieValidation.overview,
 	note: ClientMediaValidation.note,
-	rating: ClientMediaValidation.rating.optional(),
+	rating: ClientMediaValidation.rating,
 });
 type Schema = z.infer<typeof schema>;
 

@@ -61,21 +61,9 @@ Use only the disposable staging database/accounts.
 - [ ] Try registering a username that already exists. Expected: request is rejected with a useful error; no second account is created.
 - [ ] Try blank, too-short, too-long, and otherwise invalid usernames/passwords at the UI. Expected: field validation explains the problem and no account is created.
 - [ ] Repeat invalid registration attempts through the server/API boundary if available. Expected: server validation also rejects them; client checks alone are not relied upon.
-- [ ] Try matching and mismatched password confirmations during registration and profile updates. Expected: mismatches appear on the confirmation field and valid passwords save normally.
-- [ ] Confirm an action both with and without password re-verification, including an incorrect password. Expected: password is required only when re-verification is needed, and an incorrect password does not run the action.
 - [ ] Set `NUXT_PUBLIC_ALLOW_REGISTRATION=false` and try the registration route directly.
 - [ ] Try registration through the server/API while registration is disabled. Expected: registration is rejected server-side, not merely hidden in the UI.
 - [ ] Restore the release's intended registration flag after testing.
-
-## Series/Season Cleanup Checks
-
-- [ ] Open a season form with and without a preselected series. Expected: the selected series name or the placeholder remains visible; opening the selector without typing does not request the complete series list.
-- [ ] Search for internal series, type rapidly, clear the search, and simulate a failed request. Expected: only the first matching page is offered, stale results do not replace newer ones, and errors are visible.
-- [ ] Exercise table action buttons and dropdowns across movies, series, seasons, and collections. Expected: the action runs without triggering row navigation; clicking the row still navigates normally.
-- [ ] Check My List toggle columns in movie and series search results, movie saga, series seasons, and season episodes. Expected: no visible column header, and the toggles remain usable without triggering row navigation.
-- [ ] Navigate between internal and external series and season routes, including missing items. Expected: details, collections, episodes, credits, and not-found states match the current route without stale data.
-- [ ] Select user-created and TMDB-imported seasons from the season listing, including season 0. Expected: user-created seasons open their internal IDs; imported seasons open the external series ID and season number. If an imported season has no TMDB series ID, an error is shown instead of navigating to an invalid URL.
-- [ ] Create and update media with empty, null, omitted, and invalid optional fields and collection IDs. Expected: valid inputs retain existing normalization and invalid IDs or fields are rejected at the server boundary.
 
 ## 5. Verify Login, Session, And Route Protection
 
@@ -115,8 +103,6 @@ Use only the disposable staging database/accounts.
 - [ ] Attempt to add the same TMDb movie again. Expected: duplicate is rejected or handled idempotently; no duplicate record appears.
 - [ ] Open the movie detail page. Expected: correct metadata/credits/franchise information when available; absent optional data and missing artwork use graceful fallbacks.
 - [ ] Open the detail page of an external movie (`/app/movies/external/<tmdbId>`) both in and not in the library. Expected: one details request (`movie.getExternalDetails`) returns TMDb data plus the saved movie and its collections when it is in the library, and no saved movie or collections otherwise; "Add to My List" or the edit/remove/status/collection/rating controls match that state.
-- [ ] Open an external movie ID that does not exist in TMDb. Expected: `movie.getExternalDetails` returns `NOT_FOUND` and the page shows "Movie not found"; TMDb authentication, rate-limit, and service errors are not reported as missing movies.
-- [ ] Simulate TMDb 404 responses for other resource requests, including TV details, credits, and movie collections. Expected: each returns `NOT_FOUND`; non-404 TMDb errors remain distinguishable.
 - [ ] On an external movie detail page with a saga, use the saga table to add the currently displayed unsaved movie. Expected: its row switches to added and the sidebar immediately switches from "Add to My List" to the edit/remove/status/collection/rating controls; the saved state remains correct after refresh.
 - [ ] On an external movie detail page with a saga, remove both the current movie and another saga movie through their table controls. Expected: each row switches to unadded without an error; removing the current movie also switches the sidebar back to "Add to My List".
 - [ ] On the movie detail page, select and deselect collections, including clearing all of them, and open the edit modal to change them. Expected: the selection updates immediately, matches the collections returned by the server once the update completes, stays correct after refresh, and resets when the movie is removed; a failed update shows an error toast and reverts to the previous selection.
@@ -141,43 +127,14 @@ Use only the disposable staging database/accounts.
 - [ ] Add the series and refresh. Expected: exactly one series is saved.
 - [ ] Attempt to add the same series again. Expected: duplicate is rejected or handled idempotently.
 - [ ] Open its detail page, then test missing artwork/optional metadata. Expected: fallbacks render and the page remains usable.
-- [ ] Check external series badges with populated, missing, and zero-valued season/episode metadata. Expected: last-air date and status appear only when present; counts show their values (or "No season"/"No episode" for zero) and are hidden when absent.
-- [ ] Check the series release badge with a future, past, and missing first-air date. Expected: it displays Upcoming, Released, and Unknown respectively.
 - [ ] Create a series manually and edit it. Expected: valid fields persist; invalid values are rejected without partial records.
 - [ ] Change each supported status/rating/note field. Expected: data persists after refresh and remains associated with the correct account.
 - [ ] Assign and unassign the series from collections. Expected: membership is correct and no duplicate links appear.
 - [ ] Simulate TMDb empty results, timeout/rate limit, and unavailable service. Expected: useful recoverable state and no leaked token.
-- [ ] Set `NUXT_PUBLIC_ENABLE_SERIES=false`; try navigation, direct series URLs, and authenticated `serie`, `season`, and `tmdbSerie` queries and mutations. Expected: navigation is hidden, pages and procedures return not found, and the dashboard and enabled movie feature still initialize.
-- [ ] Apply the media external-ID migration on an isolated database with existing data. Verify all rows remain and a user can save a movie and a series with the same TMDB ID, but cannot save a duplicate of the same type; verify movie and series external-ID and collection lookups return the correct type and owner.
-- [ ] Create, edit, rate, set status, organize and delete internal and TMDB series; check listing/search pagination, saved badges, counts, dashboard and collections. Verify both details routes use the same page, with TMDB-only metadata shown only for external series.
-- [ ] Check series access as another user and logged out, malformed IDs, missing TMDB fields, empty search and TMDB errors. Expected: no cross-user data, controlled errors, and no fabricated saved state.
-- [ ] Delete a series with saved seasons and episodes in an isolated database. Verify all descendant media and collection links are removed atomically; mismatched descendant ownership rejects the deletion without removing anything.
-- [ ] Check series pages and controls with keyboard navigation and narrow/mobile viewports; ensure labels, focus, confirmation dialogs and responsive layout remain usable.
-- [ ] Set `NUXT_PUBLIC_ENABLE_MOVIES=false`; try navigation, direct movie URLs, and authenticated `movie` and `tmdbMovie` queries and mutations. Expected: navigation is hidden, pages and procedures return not found, and the dashboard and enabled series feature still initialize. Repeat with both flags disabled.
+- [ ] Set `NUXT_PUBLIC_ENABLE_SERIES=false`; try navigation, direct series URLs, and direct series APIs. Expected: series are inaccessible through UI and server/API paths.
+- [ ] Set `NUXT_PUBLIC_ENABLE_MOVIES=false`; try navigation, direct movie URLs, and direct movie APIs. Expected: movies are inaccessible through UI and server/API paths.
 - [ ] Restore the release's intended movie/series flags and verify enabled routes work again.
-- [ ] Open an external series with multiple seasons, specials (season 0), missing artwork and an empty season list. Expected: the Seasons tab shows TMDB metadata and saved state, including after refresh; it remains usable by keyboard and on narrow screens.
-- [ ] With an older cached series-details response present, open its external details page. Expected: the season list loads from the new cache entry without waiting for the old entry to expire.
-- [ ] Add and remove seasons on saved and unsaved series. Expected: adding the first season also saves its series atomically; rows, sidebar and library counts update and persist after refresh. Canceling removal changes nothing; confirming removes the season, its owned episodes and collection links, but not the series or other seasons. Deleting the series clears all season rows and counts.
-- [ ] Delete a series while the season count request fails. Expected: the series remains deleted, the page reflects the deletion, and an error explains that the season count could not be refreshed.
-- [ ] Try duplicate, nonexistent and another user's seasons, mismatched descendant ownership, and TMDB failures. Expected: controlled errors, no cross-user changes or partial records, and no false saved state.
-- [ ] Open Seasons from the sidebar with an empty list and with saved seasons across multiple pages. Search by title, overview and series name, clear the search, refresh, and select a row. Expected: only the current user's seasons appear, pagination works, and each row opens its saved-season details without requiring TMDB.
-- [ ] Edit a season from the list and details, including status, rating, note and collections; refresh and verify persistence. Reject invalid titles and ratings, and verify failed requests report errors without claiming success.
-- [ ] Cancel and confirm season deletion from the list and details, including the last row on a later page. Expected: cancellation changes nothing; confirmation removes the season and its saved episodes, updates the count and list, and leaves its series intact.
-- [ ] Check season pages with another user's ID, while logged out, and with series disabled; verify no data is exposed or modified. Exercise the list and edit/delete controls by keyboard and on narrow screens.
-- [ ] Open saved external seasons, including season 0, and check the Episodes and Credits tabs against TMDB. Verify episode order, saved episode overrides, missing artwork and dates, empty results, credit links, keyboard navigation and narrow-screen layout. Internal seasons show only owned saved episodes and an empty credits state.
-- [ ] Check episode durations on external season details and saved external seasons opened through their internal route. Expected: available TMDB runtimes are displayed; missing or null runtimes and episodes without stored runtimes leave the duration cell empty.
-- [ ] Simulate a TMDB episode or credits failure independently. Expected: the affected tab shows a retry action without hiding the season or the other tab; retry works. Verify logged-out users, another user's season ID, and disabled series cannot retrieve either endpoint.
-- [ ] Open saved and unsaved episode details from a season and the paginated episode library. Verify parent links, duration, missing artwork and keyboard/mobile use; no episode search is offered.
-- [ ] Edit title, overview, note, status, rating and collections of saved internal and TMDB episodes; verify changes persist and the page, breadcrumb and library update. Move an internal episode to another owned internal season and change its number, including season 0; verify navigation and parent links follow it. Reject duplicate numbers, external or another user's seasons and attempts to move or renumber TMDB episodes. Cancel an edit, reject invalid fields or collections and simulate failed updates; verify no partial changes. Check logged-out and disabled-series access, keyboard use and narrow screens.
-- [ ] Add an episode with unsaved, partially saved and saved parents. Verify atomic creation, persistence, duplicate handling, ownership, disabled series and TMDB failures. Remove it and verify parents remain; check status, rating and collections persist.
-- [ ] Toggle episodes in a season's Episodes tab on and off, including season 0, unsaved parents, saved external seasons opened internally, and internal seasons. Verify persisted membership, parent counts, cancellation, deletion of personal episode data, failure states, keyboard labels and concurrent clicks.
-- [ ] Check season release and TMDB vote badges on external routes and saved external seasons opened internally, including upcoming, released, season 0 and missing metadata. Internal-only seasons must not show TMDB badges; metadata failures on internal routes show a retry without hiding the season.
-- [ ] Check the release badge on episode details for future, past, and missing air dates, including saved external episodes opened internally. Expected: Upcoming, Released, and Unknown respectively; the date, duration, and vote badges retain their existing behavior.
-- [ ] Click different cells of episode rows in the library and on internal and external season pages, and focus rows and activate them with Enter or Space. Expected: each opens the correct episode without a separate title link; the My List toggle does not navigate away.
-- [ ] Open episode details from the library and season rows, refresh and directly visit `/app/series/{series-id}/seasons/{season-number}/episodes/{episode-number}` for TMDB and owned internal series, including season 0. Check parent links, nonexistent or another user's episodes, malformed parameters, feature flags, and My List actions.
-- [ ] Check season and episode breadcrumbs on external, internal, and saved external routes, including season 0 and missing names. Expected: series and season ancestors link to the correct details, the current item is not a link, and breadcrumbs work by keyboard and on narrow screens.
-- [ ] Visit previously shared `/app/episodes/internal/...` and `/app/episodes/external/...` episode links. Expected: they redirect to the corresponding series/season episode URL; missing episodes and failed lookups do not navigate to another user's data.
-- [ ] Check the episode sidebar and My List counts after sign-in, reload, adding and removing episodes, and deleting seasons or series with episodes. Verify canceled or failed mutations do not change counts, concurrent loads do not restore stale totals, failures to refresh after deletion are reported, other users' episodes are excluded, and disabled series does not load counts.
+- [ ] Inspect season rows and season add/remove/detail controls. Expected: treat season/episode management as incomplete; an active control leading to a dead route or false success is a defect, not a passed workflow.
 
 ## 9. Check Collections
 
@@ -278,5 +235,5 @@ After deployment, run only non-destructive production smoke checks: open the app
 
 - Books, music, games, statistics, and Spotify-backed workflows are not currently complete user features.
 - Collection detail is currently a placeholder; verify collection CRUD, favorites, and media assignment rather than treating the detail page as complete.
-- Season detail and episode management are incomplete and should not be accepted as functional.
+- Series season/episode controls are incomplete and should not be accepted as functional.
 - There is currently no dedicated test/spec suite or test script; manual staging validation remains necessary until automated coverage is added.
