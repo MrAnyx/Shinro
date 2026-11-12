@@ -3,6 +3,7 @@
 ## Project Context
 
 - This is a client-rendered Nuxt 4 application (`ssr: false`) using Vue, Nuxt UI, Pinia, Tailwind, tRPC, Prisma, PostgreSQL, and Redis.
+- Shinro is designed to be self-hosted: each instance is deployed and operated by its own administrator. Keep features configurable through environment variables, avoid dependencies on hosted or third-party services unless they are optional, and keep deployment simple.
 - Use `pnpm` and follow the versions recorded in `package.json` and `pnpm-lock.yaml`.
 - Preserve existing project conventions, public APIs, and user changes. Keep edits focused.
 - Pages, middleware, composables, components, and stores under `app/` use Nuxt auto-imports.
