@@ -13,37 +13,41 @@
 		</template>
 	</UPageHero>
 
-	<div class="mx-auto mb-20 max-w-6xl px-4 sm:px-6 lg:px-8">
-		<section aria-labelledby="short-version" class="mb-20">
-			<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				<UPageCard
-					title="What we store"
-					description="Your username, password hash, and the library data you add. Yes, even that abandoned watchlist."
-					icon="i-lucide-database"
-					variant="subtle"
-				/>
-				<UPageCard
-					title="One cookie"
-					description="An essential session cookie keeps you signed in. Your display preference may also be saved in your browser."
-					icon="i-lucide-cookie"
-					variant="subtle"
-				/>
-				<UPageCard
-					title="Public API"
-					description="Movie searches and details may be requested from TMDB; instance hosting and logs depend on the operator."
-					icon="i-lucide-globe"
-					variant="subtle"
-				/>
-				<UPageCard
-					title="Delete any time"
-					description="Delete your account in Settings to remove its records from the live database. Backups and logs may remain."
-					icon="i-lucide-user-round-x"
-					variant="subtle"
-				/>
-			</div>
-		</section>
+	<UPageSection aria-labelledby="short-version">
+		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+			<UPageCard
+				title="What we store"
+				description="Your username, password hash, and the library data you add. Yes, even that abandoned watchlist."
+				icon="i-lucide-database"
+				variant="subtle"
+				spotlight
+			/>
+			<UPageCard
+				title="One cookie"
+				description="An essential session cookie keeps you signed in. Your display preference may also be saved in your browser."
+				icon="i-lucide-cookie"
+				variant="subtle"
+				spotlight
+			/>
+			<UPageCard
+				title="Public API"
+				description="Movie searches and details may be requested from TMDB; instance hosting and logs depend on the operator."
+				icon="i-lucide-globe"
+				variant="subtle"
+				spotlight
+			/>
+			<UPageCard
+				title="Delete any time"
+				description="Delete your account in Settings to remove its records from the live database. Backups and logs may remain."
+				icon="i-lucide-user-round-x"
+				variant="subtle"
+				spotlight
+			/>
+		</div>
+	</UPageSection>
 
-		<article class="mx-auto max-w-6xl space-y-10">
+	<UPageSection>
+		<article class="space-y-10">
 			<section class="space-y-3">
 				<h3 class="text-2xl font-semibold text-highlighted">
 					<span class="text-primary">1.</span> Who is responsible?
@@ -205,7 +209,7 @@
 				</p>
 			</section>
 		</article>
-	</div>
+	</UPageSection>
 </template>
 
 <script setup lang="ts">
