@@ -16,7 +16,7 @@
 						<UInput
 							v-model="usernameState.username"
 							class="w-full"
-							:maxlength="255"
+							:maxlength="USER_USERNAME_MAX_LENGTH"
 							placeholder="Username"
 							icon="i-lucide-user"
 						/>

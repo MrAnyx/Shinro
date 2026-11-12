@@ -43,7 +43,7 @@ const fields: AuthFormField[] = [
 		required: true,
 		leadingIcon: "i-lucide-user",
 		type: "text",
-		maxlength: 255,
+		maxlength: USER_USERNAME_MAX_LENGTH,
 	},
 	{
 		label: "Password",

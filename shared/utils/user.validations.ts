@@ -1,10 +1,12 @@
 import { z } from "zod";
 
+export const USER_USERNAME_MAX_LENGTH = 255;
+
 export const UserUsernameSchemaBase = z
 	.string("User username must be a valid string")
 	.trim()
 	.min(1, "User username can not be empty")
-	.max(255, "User username can not exceed 255 characters")
+	.max(USER_USERNAME_MAX_LENGTH, `User username can not exceed ${USER_USERNAME_MAX_LENGTH} characters`)
 	.refine((x) => /^[a-zA-Z0-9_.-]+$/.test(x), "User username can not contain special characters");
 
 export const UserPasswordSchemaBase = z
