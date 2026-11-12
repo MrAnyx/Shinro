@@ -6,8 +6,8 @@
 
 ```vue [pages/login.vue]
 <script setup lang="ts">
-import * as z from "zod";
 import type { FormSubmitEvent, AuthFormField } from "@nuxt/ui";
+import * as z from "zod";
 
 const fields: AuthFormField[] = [
 	{
@@ -107,8 +107,8 @@ For layouts where `UAuthForm` is too opinionated, use `UCard` + `UForm` + `UForm
 
 ```vue [pages/login.vue]
 <script setup lang="ts">
-import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
+import * as z from "zod";
 
 const schema = z.object({
 	email: z.email("Invalid email"),
