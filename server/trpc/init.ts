@@ -40,9 +40,9 @@ export const publicProcedure = trpc.procedure;
 
 export const protectedProcedure = publicProcedure
 	.use(async ({ ctx, next }) => {
-		const sessionId = getCookie(ctx.event, "session_id");
+		const token = getSessionCookie(ctx.event);
 
-		if (!sessionId) {
+		if (!token) {
 			throw new TRPCError({
 				code: "UNAUTHORIZED",
 				message: "You must login first before using this procedure",
@@ -51,9 +51,10 @@ export const protectedProcedure = publicProcedure
 
 		const session = await prisma.session.findUnique({
 			where: {
-				sessionId: sessionId,
+				tokenHash: hashSessionToken(token),
 			},
 			select: {
+				id: true,
 				expiresAt: true,
 				user: {
 					select: {
@@ -72,13 +73,15 @@ export const protectedProcedure = publicProcedure
 		}
 
 		if (session.expiresAt < new Date()) {
+			await prisma.session.deleteMany({ where: { id: session.id } });
+
 			throw new TRPCError({
 				code: "UNAUTHORIZED",
 				message: "Session has expired. You must login again",
 			});
 		}
 
-		return next({ ctx: { ...ctx, sessionId, user: session.user } });
+		return next({ ctx: { ...ctx, sessionId: session.id, user: session.user } });
 	})
 	// Refresh session expiration
 	.use(async ({ ctx, next }) => {
@@ -87,7 +90,7 @@ export const protectedProcedure = publicProcedure
 				expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
 			},
 			where: {
-				sessionId: ctx.sessionId,
+				id: ctx.sessionId,
 			},
 		});
 

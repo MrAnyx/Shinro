@@ -202,7 +202,7 @@ Perform these only in isolated staging and coordinate any service disruption.
 - [ ] Make TMDb unavailable or rate-limited. Expected: recoverable user-facing error, retry behavior, and no credential leakage.
 - [ ] Use a representative large library (hundreds of media records and dozens of collections). Expected: search/pagination remain correct with no missing or duplicated rows and acceptable response/render time.
 - [ ] Restart the application/container. Expected: application returns to service; persistent data remains intact; sessions behave according to policy.
-- [ ] Inspect the scheduled `hello` task, configured every minute. Expected: it is harmless and does not create noisy or unexpected work.
+- [ ] Inspect the scheduled `session:cleanup` task, configured daily at 03:00. Expected: expired sessions are deleted and active sessions remain intact.
 - [ ] Review logs/monitoring after these checks. Expected: errors are observable and correlated without exposing sensitive data.
 
 ## 14. Verify Migration And Recovery

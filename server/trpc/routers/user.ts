@@ -1,6 +1,5 @@
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
-import { addSeconds } from "date-fns";
 import { z } from "zod";
 
 import { Prisma } from "#prisma/client";
@@ -24,9 +23,7 @@ export default router({
 				});
 			}
 
-			const sessionId = generateRandomString(255);
-
-			const user = await prisma.$transaction(async (tx) => {
+			const { user, sessionToken } = await prisma.$transaction(async (tx) => {
 				const [totalUsers, userExist] = await Promise.all([
 					tx.user.count({ take: 1 }),
 					tx.user.findUnique({
@@ -53,18 +50,12 @@ export default router({
 					},
 				});
 
-				await tx.session.create({
-					data: {
-						expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
-						sessionId,
-						userId: newUser.id,
-					},
-				});
+				const sessionToken = await createSession(tx, newUser.id);
 
-				return newUser;
+				return { user: newUser, sessionToken };
 			});
 
-			setSessionCookie(ctx.event, sessionId);
+			setSessionCookie(ctx.event, sessionToken);
 
 			return user;
 		}),
@@ -78,9 +69,9 @@ export default router({
 		)
 		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
-			const sessionId = generateRandomString(255);
+			const previousToken = getSessionCookie(ctx.event);
 
-			const user = await prisma.$transaction(async (tx) => {
+			const { user, sessionToken } = await prisma.$transaction(async (tx) => {
 				const user = await tx.user.findUnique({
 					where: {
 						username: input.username,
@@ -103,18 +94,19 @@ export default router({
 					});
 				}
 
-				await tx.session.create({
-					data: {
-						expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
-						sessionId: sessionId,
-						userId: user.id,
-					},
-				});
+				// Replace the session previously held by this browser, if any
+				if (previousToken) {
+					await tx.session.deleteMany({
+						where: { tokenHash: hashSessionToken(previousToken) },
+					});
+				}
 
-				return user;
+				const sessionToken = await createSession(tx, user.id);
+
+				return { user, sessionToken };
 			});
 
-			setSessionCookie(ctx.event, sessionId);
+			setSessionCookie(ctx.event, sessionToken);
 			return user;
 		}),
 
@@ -124,11 +116,11 @@ export default router({
 		.mutation(async ({ ctx }) => {
 			await prisma.session.deleteMany({
 				where: {
-					sessionId: ctx.sessionId,
+					id: ctx.sessionId,
 				},
 			});
 
-			deleteCookie(ctx.event, "session_id");
+			deleteSessionCookie(ctx.event);
 		}),
 
 	me: protectedProcedure
@@ -201,6 +193,16 @@ export default router({
 
 				const password = input.password ? await bcrypt.hash(input.password, 10) : undefined;
 
+				// Changing the password revokes every other session of the user
+				if (password) {
+					await tx.session.deleteMany({
+						where: {
+							userId: ctx.user.id,
+							id: { not: ctx.sessionId },
+						},
+					});
+				}
+
 				return await tx.user.update({
 					where: {
 						id: ctx.user.id,
@@ -223,7 +225,7 @@ export default router({
 				},
 			});
 
-			deleteCookie(ctx.event, "session_id");
+			deleteSessionCookie(ctx.event);
 		}),
 
 	verifyPassword: protectedProcedure

@@ -6,7 +6,7 @@ export default defineNuxtConfig({
 			tasks: true,
 		},
 		scheduledTasks: {
-			"* * * * *": ["hello"],
+			"0 3 * * *": ["session:cleanup"],
 		},
 		// redis storage in defined in server/plugins/redisStorage.ts
 	},
