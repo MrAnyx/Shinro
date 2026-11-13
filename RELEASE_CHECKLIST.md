@@ -114,6 +114,9 @@ Use only the disposable staging database/accounts.
 - [ ] Create a movie manually with valid required fields and optional fields. Expected: record is saved and rendered consistently.
 - [ ] Try invalid manual movie values at the UI and server boundary. Expected: validation rejects them without partial records.
 - [ ] Assign a movie to a collection, move it to another collection, and remove the assignment. Expected: membership updates correctly without deleting the movie or creating duplicate links.
+- [ ] Create a movie from the "New movie" modal with collections selected, then edit it and change its fields and collections together. Expected: the network tab shows a single `movie.createFromInternal` / `movie.update` request (no `media.updateCollections`), and the saved movie and collections match after refresh.
+- [ ] Force the collection assignment to fail while creating or editing a movie (for example, delete a selected collection in another tab before saving, or send another user's collection ID through the API). Expected: the request is rejected with `FORBIDDEN`, no movie is created and the edited movie fields are not changed, the movie total does not increase, and retrying after fixing the selection creates exactly one movie.
+- [ ] Send duplicate IDs in `collectionIds` through the API. Expected: they are deduplicated and the movie is linked to each collection once, without a `FORBIDDEN` error.
 - [ ] Remove a movie and confirm the action. Expected: only the intended movie and associated links are removed; dashboard totals update.
 - [ ] Search for an unknown title in TMDb. Expected: clear empty state and no bogus saved record.
 - [ ] Simulate TMDb timeout, rate limit, invalid credentials, or unavailable response in staging. Expected: recoverable error, retry works, no false success, and no credential leakage.

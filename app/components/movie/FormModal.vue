@@ -161,33 +161,27 @@ const onSubmit = async (payload: FormSubmitEvent<Schema>) =>
 		try {
 			isSubmitting.value = true;
 
-			let updatedMovie;
+			// Movie fields and collections are saved in one atomic request
+			const { collections, ...movie } = props.id
+				? await trpc.movie.update.mutate({
+						id: props.id,
+						name: payload.data.name,
+						overview: payload.data.overview,
+						rating: payload.data.rating ?? null,
+						note: payload.data.note,
+						status: payload.data.status ?? null,
+						collectionIds: payload.data.collections,
+					})
+				: await movieStore.createMovieFromInternal({
+						name: payload.data.name,
+						status: payload.data.status ?? null,
+						overview: payload.data.overview,
+						note: payload.data.note,
+						rating: payload.data.rating ?? null,
+						collectionIds: payload.data.collections,
+					});
 
-			if (props.id) {
-				updatedMovie = await trpc.movie.update.mutate({
-					id: props.id,
-					name: payload.data.name,
-					overview: payload.data.overview,
-					rating: payload.data.rating ?? null,
-					note: payload.data.note,
-					status: payload.data.status ?? null,
-				});
-			} else {
-				updatedMovie = await movieStore.createMovieFromInternal({
-					name: payload.data.name,
-					status: payload.data.status ?? null,
-					overview: payload.data.overview,
-					note: payload.data.note,
-					rating: payload.data.rating ?? null,
-				});
-			}
-
-			const updatedCollections = await trpc.media.updateCollections.mutate({
-				id: updatedMovie.id,
-				collectionIds: payload.data.collections,
-			});
-
-			emit("close", { movie: updatedMovie, collections: updatedCollections });
+			emit("close", { movie, collections });
 		} finally {
 			isSubmitting.value = false;
 		}

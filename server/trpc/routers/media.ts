@@ -145,53 +145,7 @@ export default router({
 					});
 				}
 
-				if (input.collectionIds.length > 0) {
-					const ownedCollections = await tx.collection.findMany({
-						where: {
-							id: {
-								in: input.collectionIds,
-							},
-							ownerId: ctx.user.id,
-						},
-						select: {
-							id: true,
-						},
-					});
-
-					if (ownedCollections.length !== input.collectionIds.length) {
-						throw new TRPCError({
-							code: "FORBIDDEN",
-							message: "One or more selected collections are invalid",
-						});
-					}
-				}
-
-				const collections = await tx.media.update({
-					where: { id: input.id },
-					data: {
-						collections: {
-							deleteMany: {
-								mediaId: input.id,
-							},
-							...(input.collectionIds.length > 0 && {
-								createMany: {
-									data: input.collectionIds.map((collectionId) => ({
-										collectionId,
-									})),
-								},
-							}),
-						},
-					},
-					include: {
-						collections: {
-							include: {
-								collection: true,
-							},
-						},
-					},
-				});
-
-				return collections.collections.map((c) => c.collection);
+				return await setMediaCollections(tx, ctx.user.id, media.id, input.collectionIds);
 			});
 		}),
 });

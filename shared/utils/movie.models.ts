@@ -9,6 +9,10 @@ export const MovieSchema = BaseMovieSchema.extend({
 	media: z.lazy(() => BaseMediaSchema),
 });
 
+export const MovieWithCollectionsSchema = MovieSchema.extend({
+	collections: z.array(z.lazy(() => BaseCollectionSchema)),
+});
+
 /**
  * Common output of the internal and external movie details procedures.
  * `movie` is the user's movie (if any), while `details`, `credits` and `saga` are only filled for external movies.

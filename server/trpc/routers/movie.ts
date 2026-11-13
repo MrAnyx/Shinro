@@ -16,28 +16,36 @@ export default router({
 				status: ServerMediaValidation.status,
 				rating: ServerMediaValidation.rating,
 				note: ServerMediaValidation.note,
+				collectionIds: z.array(ServerCollectionValidation.id).optional(),
 			}),
 		)
-		.output(MovieSchema)
+		.output(MovieWithCollectionsSchema)
 		.mutation(async ({ input, ctx }) => {
-			return await prisma.movie.create({
-				data: {
-					media: {
-						create: {
-							name: input.name,
-							source: SourceType.INTERNAL,
-							type: MediaType.MOVIE,
-							status: input.status,
-							ownerId: ctx.user.id,
-							rating: input.rating,
-							note: input.note,
+			// Movie and collections are written together so a failure never leaves a half-created movie
+			return await prisma.$transaction(async (tx) => {
+				const movie = await tx.movie.create({
+					data: {
+						media: {
+							create: {
+								name: input.name,
+								source: SourceType.INTERNAL,
+								type: MediaType.MOVIE,
+								status: input.status,
+								ownerId: ctx.user.id,
+								rating: input.rating,
+								note: input.note,
+							},
 						},
+						overview: input.overview,
 					},
-					overview: input.overview,
-				},
-				include: {
-					media: true,
-				},
+					include: {
+						media: true,
+					},
+				});
+
+				const collections = await setMediaCollections(tx, ctx.user.id, movie.id, input.collectionIds ?? []);
+
+				return { ...movie, collections };
 			});
 		}),
 
@@ -112,9 +120,11 @@ export default router({
 				status: ServerMediaValidation.status.optional(),
 				rating: ServerMediaValidation.rating.optional(),
 				note: ServerMediaValidation.note.optional(),
+				// When provided, replaces the movie collections in the same transaction
+				collectionIds: z.array(ServerCollectionValidation.id).optional(),
 			}),
 		)
-		.output(MovieSchema)
+		.output(MovieWithCollectionsSchema)
 		.mutation(async ({ input, ctx }) => {
 			return await prisma.$transaction(async (tx) => {
 				const existingMovie = await tx.movie.findFirst({
@@ -149,7 +159,7 @@ export default router({
 					status = Prisma.skip,
 				} = input;
 
-				return await tx.movie.update({
+				const movie = await tx.movie.update({
 					where: {
 						id: input.id,
 						media: {
@@ -171,6 +181,12 @@ export default router({
 						media: true,
 					},
 				});
+
+				const collections = input.collectionIds
+					? await setMediaCollections(tx, ctx.user.id, movie.id, input.collectionIds)
+					: await getMediaCollections(tx, ctx.user.id, movie.id);
+
+				return { ...movie, collections };
 			});
 		}),
 
