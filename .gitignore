@@ -25,3 +25,4 @@ logs
 
 # Prisma database
 lib/prisma
+review.md
