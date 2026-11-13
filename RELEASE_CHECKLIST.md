@@ -70,7 +70,7 @@ Use only the disposable staging database/accounts.
 - [ ] Sign in with a known correct username and password. Expected: authentication succeeds and the app opens.
 - [ ] Sign in using a correct username and incorrect password. Expected: authentication fails and no session is created.
 - [ ] Try a nonexistent username and invalid/empty credentials. Expected: login fails safely without an unhandled error or session.
-- [ ] Inspect browser cookies. Expected: `session_id` is HttpOnly, SameSite=Strict, scoped to `/`, expires according to policy, and Secure in production HTTPS.
+- [ ] Inspect browser cookies. Expected: `session_id` is HttpOnly, SameSite=Strict, scoped to `/`, expires according to policy, Secure over HTTPS (including behind a reverse proxy sending `X-Forwarded-Proto`), and not Secure over plain HTTP so LAN installs can sign in. `COOKIE_SECURE=true|false` overrides the detection.
 - [ ] Inspect browser storage and network activity. Expected: session ID is not stored in localStorage/sessionStorage or exposed to application JavaScript; password is not echoed or logged.
 - [ ] Refresh a protected page while signed in. Expected: session remains valid and private data loads.
 - [ ] Open a second tab while signed in. Expected: both tabs use the same authenticated session.

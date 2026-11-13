@@ -107,10 +107,10 @@
 				</h3>
 				<p class="text-default leading-7">
 					Shinro uses an essential, HTTP-only <code>session_id</code> cookie for sign-in. It is marked
-					SameSite Strict and, in production, Secure. The cookie has a fixed lifetime; the server-side session
-					expiry is refreshed while you use the app. The color-mode feature may also save your display
-					preference in browser storage. These are for core functionality, not ad tracking; the app currently
-					has no advertising trackers.
+					SameSite Strict and, when the app is served over HTTPS, Secure. The cookie has a fixed lifetime; the
+					server-side session expiry is refreshed while you use the app. The color-mode feature may also save
+					your display preference in browser storage. These are for core functionality, not ad tracking; the
+					app currently has no advertising trackers.
 				</p>
 			</section>
 

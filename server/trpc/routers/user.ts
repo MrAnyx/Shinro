@@ -64,13 +64,7 @@ export default router({
 				return newUser;
 			});
 
-			setCookie(ctx.event, "session_id", sessionId, {
-				httpOnly: true,
-				secure: serverEnv.NODE_ENV === "production",
-				sameSite: "strict",
-				maxAge: DEFAULT_SESSION_EXPIRATION,
-				path: "/",
-			});
+			setSessionCookie(ctx.event, sessionId);
 
 			return user;
 		}),
@@ -120,13 +114,7 @@ export default router({
 				return user;
 			});
 
-			setCookie(ctx.event, "session_id", sessionId, {
-				httpOnly: true,
-				secure: serverEnv.NODE_ENV === "production",
-				sameSite: "strict",
-				maxAge: DEFAULT_SESSION_EXPIRATION,
-				path: "/",
-			});
+			setSessionCookie(ctx.event, sessionId);
 			return user;
 		}),
 

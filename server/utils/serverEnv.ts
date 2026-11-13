@@ -5,6 +5,8 @@ export const serverEnvSchema = z.object({
 	NODE_ENV: z.enum(["production", "development"]),
 	DATABASE_URL: z.url(),
 	REDIS_URL: z.url(),
+	// Optional override; when unset, the Secure flag follows the request protocol (incl. X-Forwarded-Proto).
+	COOKIE_SECURE: z.preprocess((value) => (value === "" ? undefined : value), z.stringbool().optional()),
 
 	// TMDB variables
 	TMDB_TOKEN: z.string(),
