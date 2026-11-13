@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "SourceType" AS ENUM ('INTERNAL', 'EXTERNAL');
+
+-- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'USER');
 
 -- CreateEnum
@@ -25,7 +28,7 @@ CREATE TABLE "User" (
 -- CreateTable
 CREATE TABLE "Session" (
     "id" UUID NOT NULL,
-    "sessionId" VARCHAR(255) NOT NULL,
+    "tokenHash" CHAR(64) NOT NULL,
     "userId" UUID NOT NULL,
     "createdAt" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(6) NOT NULL,
@@ -52,6 +55,7 @@ CREATE TABLE "Media" (
     "id" UUID NOT NULL,
     "type" "MediaType" NOT NULL,
     "status" "MediaStatus",
+    "source" "SourceType" NOT NULL,
     "externalId" VARCHAR(255),
     "name" VARCHAR(255),
     "imagePath" VARCHAR(500),
@@ -114,10 +118,22 @@ CREATE TABLE "Episode" (
 CREATE UNIQUE INDEX "User_username_key" ON "User"("username");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Session_sessionId_key" ON "Session"("sessionId");
+CREATE UNIQUE INDEX "Session_tokenHash_key" ON "Session"("tokenHash");
+
+-- CreateIndex
+CREATE INDEX "Session_userId_idx" ON "Session"("userId");
+
+-- CreateIndex
+CREATE INDEX "Session_expiresAt_idx" ON "Session"("expiresAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Media_externalId_ownerId_key" ON "Media"("externalId", "ownerId") WHERE ("externalId" IS NOT NULL);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Season_serieId_number_key" ON "Season"("serieId", "number");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Episode_seasonId_number_key" ON "Episode"("seasonId", "number");
 
 -- AddForeignKey
 ALTER TABLE "Session" ADD CONSTRAINT "Session_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
