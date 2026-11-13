@@ -9,16 +9,7 @@ const props = defineProps<{
 	allow: Role | Role[];
 }>();
 
-// Get the current user — adapt this to however you store auth state
-const { user } = useUserStore();
+const userStore = useUserStore();
 
-const allowed = computed(() => {
-	const roles = Array.isArray(props.allow) ? props.allow : [props.allow];
-
-	if (!user?.role) {
-		return false;
-	}
-
-	return roles.includes(user?.role);
-});
+const allowed = computed(() => userStore.isAllowed(props.allow));
 </script>

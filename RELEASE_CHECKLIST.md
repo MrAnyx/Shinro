@@ -175,6 +175,7 @@ Use only the disposable staging database/accounts.
 - [ ] As `T-OTHER`, attempt to edit, favorite, assign, or delete `T-USER` records. Expected: all operations are denied or return not-found; no data changes.
 - [ ] Call protected operations with no cookie, a random cookie, expired cookie, and deleted-user cookie. Expected: unauthorized responses and no side effects.
 - [ ] Call admin-only cache clear as USER and ADMIN. Expected: USER is forbidden; ADMIN succeeds.
+- [ ] Sign out as USER and sign in as ADMIN without a full page reload (and vice versa). Expected: role-guarded UI (e.g., the admin cache section) appears or disappears immediately to match the current user's role.
 - [ ] Submit malformed IDs, oversized strings, unsupported enum values, unexpected fields, and malformed payloads directly to tRPC. Expected: server validation rejects all invalid input safely.
 - [ ] Inspect production API errors. Expected: no stack traces, filesystem paths, database details, environment values, passwords, or third-party secrets are returned.
 - [ ] Verify duplicate constraints and delete/cascade behavior. Expected: no orphaned, duplicated, or cross-owned records.
