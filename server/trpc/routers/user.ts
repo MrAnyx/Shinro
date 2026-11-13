@@ -6,6 +6,9 @@ import { Prisma } from "#prisma/client";
 import { Role } from "#prisma/enums";
 import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
 
+// Same cost factor as real password hashes so failed lookups and wrong passwords take the same time
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync("shinro-dummy-password", 10);
+
 export default router({
 	register: publicProcedure
 		.input(
@@ -78,19 +81,13 @@ export default router({
 					},
 				});
 
-				if (!user) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "User not found",
-					});
-				}
+				// Always run bcrypt so unknown usernames take as long as wrong passwords
+				const isPasswordValid = await bcrypt.compare(input.password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
 
-				const isPasswordValid = await bcrypt.compare(input.password, user.passwordHash);
-
-				if (!isPasswordValid) {
+				if (!user || !isPasswordValid) {
 					throw new TRPCError({
 						code: "UNAUTHORIZED",
-						message: "Username or password are not valid",
+						message: "Invalid username or password",
 					});
 				}
 
