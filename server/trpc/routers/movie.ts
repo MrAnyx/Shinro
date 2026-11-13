@@ -318,9 +318,9 @@ export default router({
 			let movieFilter: Prisma.MovieWhereInput;
 
 			if (input.type === "id") {
-				movieFilter = { id: input.id };
+				movieFilter = { id: input.id, media: { ownerId: ctx.user.id } };
 			} else if (input.type === "externalMovieId") {
-				movieFilter = { media: { externalId: input.externalMovieId } };
+				movieFilter = { media: { externalId: input.externalMovieId, ownerId: ctx.user.id } };
 			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
@@ -329,12 +329,7 @@ export default router({
 			}
 
 			const movie = await prisma.movie.findFirst({
-				where: {
-					...movieFilter,
-					media: {
-						ownerId: ctx.user.id,
-					},
-				},
+				where: movieFilter,
 				include: {
 					media: true,
 				},
