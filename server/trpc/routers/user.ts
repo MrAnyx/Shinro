@@ -17,6 +17,13 @@ export default router({
 		)
 		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
+			if (!serverEnv.NUXT_PUBLIC_ALLOW_REGISTRATION) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Registration is disabled on this instance",
+				});
+			}
+
 			const sessionId = generateRandomString(255);
 
 			const user = await prisma.$transaction(async (tx) => {
