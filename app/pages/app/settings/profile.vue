@@ -1,4 +1,46 @@
 <template>
+	<ColorCard
+		v-if="userStore.isUser && adminSetup?.pending"
+		title="Administrator setup"
+		icon="i-lucide-shield-check"
+		color="primary"
+		variant="subtle"
+	>
+		<SettingsParameterItem
+			title="Become administrator"
+			description="This instance has no administrator yet. Enter the one-time setup token printed in the server logs to promote your account. The token expires, restart the server to get a new one."
+		>
+			<UForm
+				class="flex-1 my-auto flex flex-col gap-y-3"
+				:state="adminSetupState"
+				:schema="adminSetupSchema"
+				@submit="onClaimAdmin"
+				:validate-on="['change']"
+			>
+				<UFormField name="token">
+					<UInput
+						v-model="adminSetupState.token"
+						class="w-full"
+						:maxlength="USER_ADMIN_SETUP_TOKEN_MAX_LENGTH"
+						placeholder="Setup token"
+						icon="i-lucide-key-round"
+						type="password"
+						autocomplete="off"
+					/>
+				</UFormField>
+
+				<UButton
+					label="Become administrator"
+					icon="i-lucide-shield-check"
+					class="self-end"
+					variant="subtle"
+					type="submit"
+					:loading="isLoadingAdminSetup"
+				/>
+			</UForm>
+		</SettingsParameterItem>
+	</ColorCard>
+
 	<ColorCard title="Account" icon="i-lucide-user">
 		<div class="flex flex-col gap-y-5">
 			<SettingsParameterItem
@@ -123,6 +165,39 @@ const { openConfirmationModal } = useConfirmation();
 const userStore = useUserStore();
 const toast = useStatusToast();
 const trpc = useTrpc();
+
+// Administrator setup
+const { data: adminSetup, refresh: refreshAdminSetup } = useClientAsyncData(async () =>
+	userStore.isUser ? await trpc.user.adminSetupStatus.query() : { pending: false },
+);
+
+const isLoadingAdminSetup = ref(false);
+
+const adminSetupSchema = z.object({
+	token: ClientUserValidation.adminSetupToken,
+});
+
+type AdminSetupSchema = z.output<typeof adminSetupSchema>;
+
+const adminSetupState = reactive<AdminSetupSchema>({
+	token: "",
+});
+
+const onClaimAdmin = async (payload: FormSubmitEvent<AdminSetupSchema>) => {
+	try {
+		isLoadingAdminSetup.value = true;
+
+		await userStore.claimAdmin(payload.data);
+		adminSetupState.token = "";
+
+		toast.success({ description: "Your account is now an administrator" });
+	} catch (err) {
+		toast.error(err);
+		await refreshAdminSetup();
+	} finally {
+		isLoadingAdminSetup.value = false;
+	}
+};
 
 // Username
 const isLoadingUsername = ref(false);

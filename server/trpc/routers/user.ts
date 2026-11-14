@@ -27,13 +27,10 @@ export default router({
 			}
 
 			const { user, sessionToken } = await prisma.$transaction(async (tx) => {
-				const [totalUsers, userExist] = await Promise.all([
-					tx.user.count({ take: 1 }),
-					tx.user.findUnique({
-						where: { username: input.username },
-						select: { id: true },
-					}),
-				]);
+				const userExist = await tx.user.findUnique({
+					where: { username: input.username },
+					select: { id: true },
+				});
 
 				if (userExist) {
 					throw new TRPCError({
@@ -42,14 +39,14 @@ export default router({
 					});
 				}
 
-				const isFirstUser = totalUsers === 0;
 				const passwordHash = await bcrypt.hash(input.password, 10);
 
+				// Registration never grants ADMIN; the first admin is claimed with the one-time setup token (see claimAdmin)
 				const newUser = await tx.user.create({
 					data: {
 						passwordHash,
 						username: input.username,
-						role: isFirstUser ? Role.ADMIN : Role.USER,
+						role: Role.USER,
 					},
 				});
 
@@ -250,5 +247,61 @@ export default router({
 			}
 
 			return await bcrypt.compare(input.password, user.passwordHash);
+		}),
+
+	adminSetupStatus: protectedProcedure
+		.input(z.void())
+		.output(z.object({ pending: z.boolean() }))
+		.query(async () => {
+			return { pending: await isAdminSetupPending() };
+		}),
+
+	/**
+	 * Promote the current user to ADMIN with the one-time setup token printed in the server logs at boot
+	 * while the instance has no administrator.
+	 */
+	claimAdmin: protectedProcedure
+		.input(
+			z.object({
+				token: ServerUserValidation.adminSetupToken,
+			}),
+		)
+		.output(UserSchema)
+		.mutation(async ({ ctx, input }) => {
+			if (!(await verifyAdminSetupToken(input.token))) {
+				throw new TRPCError({
+					code: "FORBIDDEN",
+					message: "Invalid or expired setup token",
+				});
+			}
+
+			const user = await prisma.$transaction(async (tx) => {
+				// Serialize concurrent claims so only one account can become the first administrator
+				await tx.$executeRaw`SELECT pg_advisory_xact_lock(${ADMIN_SETUP_LOCK_KEY}::bigint)`;
+
+				if (await hasAdminUser(tx)) {
+					return null;
+				}
+
+				return await tx.user.update({
+					where: {
+						id: ctx.user.id,
+					},
+					data: {
+						role: Role.ADMIN,
+					},
+				});
+			});
+
+			await deleteAdminSetupToken();
+
+			if (!user) {
+				throw new TRPCError({
+					code: "CONFLICT",
+					message: "This instance already has an administrator",
+				});
+			}
+
+			return user;
 		}),
 });

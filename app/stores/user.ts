@@ -82,5 +82,11 @@ export const useUserStore = defineStore("user", {
 			await trpc.user.deleteMe.mutate();
 			this.user = null;
 		},
+
+		async claimAdmin(payload: TRPCProcedureInput<"user", "claimAdmin">) {
+			const trpc = useTrpc();
+
+			this.user = await trpc.user.claimAdmin.mutate(payload);
+		},
 	},
 });

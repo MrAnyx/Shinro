@@ -55,7 +55,14 @@ Run from the repository root on the exact release candidate. Save command output
 Use only the disposable staging database/accounts.
 
 - [ ] Set `NUXT_PUBLIC_ALLOW_REGISTRATION=true` and open the registration page.
-- [ ] Register the first test user with valid credentials. Expected: account creation succeeds and user is signed in.
+- [ ] Start the server against an empty database. Expected: the logs contain one admin setup warning with a readable (non-redacted) 64-character hex token and its expiry in minutes; no token is logged when an ADMIN already exists.
+- [ ] Register the first test user with valid credentials. Expected: account creation succeeds, user is signed in, and the account has USER role (registration never creates ADMIN).
+- [ ] As that USER, open Settings > Profile. Expected: the "Administrator setup" card is shown; it is hidden for ADMIN users and when no setup token is pending.
+- [ ] Submit an empty, wrong, or expired token. Expected: the request is rejected with a clear error, the role stays USER, and no internal details are shown.
+- [ ] Submit the token from the logs. Expected: the account becomes ADMIN immediately without reload (admin-only sections such as cache clearing appear), the setup card disappears, and the token cannot be reused by another account.
+- [ ] Claim with the same valid token from two USER accounts at the same time. Expected: exactly one becomes ADMIN; the other gets a conflict or invalid-token error.
+- [ ] Wait past the token TTL (or delete the Redis key) and restart the server while no ADMIN exists. Expected: a new token is logged and the previous one is rejected.
+- [ ] Stop Redis or PostgreSQL during startup. Expected: the server still starts and logs an admin setup error without leaking secrets.
 - [ ] Verify the first account has ADMIN role using an approved test/admin inspection method.
 - [ ] Sign out, then register a second account. Expected: it is created with USER role, not ADMIN.
 - [ ] Try registering a username that already exists. Expected: request is rejected with a useful error; no second account is created.

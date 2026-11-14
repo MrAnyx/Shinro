@@ -25,6 +25,7 @@
 
 - Browser calls go through the typed tRPC client supplied by `app/plugins/trpc.ts`, exposed by `useTrpc()`, to the `/api/trpc` Nitro handler. `server/trpc/router.ts` composes feature routers.
 - Server routers in `server/trpc/routers/` own procedures and query Prisma directly. Use `publicProcedure`, `protectedProcedure`, or `adminProcedure` from `server/trpc/init.ts`; protected procedures authenticate the HttpOnly `session_id` cookie and provide `ctx.user`. Keep router queries inline; do not introduce a repository or service layer for procedures.
+- Registration always creates `USER` accounts. While no ADMIN exists, `server/plugins/adminSetup.ts` prints a one-time setup token (hash stored in Redis with a TTL, see `server/utils/adminSetup.ts`) at boot; a signed-in user redeems it via `user.claimAdmin` (Settings > Profile) to become ADMIN.
 - Validate inputs and declare Zod outputs at the tRPC boundary. Every user-owned read or mutation must constrain ownership with `ctx.user.id`.
 - PostgreSQL schema and migrations live in `server/prisma/`. Prisma generates its client into `lib/prisma/`; do not edit generated files. The server configures Prisma with the PostgreSQL adapter in `server/utils/prisma.ts`; Redis is mounted as Nitro storage at `redis:` by `server/plugins/redisStorage.ts`.
 - Shared Zod models and validations live in `shared/utils/*.models.ts` and `shared/utils/*.validations.ts`, with inferred types in the parallel `shared/types/*.d.ts` files.
