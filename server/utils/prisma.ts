@@ -22,6 +22,11 @@ const prismaClientSingleton = () => {
 	});
 };
 
+export interface DbOptions {
+	/** Client to run the query with, such as a transaction client. Defaults to the Prisma singleton. */
+	db?: Prisma.TransactionClient;
+}
+
 type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
 
 const globalForPrisma = globalThis as unknown as {
