@@ -1,11 +1,11 @@
 import { TRPCError } from "@trpc/server";
 
-import type { Prisma } from "#prisma/client";
+import type { DbOptions } from "#server/utils/prisma";
 
 /**
  * Get the collections of a media. The media ownership must be checked by the caller.
  */
-export const getMediaCollections = (ownerId: string, mediaId: string, db: Prisma.TransactionClient = prisma) =>
+export const getMediaCollections = (ownerId: string, mediaId: string, { db = prisma }: DbOptions = {}) =>
 	db.collection.findMany({
 		where: {
 			ownerId,
@@ -15,13 +15,13 @@ export const getMediaCollections = (ownerId: string, mediaId: string, db: Prisma
 
 /**
  * Replace the collections of a media with the given ones and return them.
- * The media ownership must be checked by the caller. Pass the transaction client as `db` to run it with the media write.
+ * The media ownership must be checked by the caller. Pass the transaction client as `options.db` to run it with the media write.
  */
 export const setMediaCollections = async (
 	ownerId: string,
 	mediaId: string,
 	collectionIds: string[],
-	db: Prisma.TransactionClient = prisma,
+	{ db = prisma }: DbOptions = {},
 ) => {
 	const uniqueCollectionIds = [...new Set(collectionIds)];
 
@@ -49,5 +49,5 @@ export const setMediaCollections = async (
 		});
 	}
 
-	return await getMediaCollections(ownerId, mediaId, db);
+	return await getMediaCollections(ownerId, mediaId, { db });
 };

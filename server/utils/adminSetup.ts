@@ -1,7 +1,7 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 
-import type { Prisma } from "#prisma/client";
 import { Role } from "#prisma/enums";
+import type { DbOptions } from "#server/utils/prisma";
 
 const ADMIN_SETUP_STORAGE = "redis";
 const ADMIN_SETUP_TOKEN_KEY = "admin-setup:token";
@@ -13,7 +13,7 @@ interface StoredAdminSetupToken {
 	tokenHash: string;
 }
 
-export const hasAdminUser = async (db: Prisma.TransactionClient = prisma) =>
+export const hasAdminUser = async ({ db = prisma }: DbOptions = {}) =>
 	(await db.user.count({ where: { role: Role.ADMIN }, take: 1 })) > 0;
 
 /**

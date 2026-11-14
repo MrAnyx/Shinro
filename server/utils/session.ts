@@ -3,7 +3,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { addSeconds } from "date-fns";
 import type { H3Event } from "h3";
 
-import type { Prisma } from "#prisma/client";
+import type { DbOptions } from "#server/utils/prisma";
 
 export const SESSION_COOKIE_NAME = "session_id";
 
@@ -12,7 +12,7 @@ export const generateSessionToken = () => randomBytes(32).toString("base64url");
 // Only the SHA-256 hash of the token is stored, so a database leak doesn't expose usable session cookies.
 export const hashSessionToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
-export const createSession = async (userId: string, db: Prisma.TransactionClient = prisma) => {
+export const createSession = async (userId: string, { db = prisma }: DbOptions = {}) => {
 	const token = generateSessionToken();
 
 	await db.session.create({

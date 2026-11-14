@@ -43,7 +43,9 @@ export default router({
 					},
 				});
 
-				const collections = await setMediaCollections(ctx.user.id, movie.id, input.collectionIds ?? [], tx);
+				const collections = await setMediaCollections(ctx.user.id, movie.id, input.collectionIds ?? [], {
+					db: tx,
+				});
 
 				return { ...movie, collections };
 			});
@@ -183,8 +185,8 @@ export default router({
 				});
 
 				const collections = input.collectionIds
-					? await setMediaCollections(ctx.user.id, movie.id, input.collectionIds, tx)
-					: await getMediaCollections(ctx.user.id, movie.id, tx);
+					? await setMediaCollections(ctx.user.id, movie.id, input.collectionIds, { db: tx })
+					: await getMediaCollections(ctx.user.id, movie.id, { db: tx });
 
 				return { ...movie, collections };
 			});
