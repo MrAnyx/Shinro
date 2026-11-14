@@ -50,7 +50,7 @@ export default router({
 					},
 				});
 
-				const sessionToken = await createSession(tx, newUser.id);
+				const sessionToken = await createSession(newUser.id, tx);
 
 				return { user: newUser, sessionToken };
 			});
@@ -95,7 +95,7 @@ export default router({
 					});
 				}
 
-				const sessionToken = await createSession(tx, user.id);
+				const sessionToken = await createSession(user.id, tx);
 
 				return { user, sessionToken };
 			});

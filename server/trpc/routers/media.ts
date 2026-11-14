@@ -145,7 +145,7 @@ export default router({
 					});
 				}
 
-				return await setMediaCollections(tx, ctx.user.id, media.id, input.collectionIds);
+				return await setMediaCollections(ctx.user.id, media.id, input.collectionIds, tx);
 			});
 		}),
 });

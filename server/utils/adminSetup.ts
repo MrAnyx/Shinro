@@ -13,7 +13,7 @@ interface StoredAdminSetupToken {
 	tokenHash: string;
 }
 
-export const hasAdminUser = async (db: Prisma.TransactionClient) =>
+export const hasAdminUser = async (db: Prisma.TransactionClient = prisma) =>
 	(await db.user.count({ where: { role: Role.ADMIN }, take: 1 })) > 0;
 
 /**

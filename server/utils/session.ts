@@ -12,7 +12,7 @@ export const generateSessionToken = () => randomBytes(32).toString("base64url");
 // Only the SHA-256 hash of the token is stored, so a database leak doesn't expose usable session cookies.
 export const hashSessionToken = (token: string) => createHash("sha256").update(token).digest("hex");
 
-export const createSession = async (db: Prisma.TransactionClient, userId: string) => {
+export const createSession = async (userId: string, db: Prisma.TransactionClient = prisma) => {
 	const token = generateSessionToken();
 
 	await db.session.create({
