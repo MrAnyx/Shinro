@@ -5,7 +5,7 @@ import type { Prisma } from "#prisma/client";
 /**
  * Get the collections of a media. The media ownership must be checked by the caller.
  */
-export const getMediaCollections = (db: Prisma.TransactionClient, ownerId: string, mediaId: string) =>
+export const getMediaCollections = (ownerId: string, mediaId: string, db: Prisma.TransactionClient = prisma) =>
 	db.collection.findMany({
 		where: {
 			ownerId,
@@ -15,13 +15,13 @@ export const getMediaCollections = (db: Prisma.TransactionClient, ownerId: strin
 
 /**
  * Replace the collections of a media with the given ones and return them.
- * The media ownership must be checked by the caller. Run it inside a transaction with the media write.
+ * The media ownership must be checked by the caller. Pass the transaction client as `db` to run it with the media write.
  */
 export const setMediaCollections = async (
-	db: Prisma.TransactionClient,
 	ownerId: string,
 	mediaId: string,
 	collectionIds: string[],
+	db: Prisma.TransactionClient = prisma,
 ) => {
 	const uniqueCollectionIds = [...new Set(collectionIds)];
 
@@ -49,5 +49,5 @@ export const setMediaCollections = async (
 		});
 	}
 
-	return await getMediaCollections(db, ownerId, mediaId);
+	return await getMediaCollections(ownerId, mediaId, db);
 };
