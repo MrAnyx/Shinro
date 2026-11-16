@@ -84,7 +84,8 @@ Use only the disposable staging database/accounts.
 - [ ] Open a second tab while signed in. Expected: both tabs use the same authenticated session.
 - [ ] Open `/app`, `/app/movies`, `/app/series`, and a private API route in a logged-out browser. Expected: pages redirect or show the logged-out state; private APIs reject without returning data.
 - [ ] Try protected requests with a random session cookie and an expired session. Expected: requests are rejected and private data remains unavailable.
-- [ ] Make an authenticated request near session expiry. Expected: session refresh behavior matches the configured policy.
+- [ ] Make authenticated requests, then compare the `Session.expiresAt` row with the `session_id` cookie expiry. Expected: both match the login time plus `DEFAULT_SESSION_EXPIRATION` and neither is extended by later requests.
+- [ ] Make an authenticated request after the session lifetime has elapsed (or after manually setting `expiresAt` in the past). Expected: the request is rejected with `UNAUTHORIZED`, the session row is deleted, and the user must sign in again.
 - [ ] Sign out in one tab, then try an action in both tabs. Expected: server-side session is invalidated and protected actions require login again.
 - [ ] While signed in, open login and registration directly. Expected: guest-only routes redirect appropriately and do not create another session/account.
 

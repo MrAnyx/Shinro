@@ -1,5 +1,4 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { addSeconds } from "date-fns";
 
 import { createContext } from "#server/trpc/context";
 
@@ -38,64 +37,51 @@ export const { router } = trpc;
 
 export const publicProcedure = trpc.procedure;
 
-export const protectedProcedure = publicProcedure
-	.use(async ({ ctx, next }) => {
-		const token = getSessionCookie(ctx.event);
+// Sessions have a fixed lifetime matching the cookie maxAge; they are not extended on activity.
+export const protectedProcedure = publicProcedure.use(async ({ ctx, next }) => {
+	const token = getSessionCookie(ctx.event);
 
-		if (!token) {
-			throw new TRPCError({
-				code: "UNAUTHORIZED",
-				message: "You must login first before using this procedure",
-			});
-		}
+	if (!token) {
+		throw new TRPCError({
+			code: "UNAUTHORIZED",
+			message: "You must login first before using this procedure",
+		});
+	}
 
-		const session = await prisma.session.findUnique({
-			where: {
-				tokenHash: hashSessionToken(token),
-			},
-			select: {
-				id: true,
-				expiresAt: true,
-				user: {
-					select: {
-						id: true,
-						role: true,
-					},
+	const session = await prisma.session.findUnique({
+		where: {
+			tokenHash: hashSessionToken(token),
+		},
+		select: {
+			id: true,
+			expiresAt: true,
+			user: {
+				select: {
+					id: true,
+					role: true,
 				},
 			},
-		});
-
-		if (!session || !session.user) {
-			throw new TRPCError({
-				code: "UNAUTHORIZED",
-				message: "Session is invalid or doesn't exist",
-			});
-		}
-
-		if (session.expiresAt < new Date()) {
-			await prisma.session.deleteMany({ where: { id: session.id } });
-
-			throw new TRPCError({
-				code: "UNAUTHORIZED",
-				message: "Session has expired. You must login again",
-			});
-		}
-
-		return next({ ctx: { ...ctx, sessionId: session.id, user: session.user } });
-	})
-	// Refresh session expiration
-	.use(async ({ ctx, next }) => {
-		await prisma.session.update({
-			data: {
-				expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
-			},
-			where: {
-				id: ctx.sessionId,
-			},
-		});
-
-		return next();
+		},
 	});
+
+	if (!session || !session.user) {
+		throw new TRPCError({
+			code: "UNAUTHORIZED",
+			message: "Session is invalid or doesn't exist",
+		});
+	}
+
+	if (session.expiresAt < new Date()) {
+		await prisma.session.deleteMany({ where: { id: session.id } });
+
+		throw new TRPCError({
+			code: "UNAUTHORIZED",
+			message: "Session has expired. You must login again",
+		});
+	}
+
+	return next({ ctx: { ...ctx, sessionId: session.id, user: session.user } });
+});
 
 export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 	if (ctx.user.role !== "ADMIN") {
