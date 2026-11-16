@@ -174,8 +174,7 @@ const getRowActions = (collection: Collection): DropdownMenuItem[][] => [
 					);
 
 					if (result) {
-						// Delete the selected element. No need to refresh here
-						data.value.results = data.value.results.filter((m) => m.id !== collection.id);
+						await refresh();
 					}
 				});
 			},
@@ -185,20 +184,12 @@ const getRowActions = (collection: Collection): DropdownMenuItem[][] => [
 
 const toggleCollectionFavorite = async (collection: Collection) =>
 	toast.withErrorToast(async () => {
-		const newCollection = await trpc.collection.update.mutate({
+		await trpc.collection.update.mutate({
 			id: collection.id,
 			favorite: !collection.favorite,
 		});
 
-		if (!data.value) {
-			return;
-		}
-
-		// Update the collection list
-		const idx = data.value.results.findIndex((m) => m.id === collection.id);
-		if (idx !== -1) {
-			data.value.results = data.value.results.with(idx, newCollection);
-		}
+		await refresh();
 	});
 
 const onCollectionSelected = async (collection: Collection) => {

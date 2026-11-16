@@ -128,6 +128,7 @@ Use only the disposable staging database/accounts.
 - [ ] Force the collection assignment to fail while creating or editing a movie (for example, delete a selected collection in another tab before saving, or send another user's collection ID through the API). Expected: the request is rejected with `FORBIDDEN`, no movie is created and the edited movie fields are not changed, the movie total does not increase, and retrying after fixing the selection creates exactly one movie.
 - [ ] Send duplicate IDs in `collectionIds` through the API. Expected: they are deduplicated and the movie is linked to each collection once, without a `FORBIDDEN` error.
 - [ ] Remove a movie and confirm the action. Expected: only the intended movie and associated links are removed; dashboard totals update.
+- [ ] With more than one page of movies, delete a movie from a full page in the movie list. Expected: the page is refilled with the next movie and the pagination total and page count update.
 - [ ] Search for an unknown title in TMDb. Expected: clear empty state and no bogus saved record.
 - [ ] Simulate TMDb timeout, rate limit, invalid credentials, or unavailable response in staging. Expected: recoverable error, retry works, no false success, and no credential leakage.
 - [ ] Repeat a TMDb request, then clear cache as ADMIN and repeat. Expected: cached data is correct; cache clearing does not delete user data or library records.
@@ -167,6 +168,7 @@ Use only the disposable staging database/accounts.
 - [ ] Remove one media item from the collection. Expected: membership is removed but the media item remains in the library.
 - [ ] Delete an empty collection after confirmation. Expected: only that collection is removed.
 - [ ] Delete a populated collection after confirmation. Expected: collection/membership links are removed per product behavior; underlying media remains.
+- [ ] With more than one page of collections, delete a collection from a full page. Expected: the page is refilled and the pagination total and page count update.
 - [ ] Cancel a deletion confirmation. Expected: no data changes.
 - [ ] Open the collection detail URL. Expected: recognize this is currently a placeholder, not a supported collection-detail workflow; report a defect if navigation presents it as functional.
 
