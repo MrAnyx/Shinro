@@ -50,7 +50,7 @@ export default router({
 					},
 				});
 
-				const sessionToken = await createSession(tx, newUser.id);
+				const sessionToken = await createSession(newUser.id, { db: tx });
 
 				return { user: newUser, sessionToken };
 			});
@@ -95,7 +95,7 @@ export default router({
 					});
 				}
 
-				const sessionToken = await createSession(tx, user.id);
+				const sessionToken = await createSession(user.id, { db: tx });
 
 				return { user, sessionToken };
 			});
@@ -279,7 +279,7 @@ export default router({
 				// Serialize concurrent claims so only one account can become the first administrator
 				await tx.$executeRaw`SELECT pg_advisory_xact_lock(${ADMIN_SETUP_LOCK_KEY}::bigint)`;
 
-				if (await hasAdminUser(tx)) {
+				if (await hasAdminUser({ db: tx })) {
 					return null;
 				}
 

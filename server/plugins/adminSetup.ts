@@ -1,5 +1,5 @@
 const bootstrapAdminSetup = async () => {
-	if (await hasAdminUser(prisma)) {
+	if (await hasAdminUser()) {
 		await deleteAdminSetupToken();
 		return;
 	}
