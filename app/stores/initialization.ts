@@ -15,10 +15,11 @@ export const useInitializationStore = defineStore("initialization", {
 			try {
 				this.isLoading = true;
 
+				const { enableMovies } = useClientConfig();
 				const collectionStore = useCollectionStore();
 				const movieStore = useMovieStore();
 
-				await Promise.all([collectionStore.initialize(), movieStore.initialize()]);
+				await Promise.all([collectionStore.initialize(), enableMovies ? movieStore.initialize() : undefined]);
 
 				this.isReady = true;
 			} finally {

@@ -144,6 +144,9 @@ Use only the disposable staging database/accounts.
 - [ ] Simulate TMDb empty results, timeout/rate limit, and unavailable service. Expected: useful recoverable state and no leaked token.
 - [ ] Set `NUXT_PUBLIC_ENABLE_SERIES=false`; try navigation, direct series URLs, and direct series APIs. Expected: series are inaccessible through UI and server/API paths.
 - [ ] Set `NUXT_PUBLIC_ENABLE_MOVIES=false`; try navigation, direct movie URLs, and direct movie APIs. Expected: movies are inaccessible through UI and server/API paths.
+- [ ] With `NUXT_PUBLIC_ENABLE_MOVIES=false`, call every `movie.*` and `tmdbMovie.*` procedure directly (e.g. `/api/trpc/movie.count`, `/api/trpc/tmdbMovie.search`) with a valid session. Expected: `FORBIDDEN` with a "feature is disabled" message and no data or TMDb request; without a session the response is still `UNAUTHORIZED`.
+- [ ] With `NUXT_PUBLIC_ENABLE_MOVIES=false`, sign in and open the app. Expected: the splash screen completes (no `movie.count` call) and collections still load.
+- [ ] Re-enable movies and restart. Expected: all `movie.*` and `tmdbMovie.*` procedures work again without other changes.
 - [ ] Restore the release's intended movie/series flags and verify enabled routes work again.
 - [ ] Inspect season rows and season add/remove/detail controls. Expected: treat season/episode management as incomplete; an active control leading to a dead route or false success is a defect, not a passed workflow.
 

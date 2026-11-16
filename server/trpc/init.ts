@@ -107,3 +107,20 @@ export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 
 	return next();
 });
+
+type FeatureOf<T> = T extends `NUXT_PUBLIC_ENABLE_${infer F}` ? Lowercase<F> : never;
+type Feature = FeatureOf<keyof typeof serverEnv>;
+
+export const featureMiddleware = (feature: Feature) =>
+	trpc.middleware(({ next }) => {
+		const flag = `NUXT_PUBLIC_ENABLE_${feature.toUpperCase()}` as `NUXT_PUBLIC_ENABLE_${Uppercase<Feature>}`;
+
+		if (!serverEnv[flag]) {
+			throw new TRPCError({
+				code: "FORBIDDEN",
+				message: `The ${feature} feature is disabled on this instance`,
+			});
+		}
+
+		return next();
+	});
