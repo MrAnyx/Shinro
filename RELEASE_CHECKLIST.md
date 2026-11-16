@@ -17,7 +17,7 @@ Run this checklist from top to bottom against the exact release candidate in a d
 - [ ] Confirm the tested deployment was built from the release candidate commit/tag above.
 - [ ] Confirm staging PostgreSQL is reachable and contains no production personal data.
 - [ ] Confirm staging Redis is reachable and is not shared with production.
-- [ ] Confirm all required environment values are set: `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, `TMDB_TOKEN`, `TMDB_LANGUAGE`, `TMDB_INCLUDE_NSFW`, `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `NUXT_PUBLIC_ALLOW_REGISTRATION`, `NUXT_PUBLIC_ENABLE_MOVIES`, `NUXT_PUBLIC_ENABLE_SERIES`, `NUXT_PUBLIC_ENABLE_MUSICS`, `NUXT_PUBLIC_ENABLE_BOOKS`, and `NUXT_PUBLIC_ENABLE_GAMES`.
+- [ ] Confirm all required environment values are set: `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, optional `COOKIE_SECURE`, optional `SESSION_LIFETIME_DAYS`, `TMDB_TOKEN`, `TMDB_LANGUAGE`, `TMDB_INCLUDE_NSFW`, `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `NUXT_PUBLIC_ALLOW_REGISTRATION`, `NUXT_PUBLIC_ENABLE_MOVIES`, `NUXT_PUBLIC_ENABLE_SERIES`, `NUXT_PUBLIC_ENABLE_MUSICS`, `NUXT_PUBLIC_ENABLE_BOOKS`, and `NUXT_PUBLIC_ENABLE_GAMES`.
 - [ ] Confirm TMDb credentials are staging credentials and adult-content policy is set intentionally.
 - [ ] Record the movie and TV show TMDb IDs to use for repeatable checks.
 - [ ] Prepare synthetic accounts: one account for the first/admin user, one normal user, one other user for isolation checks, and one disposable account for deletion tests.
@@ -84,7 +84,9 @@ Use only the disposable staging database/accounts.
 - [ ] Open a second tab while signed in. Expected: both tabs use the same authenticated session.
 - [ ] Open `/app`, `/app/movies`, `/app/series`, and a private API route in a logged-out browser. Expected: pages redirect or show the logged-out state; private APIs reject without returning data.
 - [ ] Try protected requests with a random session cookie and an expired session. Expected: requests are rejected and private data remains unavailable.
-- [ ] Make authenticated requests, then compare the `Session.expiresAt` row with the `session_id` cookie expiry. Expected: both match the login time plus `DEFAULT_SESSION_EXPIRATION` and neither is extended by later requests.
+- [ ] Make authenticated requests, then compare the `Session.expiresAt` row with the `session_id` cookie expiry. Expected: both match the login time plus `SESSION_LIFETIME_DAYS` (10 days when unset or empty) and neither is extended by later requests.
+- [ ] Set `SESSION_LIFETIME_DAYS=1`, restart, and sign in. Expected: `Session.expiresAt` and the cookie expiry are 1 day after login. Sessions created before the restart keep their original expiry.
+- [ ] Set `SESSION_LIFETIME_DAYS` to `0`, `366`, `1.5`, or `abc` and start the app. Expected: boot fails with an env validation error naming `SESSION_LIFETIME_DAYS`.
 - [ ] Make an authenticated request after the session lifetime has elapsed (or after manually setting `expiresAt` in the past). Expected: the request is rejected with `UNAUTHORIZED`, the session row is deleted, and the user must sign in again.
 - [ ] Sign out in one tab, then try an action in both tabs. Expected: server-side session is invalidated and protected actions require login again.
 - [ ] While signed in, open login and registration directly. Expected: guest-only routes redirect appropriately and do not create another session/account.

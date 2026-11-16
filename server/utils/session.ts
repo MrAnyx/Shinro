@@ -7,6 +7,8 @@ import type { DbOptions } from "#server/utils/prisma";
 
 export const SESSION_COOKIE_NAME = "session_id";
 
+const getSessionLifetimeSeconds = () => serverEnv.SESSION_LIFETIME_DAYS * 60 * 60 * 24;
+
 export const generateSessionToken = () => randomBytes(32).toString("base64url");
 
 // Only the SHA-256 hash of the token is stored, so a database leak doesn't expose usable session cookies.
@@ -18,7 +20,7 @@ export const createSession = async (userId: string, { db = prisma }: DbOptions =
 	await db.session.create({
 		data: {
 			tokenHash: hashSessionToken(token),
-			expiresAt: addSeconds(new Date(), DEFAULT_SESSION_EXPIRATION),
+			expiresAt: addSeconds(new Date(), getSessionLifetimeSeconds()),
 			userId,
 		},
 	});
@@ -44,7 +46,7 @@ export const setSessionCookie = (event: H3Event, token: string) => {
 		httpOnly: true,
 		secure: isSecureRequest(event),
 		sameSite: "strict",
-		maxAge: DEFAULT_SESSION_EXPIRATION,
+		maxAge: getSessionLifetimeSeconds(),
 		path: "/",
 	});
 };
