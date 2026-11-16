@@ -55,6 +55,12 @@ export const useUserStore = defineStore("user", {
 			}
 		},
 
+		async logoutOthers() {
+			const trpc = useTrpc();
+
+			return await trpc.user.logoutOthers.mutate();
+		},
+
 		async fetchMe(force: boolean = false) {
 			if (this.isAuthenticated && !force) {
 				return;

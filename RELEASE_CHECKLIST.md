@@ -59,7 +59,7 @@ Use only the disposable staging database/accounts.
 - [ ] Register the first test user with valid credentials. Expected: account creation succeeds, user is signed in, and the account has USER role (registration never creates ADMIN).
 - [ ] As that USER, open Settings > Profile. Expected: the "Administrator setup" card is shown; it is hidden for ADMIN users and when no setup token is pending.
 - [ ] Submit an empty, wrong, or expired token. Expected: the request is rejected with a clear error, the role stays USER, and no internal details are shown.
-- [ ] Submit the token from the logs. Expected: the account becomes ADMIN immediately without reload (admin-only sections such as cache clearing appear), the setup card disappears, and the token cannot be reused by another account.
+- [ ] Submit the token from the logs. Expected: the account becomes ADMIN immediately without reload (the Administration sidebar item appears), the setup card disappears, and the token cannot be reused by another account.
 - [ ] Claim with the same valid token from two USER accounts at the same time. Expected: exactly one becomes ADMIN; the other gets a conflict or invalid-token error.
 - [ ] Wait past the token TTL (or delete the Redis key) and restart the server while no ADMIN exists. Expected: a new token is logged and the previous one is rejected.
 - [ ] Stop Redis or PostgreSQL during startup. Expected: the server still starts and logs an admin setup error without leaking secrets.
@@ -174,11 +174,18 @@ Use only the disposable staging database/accounts.
 
 - [ ] Change username to a valid unused name. Expected: new name persists after refresh and can be used to log in.
 - [ ] Try to change username to another user's name and to invalid boundary values. Expected: update is rejected and existing username remains unchanged.
-- [ ] Change password with matching confirmation. Expected: new password works; old password no longer works; password fields clear after success.
+- [ ] In Settings > Security, change password with matching confirmation. Expected: the password form is no longer on Settings > Profile; new password works; old password no longer works; password fields clear after success.
 - [ ] Submit mismatched password confirmation and invalid password values. Expected: clear validation error and no password change.
+- [ ] Sign in with the same account in two browsers (A and B), then change the username in A. Expected: A stays signed in; B's next protected request returns `UNAUTHORIZED` and redirects to login; only A's `Session` row remains.
+- [ ] Repeat with a password change in A. Expected: same result, B is signed out and A stays signed in.
+- [ ] Save the username form in A without changing the value. Expected: B stays signed in.
+- [ ] Sign in with the same account in browsers A, B, and C, then click "Log out other devices" in Settings > Security in A and confirm. Expected: toast reports 2 signed-out sessions; A stays signed in; B and C are rejected on their next request; another user's sessions are untouched.
+- [ ] Click "Log out other devices" with no other session, and cancel the confirmation once. Expected: toast reports 0 sessions when confirmed; cancelling revokes nothing.
+- [ ] Call `user.logoutOthers` directly without a session cookie. Expected: `UNAUTHORIZED` and no session is deleted.
 - [ ] Change theme/appearance setting and navigate/reload. Expected: theme is applied consistently and text remains readable.
-- [ ] As normal USER, try cache clear via UI and direct API. Expected: operation is forbidden.
-- [ ] As ADMIN, clear cache after confirmation. Expected: operation succeeds and clears cached data only; library, accounts, and sessions remain intact.
+- [ ] As normal USER, check the sidebar and open `/app/admin` directly. Expected: no Administration item; the page redirects to `/app` with a warning and no cache clear is possible.
+- [ ] As normal USER, call `cache.clear` directly. Expected: operation is forbidden.
+- [ ] As ADMIN, open Administration and clear cache after confirmation. Expected: operation succeeds and clears cached data only; library, accounts, and sessions remain intact.
 - [ ] Start account deletion on the disposable account and cancel. Expected: account and data remain intact.
 - [ ] Start account deletion and enter an incorrect password. Expected: deletion is rejected and account remains usable.
 - [ ] Start account deletion and confirm with the correct password. Expected: account is deleted, session is invalidated, and account-owned data is cascaded/deleted as designed.
@@ -192,7 +199,7 @@ Use only the disposable staging database/accounts.
 - [ ] As `T-OTHER`, attempt to edit, favorite, assign, or delete `T-USER` records. Expected: all operations are denied or return not-found; no data changes.
 - [ ] Call protected operations with no cookie, a random cookie, expired cookie, and deleted-user cookie. Expected: unauthorized responses and no side effects.
 - [ ] Call admin-only cache clear as USER and ADMIN. Expected: USER is forbidden; ADMIN succeeds.
-- [ ] Sign out as USER and sign in as ADMIN without a full page reload (and vice versa). Expected: role-guarded UI (e.g., the admin cache section) appears or disappears immediately to match the current user's role.
+- [ ] Sign out as USER and sign in as ADMIN without a full page reload (and vice versa). Expected: role-guarded UI (e.g., the Administration sidebar item) appears or disappears immediately to match the current user's role.
 - [ ] Submit malformed IDs, oversized strings, unsupported enum values, unexpected fields, and malformed payloads directly to tRPC. Expected: server validation rejects all invalid input safely.
 - [ ] Inspect production API errors. Expected: no stack traces, filesystem paths, database details, environment values, passwords, or third-party secrets are returned.
 - [ ] Verify duplicate constraints and delete/cascade behavior. Expected: no orphaned, duplicated, or cross-owned records.

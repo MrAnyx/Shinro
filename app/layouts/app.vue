@@ -118,6 +118,7 @@ const dashboardItems = computed<NavigationMenuItem[]>(() => [
 		disabled: true,
 		icon: "i-lucide-chart-pie",
 	},
+	...(userStore.isAdmin ? [{ label: "Administration", icon: "i-lucide-shield", to: "/app/admin" }] : []),
 ]);
 const mediaItems = computed<NavigationMenuItem[]>(() => {
 	const items: (NavigationMenuItem | false)[] = [

@@ -117,6 +117,20 @@ export default router({
 			deleteSessionCookie(ctx.event);
 		}),
 
+	logoutOthers: protectedProcedure
+		.input(z.void())
+		.output(z.object({ count: z.number().int().nonnegative() }))
+		.mutation(async ({ ctx }) => {
+			const { count } = await prisma.session.deleteMany({
+				where: {
+					userId: ctx.user.id,
+					id: { not: ctx.sessionId },
+				},
+			});
+
+			return { count };
+		}),
+
 	me: protectedProcedure
 		.input(z.void())
 		.output(UserSchema)
@@ -157,6 +171,7 @@ export default router({
 					},
 					select: {
 						id: true,
+						username: true,
 					},
 				});
 
@@ -187,8 +202,10 @@ export default router({
 
 				const password = input.password ? await bcrypt.hash(input.password, 10) : undefined;
 
-				// Changing the password revokes every other session of the user
-				if (password) {
+				// Changing a credential (username or password) revokes every other session of the user
+				const isUsernameChanged = input.username !== undefined && input.username !== user.username;
+
+				if (password || isUsernameChanged) {
 					await tx.session.deleteMany({
 						where: {
 							userId: ctx.user.id,

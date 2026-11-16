@@ -74,71 +74,11 @@
 					/>
 				</UForm>
 			</SettingsParameterItem>
-
-			<USeparator />
-
-			<SettingsParameterItem title="Password" description="Update your password to keep your account secure.">
-				<UForm
-					class="flex-1 my-auto flex flex-col gap-y-3"
-					:state="passwordState"
-					:schema="passwordSchema"
-					@submit="onSavePassword"
-					:validate-on="['change']"
-				>
-					<UFormField name="password">
-						<UInput
-							v-model="passwordState.password"
-							class="w-full"
-							placeholder="Password"
-							icon="i-lucide-lock"
-							type="password"
-						/>
-					</UFormField>
-
-					<UFormField name="password_confirmation">
-						<UInput
-							v-model="passwordState.password_confirmation"
-							class="w-full"
-							placeholder="Password confirmation"
-							icon="i-lucide-lock"
-							type="password"
-						/>
-					</UFormField>
-
-					<UButton
-						label="Update password"
-						icon="i-lucide-save"
-						class="self-end"
-						variant="subtle"
-						type="submit"
-						:loading="isLoadingPassword"
-					/>
-				</UForm>
-			</SettingsParameterItem>
 		</div>
 	</ColorCard>
 
 	<ColorCard title="Danger zone" icon="i-lucide-triangle-alert" color="error" variant="subtle">
 		<div class="flex flex-col gap-y-5">
-			<RoleGuard :allow="['ADMIN']">
-				<SettingsParameterItem
-					title="Clear cache"
-					description="Remove locally cached data (service worker caches and other temporary cached assets). This action will force the app to re-fetch assets and may increase load times temporarily."
-				>
-					<UButton
-						label="Clear cache"
-						icon="i-lucide-refresh-cw"
-						class="self-end"
-						color="warning"
-						variant="subtle"
-						:loading="isLoadingCache"
-						@click="clearCache"
-					/>
-				</SettingsParameterItem>
-
-				<USeparator :ui="{ border: 'border-error/15' }" />
-			</RoleGuard>
-
 			<SettingsParameterItem
 				title="Delete my account"
 				description="Permanently erase your account, collections, saved media, and all other associated data. This action cannot be undone."
@@ -225,43 +165,6 @@ const onSaveUsername = async (payload: FormSubmitEvent<UsernameSchema>) => {
 	}
 };
 
-// Password
-const isLoadingPassword = ref(false);
-
-const passwordSchema = z
-	.object({
-		password: ClientUserValidation.password,
-		password_confirmation: ClientUserValidation.password,
-	})
-	.refine((data) => data.password === data.password_confirmation, {
-		message: "Passwords must match",
-		path: ["password_confirmation"],
-	});
-
-type PasswordSchema = z.output<typeof passwordSchema>;
-
-const passwordState = reactive<PasswordSchema>({
-	password: "",
-	password_confirmation: "",
-});
-
-const onSavePassword = async (payload: FormSubmitEvent<PasswordSchema>) => {
-	try {
-		isLoadingPassword.value = true;
-
-		await userStore.updateMe({ password: payload.data.password });
-
-		passwordState.password = "";
-		passwordState.password_confirmation = "";
-
-		toast.success({ description: `Password has been updated` });
-	} catch (err) {
-		toast.error(err);
-	} finally {
-		isLoadingPassword.value = false;
-	}
-};
-
 const _deleteAccount = async () => {
 	const result = await openConfirmationModal(() => userStore.deleteMe(), {
 		requirePassword: true,
@@ -280,14 +183,4 @@ const _deleteAccount = async () => {
 };
 
 const { loading: isLoadingDeleteAccount, execute: deleteAccount } = useLoadingWrapper(_deleteAccount);
-
-const _clearCache = async () => {
-	const result = await openConfirmationModal(() => trpc.cache.clear.mutate(), { color: "warning" });
-
-	if (result) {
-		toast.success({ description: "Cache has been cleared" });
-	}
-};
-
-const { loading: isLoadingCache, execute: clearCache } = useLoadingWrapper(_clearCache);
 </script>

@@ -35,6 +35,12 @@ const links = computed<NavigationMenuItem[]>(() => [
 		exact: true,
 	},
 	{
+		label: "Security",
+		icon: "i-lucide-shield",
+		to: "/app/settings/security",
+		exact: true,
+	},
+	{
 		label: "Appearance",
 		icon: "i-lucide-palette",
 		to: "/app/settings/appearance",
