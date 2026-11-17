@@ -75,6 +75,7 @@ export default router({
 					where: {
 						media: {
 							ownerId: ctx.user.id,
+							type: MediaType.MOVIE,
 							externalId: input.externalMovieId,
 						},
 					},
@@ -347,7 +348,13 @@ export default router({
 			if (input.type === "id") {
 				movieFilter = { id: input.id, media: { ownerId: ctx.user.id } };
 			} else if (input.type === "externalMovieId") {
-				movieFilter = { media: { externalId: input.externalMovieId, ownerId: ctx.user.id } };
+				movieFilter = {
+					media: {
+						type: MediaType.MOVIE,
+						externalId: input.externalMovieId,
+						ownerId: ctx.user.id,
+					},
+				};
 			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
@@ -452,6 +459,7 @@ export default router({
 					where: {
 						media: {
 							ownerId: ctx.user.id,
+							type: MediaType.MOVIE,
 							externalId: input.externalMovieId,
 						},
 					},
@@ -491,6 +499,7 @@ export default router({
 					where: {
 						media: {
 							ownerId: ctx.user.id,
+							type: MediaType.MOVIE,
 							externalId: {
 								in: externalIds,
 							},

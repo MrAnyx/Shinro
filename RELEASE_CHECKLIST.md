@@ -117,6 +117,8 @@ Use only the disposable staging database/accounts.
 - [ ] Search TMDb for a known movie. Expected: correct result identity, title, release date, poster, and available metadata are shown.
 - [ ] Add the movie from TMDb. Expected: it appears once in the library and remains after refresh.
 - [ ] Attempt to add the same TMDb movie again. Expected: duplicate is rejected or handled idempotently; no duplicate record appears.
+- [ ] Send two concurrent `movie.createFromExternal` requests for the same TMDb id. Expected: exactly one `Media` row exists for that `(ownerId, type, externalId)`.
+- [ ] Insert (via a disposable DB) a non-MOVIE media with the same `externalId` as a saved TMDb movie for the same user. Expected: the insert succeeds; movie search, saga, and external details still resolve only the movie.
 - [ ] Open the movie detail page. Expected: correct metadata/credits/franchise information when available; absent optional data and missing artwork use graceful fallbacks.
 - [ ] View items with missing artwork (posters, backdrops, cast photos) at several sizes, in light and dark mode, with the browser network panel open. Expected: the local `images/placeholder.svg` renders centered and uncropped at every size, no request goes to `placehold.co` or any other third-party host, resizing the window triggers no new placeholder requests, and the placeholder still loads when `NUXT_APP_BASE_URL` is set to a subpath.
 - [ ] Open the detail page of an external movie (`/app/movies/external/<tmdbId>`) both in and not in the library. Expected: one details request (`movie.getExternalDetails`) returns TMDb data plus the saved movie and its collections when it is in the library, and no saved movie or collections otherwise; "Add to My List" or the edit/remove/status/collection/rating controls match that state.
@@ -247,6 +249,7 @@ Perform these only in isolated staging and coordinate any service disruption.
 - [ ] Apply the release migration to a copy of representative prior-release data.
 - [ ] Compare record counts and sample user, session, collection, media, movie, and series relationships before and after migration.
 - [ ] Test populated, empty, nullable, and boundary-value data affected by the migration.
+- [ ] Apply `20261117000000_media_external_id_per_type` to data containing external movies and manual media (`externalId` null). Expected: migration succeeds, `Media_externalId_ownerId_key` is gone, `Media_ownerId_type_externalId_key` exists as a partial unique index, and existing movies still open from their TMDb links.
 - [ ] Start the release candidate against the migrated data and repeat smoke checks.
 - [ ] Write down the recovery approach: forward fix, restore, or other reviewed procedure. Do not assume Prisma migrations automatically roll back.
 - [ ] Confirm no one ran `pnpm db:reset` or `pnpm db:push` against production. Use only the approved production migration process.

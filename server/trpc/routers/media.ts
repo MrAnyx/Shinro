@@ -61,6 +61,7 @@ export default router({
 				}),
 				z.object({
 					type: z.literal("externalId"),
+					mediaType: ServerMediaValidation.type,
 					externalId: ServerMediaValidation.externalId,
 				}),
 			]),
@@ -72,7 +73,10 @@ export default router({
 			if (input.type === "id") {
 				mediaFilter = { id: input.id };
 			} else if (input.type === "externalId") {
-				mediaFilter = { externalId: input.externalId };
+				mediaFilter = {
+					type: input.mediaType,
+					externalId: input.externalId,
+				};
 			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",

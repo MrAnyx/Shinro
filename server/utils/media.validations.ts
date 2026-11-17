@@ -4,6 +4,7 @@ import { Prisma } from "#prisma/client";
 
 export const ServerMediaValidation = {
 	id: MediaIdSchemaBase,
+	type: MediaTypeSchemaBase,
 	externalId: MediaExternalIdSchemaBase,
 	status: MediaStatusSchemaBase.nullable(),
 	source: MediaSourceTypeSchemaBase,

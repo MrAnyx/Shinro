@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { MediaType } from "#prisma/client";
 import { router, protectedProcedure, featureMiddleware } from "#server/trpc/init";
 
 export default router({
@@ -38,6 +39,7 @@ export default router({
 				where: {
 					media: {
 						ownerId: ctx.user.id,
+						type: MediaType.MOVIE,
 						externalId: {
 							in: externalIds,
 						},

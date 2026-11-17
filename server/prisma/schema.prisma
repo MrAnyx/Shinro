@@ -106,7 +106,7 @@ model Media {
     episode     Episode?
     collections CollectionMedia[]
 
-    @@unique([externalId, ownerId], where: { externalId: { not: null } })
+    @@unique([ownerId, type, externalId], where: { externalId: { not: null } })
 }
 
 model CollectionMedia {

@@ -1,11 +1,13 @@
 import { z } from "zod";
-import { MediaStatus, SourceType } from "~~/lib/prisma/enums";
+import { MediaStatus, MediaType, SourceType } from "~~/lib/prisma/enums";
 
 export const MEDIA_EXTERNAL_ID_MAX_LENGTH = 255;
 export const MEDIA_NAME_MAX_LENGTH = 255;
 export const MEDIA_NOTE_MAX_LENGTH = 1000;
 
 export const MediaIdSchemaBase = z.uuid("Media id must be a valid UUID");
+
+export const MediaTypeSchemaBase = z.enum(MediaType, "Media type must be a valid enum value");
 
 export const MediaExternalIdSchemaBase = z
 	.string("External media id must be a valid string")
