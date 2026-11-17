@@ -18,6 +18,10 @@ Run this checklist from top to bottom against the exact release candidate in a d
 - [ ] Confirm staging PostgreSQL is reachable and contains no production personal data.
 - [ ] Confirm staging Redis is reachable and is not shared with production.
 - [ ] Confirm all required environment values are set: `NODE_ENV`, `DATABASE_URL`, `REDIS_URL`, optional `COOKIE_SECURE`, optional `SESSION_LIFETIME_DAYS`, `TMDB_TOKEN`, `TMDB_LANGUAGE`, `TMDB_INCLUDE_NSFW`, `SPOTIFY_CLIENT_ID`, `SPOTIFY_CLIENT_SECRET`, `NUXT_PUBLIC_ALLOW_REGISTRATION`, `NUXT_PUBLIC_ENABLE_MOVIES`, `NUXT_PUBLIC_ENABLE_SERIES`, `NUXT_PUBLIC_ENABLE_MUSICS`, `NUXT_PUBLIC_ENABLE_BOOKS`, and `NUXT_PUBLIC_ENABLE_GAMES`.
+- [ ] Copy `.env.example` into a disposable configuration file and compare it with the README table. Expected: every supported variable is documented once, including its required/optional status, expected format, and default where applicable.
+- [ ] Set each boolean variable with `true` or `false`, use an ISO 639-1/optional ISO 3166-1 value for `TMDB_LANGUAGE` (for example `en-US`), and test startup. Expected: the app accepts the documented formats; no secret or public variable is confused.
+- [ ] Leave optional `COOKIE_SECURE` and `SESSION_LIFETIME_DAYS` unset in one disposable run. Expected: cookie security follows the request protocol and the session lifetime uses the documented 10-day default.
+- [ ] Confirm no credential is committed in `.env.example` or the README, and that each `NUXT_PUBLIC_*` variable contains non-secret data. Expected: the examples are safe to copy and secrets remain server-only.
 - [ ] Confirm TMDb credentials are staging credentials and adult-content policy is set intentionally.
 - [ ] Record the movie and TV show TMDb IDs to use for repeatable checks.
 - [ ] Prepare synthetic accounts: one account for the first/admin user, one normal user, one other user for isolation checks, and one disposable account for deletion tests.
