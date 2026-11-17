@@ -5,7 +5,7 @@
 	</div>
 	<UCard :ui="{ body: 'p-0! h-full' }" class="h-full">
 		<UTable
-			:data="series"
+			:data="movies"
 			:columns="columns"
 			:loading="pending"
 			sticky
@@ -15,7 +15,7 @@
 			<template #empty>
 				<UEmpty
 					title="No movie found"
-					description="No movie exist with this title"
+					description="No movies exist with this title"
 					variant="naked"
 					icon="i-lucide-ban"
 					:actions="emptyActions"
@@ -134,7 +134,7 @@ const emptyActions: ButtonProps[] = [
 
 // Get movies query
 const total = computed(() => data.value?.total ?? 0);
-const series = computed(() => data.value?.results ?? []);
+const movies = computed(() => data.value?.results ?? []);
 
 const { data, pending, refresh, clear } = useClientAsyncData(
 	() => trpc.tmdbMovie.search.query({ page: page.value, search: trimmedSearch.value }),

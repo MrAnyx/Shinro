@@ -9,7 +9,7 @@ const bootstrapAdminSetup = async () => {
 
 	log.warn(
 		"admin-setup",
-		`No administrator account exists. Sign in with the account that should become administrator (register it first if needed), open Settings > Profile and enter this one-time setup token within ${minutes} minutes: ${token} . Restart the server to get a new token.`,
+		`No administrator account exists. Sign in with the account that should become administrator (register it first if needed), open Settings > Profile and enter this one-time setup token within ${minutes} minutes: ${token}. Restart the server to get a new token.`,
 	);
 };
 

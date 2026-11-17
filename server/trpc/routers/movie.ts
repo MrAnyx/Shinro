@@ -86,7 +86,7 @@ export default router({
 				if (movieExist) {
 					throw new TRPCError({
 						code: "CONFLICT",
-						message: "This movie as already been added",
+						message: "This movie has already been added",
 					});
 				}
 

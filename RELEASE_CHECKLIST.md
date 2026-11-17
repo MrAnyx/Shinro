@@ -101,6 +101,7 @@ Use only the disposable staging database/accounts.
 - [ ] Use all shipped sidebar links. Expected: correct page opens and selected navigation state is accurate.
 - [ ] Use browser back/forward and direct URLs for shipped pages. Expected: navigation works and private data does not flash before authentication finishes.
 - [ ] Inspect Books, Music, Games, and Stats entries. Expected: incomplete/disabled features are clearly presented as unavailable and do not masquerade as working flows.
+- [ ] Verify the dashboard and collection empty states, movie-search no-results state, duplicate-movie response, and duplicate-username response copy. Expected: text reads "Add your first media...", "No movies exist with this title", "This movie has already been added", and "Username already exists" with no typos.
 
 ## 7. Check Movies
 

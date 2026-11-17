@@ -27,12 +27,12 @@ export default router({
 			}
 
 			const { user, sessionToken } = await prisma.$transaction(async (tx) => {
-				const userExist = await tx.user.findUnique({
+				const userExists = await tx.user.findUnique({
 					where: { username: input.username },
 					select: { id: true },
 				});
 
-				if (userExist) {
+				if (userExists) {
 					throw new TRPCError({
 						code: "CONFLICT",
 						message: "Choose a different username to create your account",
@@ -183,7 +183,7 @@ export default router({
 				}
 
 				if (input.username) {
-					const usernameExist = await tx.user.findUnique({
+					const usernameExists = await tx.user.findUnique({
 						where: {
 							username: input.username,
 						},
@@ -192,10 +192,10 @@ export default router({
 						},
 					});
 
-					if (usernameExist && usernameExist.id !== user.id) {
+					if (usernameExists && usernameExists.id !== user.id) {
 						throw new TRPCError({
 							code: "CONFLICT",
-							message: "Username already exist",
+							message: "Username already exists",
 						});
 					}
 				}

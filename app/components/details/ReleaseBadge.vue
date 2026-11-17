@@ -1,4 +1,3 @@
-<!-- components/ReleaseBadge.vue -->
 <template>
 	<UBadge :color="badge.color" variant="subtle" :leading-icon="badge.icon">
 		{{ badge.label }}
@@ -12,6 +11,13 @@ const props = defineProps<{
 }>();
 
 type BadgeState = "unknown" | "upcoming" | "ongoing" | "released";
+
+const badgeConfig: Record<BadgeState, { color: AppColor; icon: string; label: string }> = {
+	unknown: { color: "neutral", icon: "i-lucide-circle-help", label: "Unknown" },
+	upcoming: { color: "warning", icon: "i-lucide-clock", label: "Upcoming" },
+	ongoing: { color: "info", icon: "i-lucide-loader", label: "Ongoing" },
+	released: { color: "success", icon: "i-lucide-check", label: "Released" },
+};
 
 const badge = computed(() => {
 	const now = new Date();
@@ -28,13 +34,6 @@ const badge = computed(() => {
 		state = "released";
 	}
 
-	const config: Record<BadgeState, { color: AppColor; icon: string; label: string }> = {
-		unknown: { color: "neutral", icon: "i-lucide-circle-help", label: "Unknown" },
-		upcoming: { color: "warning", icon: "i-lucide-clock", label: "Upcoming" },
-		ongoing: { color: "info", icon: "i-lucide-loader", label: "Ongoing" },
-		released: { color: "success", icon: "i-lucide-check", label: "Released" },
-	};
-
-	return config[state];
+	return badgeConfig[state];
 });
 </script>

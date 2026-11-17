@@ -82,7 +82,7 @@
 						<template #empty>
 							<UEmpty
 								title="No media found"
-								description="Add you first media to see them here"
+								description="Add your first media to see them here"
 								variant="naked"
 								icon="i-lucide-ban"
 							></UEmpty>
@@ -131,7 +131,7 @@
 							<template #empty>
 								<UEmpty
 									title="No media found"
-									description="Add you first media in this collection to see them"
+									description="Add your first media in this collection to see them"
 									variant="naked"
 									icon="i-lucide-ban"
 								></UEmpty>
