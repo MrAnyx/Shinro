@@ -27,6 +27,8 @@ definePageMeta({
 	middleware: ["auth"],
 });
 
+const userStore = useUserStore();
+
 const links = computed<NavigationMenuItem[]>(() => [
 	{
 		label: "Profile",
@@ -46,5 +48,8 @@ const links = computed<NavigationMenuItem[]>(() => [
 		to: "/app/settings/appearance",
 		exact: true,
 	},
+	...(userStore.isAdmin
+		? [{ label: "Administration", icon: "i-lucide-shield-check", to: "/app/settings/administration", exact: true }]
+		: []),
 ]);
 </script>
