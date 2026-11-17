@@ -66,7 +66,7 @@ export default router({
 		)
 		.output(MovieSchema)
 		.mutation(async ({ input, ctx }) => {
-			const tmdbMovie = await tmdb(`/movie/${input.externalMovieId}`, {
+			const tmdbMovie = await tmdb(`/movie/${encodeURIComponent(input.externalMovieId)}`, {
 				schema: TmdbMovieDetailsResponseSchema,
 			});
 
@@ -439,12 +439,12 @@ export default router({
 			// Get the movie details and credits from TMDB, and the user's movie in parallel
 			const [detailsResponse, creditsResponse, movie] = await Promise.all([
 				useCache(`tmdb:movie:${input.externalMovieId}:details`, () =>
-					tmdb(`/movie/${input.externalMovieId}`, {
+					tmdb(`/movie/${encodeURIComponent(input.externalMovieId)}`, {
 						schema: TmdbMovieDetailsResponseSchema,
 					}),
 				),
 				useCache(`tmdb:movie:${input.externalMovieId}:credits`, () =>
-					tmdb(`/movie/${input.externalMovieId}/credits`, {
+					tmdb(`/movie/${encodeURIComponent(input.externalMovieId)}/credits`, {
 						schema: TmdbMovieCreditsResponseSchema,
 					}),
 				),

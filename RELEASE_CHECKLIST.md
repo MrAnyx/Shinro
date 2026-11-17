@@ -140,6 +140,8 @@ Use only the disposable staging database/accounts.
 - [ ] Repeat a TMDb request, then clear cache as ADMIN and repeat. Expected: cached data is correct; cache clearing does not delete user data or library records.
 - [ ] Test adult-content results with the configured policy. Expected: results obey `TMDB_INCLUDE_NSFW` and the intended content policy.
 - [ ] Open an unknown or malformed movie ID. Expected: controlled not-found state; app remains usable and does not expose another user's record.
+- [ ] Call `movie.getExternalDetails`, `movie.createFromExternal`, and `movie.getById` (`type: "externalMovieId"`) directly with non-numeric TMDb ids such as `../account`, `550?append_to_response=videos`, `550/credits`, `0`, `-1`, `abc`, and an 11-digit number. Expected: `BAD_REQUEST` validation error, no TMDb request is made, and no new `tmdb:movie:*` Redis key is created.
+- [ ] Open `/app/movies/external/abc`. Expected: controlled error state; the app remains usable.
 
 ## 8. Check Series
 
