@@ -17,13 +17,14 @@
 				:width="resolvedWidth"
 				:height="resolvedHeight"
 			/>
-			<NuxtImg v-else :src="fallbackImageUrl" class="w-full h-full object-cover" />
+			<img v-else :src="fallbackImageUrl" alt="" class="w-full h-full object-contain bg-elevated" />
 		</template>
 	</div>
 </template>
 
 <script setup lang="ts">
 import type { ConfiguredImageProviders } from "@nuxt/image";
+import { joinURL } from "ufo";
 
 const props = defineProps<{
 	provider?: keyof ConfiguredImageProviders;
@@ -78,7 +79,7 @@ const resolvedHeight = computed(() => {
 	return measuredHeight.value || 300;
 });
 
-const fallbackImageUrl = computed(() => `https://placehold.co/${resolvedWidth.value}x${resolvedHeight.value}`);
+const fallbackImageUrl = joinURL(useRuntimeConfig().app.baseURL, "images/placeholder.svg");
 
 onMounted(() => {
 	if (!wrapperRef.value || typeof ResizeObserver === "undefined") {
