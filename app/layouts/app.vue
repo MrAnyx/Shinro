@@ -77,7 +77,6 @@ const initializationStore = useInitializationStore();
 const collectionStore = useCollectionStore();
 const movieStore = useMovieStore();
 const serieStore = useSerieStore();
-const seasonStore = useSeasonStore();
 const userStore = useUserStore();
 const mediaStore = useMediaStore();
 const config = useClientConfig();
@@ -137,15 +136,6 @@ const mediaItems = computed<NavigationMenuItem[]>(() => {
 			icon: "i-lucide-tv-minimal-play",
 			badge: serieStore.total,
 			to: "/app/series",
-			defaultOpen: true,
-			children: [
-				{
-					label: "Seasons",
-					to: "/app/seasons",
-					icon: "i-lucide-layers",
-					badge: seasonStore.total,
-				},
-			],
 		},
 		config.enableMusics && {
 			label: "Music",
