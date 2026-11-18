@@ -162,7 +162,7 @@ Use only the disposable staging database/accounts.
 - [ ] With `NUXT_PUBLIC_ENABLE_MOVIES=false`, sign in and open the app. Expected: the splash screen completes (no `movie.count` call) and collections still load.
 - [ ] Re-enable movies and restart. Expected: all `movie.*` and `tmdbMovie.*` procedures work again without other changes.
 - [ ] Restore the release's intended movie/series flags and verify enabled routes work again.
-- [ ] Inspect season rows and season add/remove/detail controls. Expected: treat season/episode management as incomplete; an active control leading to a dead route or false success is a defect, not a passed workflow.
+- [ ] With series enabled, inspect the sidebar. Expected: the Series item has no Seasons child, and `/app/seasons` is not linked anywhere in the app.
 
 ## 9. Check Collections
 
@@ -250,6 +250,7 @@ Perform these only in isolated staging and coordinate any service disruption.
 - [ ] Compare record counts and sample user, session, collection, media, movie, and series relationships before and after migration.
 - [ ] Test populated, empty, nullable, and boundary-value data affected by the migration.
 - [ ] Apply `20261117000000_media_external_id_per_type` to data containing external movies and manual media (`externalId` null). Expected: migration succeeds, `Media_externalId_ownerId_key` is gone, `Media_ownerId_type_externalId_key` exists as a partial unique index, and existing movies still open from their TMDb links.
+- [ ] Apply `20261118000000_remove_seasons_episodes` to data containing series plus `SEASON`/`EPISODE` media (some linked to collections). Expected: migration succeeds, those media rows and their collection links are deleted, the `Season` and `Episode` tables are gone, `MediaType` no longer contains `SEASON`/`EPISODE`, and series, movies, and collections remain intact.
 - [ ] Start the release candidate against the migrated data and repeat smoke checks.
 - [ ] Write down the recovery approach: forward fix, restore, or other reviewed procedure. Do not assume Prisma migrations automatically roll back.
 - [ ] Confirm no one ran `pnpm db:reset` or `pnpm db:push` against production. Use only the approved production migration process.
@@ -274,5 +275,4 @@ After deployment, run only non-destructive production smoke checks: open the app
 
 - Books, music, games, statistics, and Spotify-backed workflows are not currently complete user features.
 - Collection detail is currently a placeholder; verify collection CRUD, favorites, and media assignment rather than treating the detail page as complete.
-- Series season/episode controls are incomplete and should not be accepted as functional.
 - There is currently no dedicated test/spec suite or test script; manual staging validation remains necessary until automated coverage is added.

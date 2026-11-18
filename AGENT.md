@@ -33,7 +33,7 @@
 - For optional Prisma updates, default omitted inputs to `Prisma.skip` rather than writing `undefined`; Prisma strict undefined checks are enabled.
 - Pages that fetch browser-only tRPC data use `useClientAsyncData()`, which is lazy and client-only and routes unhandled errors to the status toast. Use `getTRPCErrorCode()` to branch on expected failures such as `NOT_FOUND`, rather than treating them as generic errors.
 - Movie detail procedures are `movie.getInternalDetails` and `movie.getExternalDetails`. Both return the common `MovieDetailsSchema` (`movie`, `details`, `credits`, `saga`, `collections`), and the details page selects the procedure by route source type.
-- The documented product scope excludes series, seasons, and episodes. Do not reintroduce or extend those features unless requested.
+- Seasons and episodes have been removed from the product and schema. Do not reintroduce them or extend series unless requested.
 - When a value shown in the UI is changed through a tRPC query or mutation, keep a writable computed and use `usePendingValue()`: read `isPending` / `value` in the getter (falling back to the server-derived value when idle) and call `track(value, update)` in the setter, so the new value displays immediately while the request is in flight. Do not hand-roll optimistic state.
 
 ## Feature And Improvement Checklist Rule

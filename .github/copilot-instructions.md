@@ -44,7 +44,7 @@ Client validation never replaces server validation. Client stores type their pro
 
 - Server env vars are validated once with Zod in `server/utils/serverEnv.ts`. Import `serverEnv` instead of reading `process.env` (oxlint enforces this). Parsing is skipped when `CI` is set. When adding a variable, update `serverEnvSchema`, `.env.example`, and the env list in `RELEASE_CHECKLIST.md`.
 - Public flags (`NUXT_PUBLIC_ALLOW_REGISTRATION` and `NUXT_PUBLIC_ENABLE_{MOVIES,SERIES,MUSICS,BOOKS,GAMES}`) map to `runtimeConfig.public` in `nuxt.config.ts`. On the client they are read with `useClientConfig()` (schema in `app/utils/clientEnv.ts`), and pages are gated by the matching route middleware (`app/middleware/movies.ts`, `register.ts`, and so on).
-- The product scope excludes series, seasons, and episodes. Do not extend them unless asked.
+- Seasons and episodes have been removed from the product and schema. Do not reintroduce them or extend series unless asked.
 
 ## Frontend conventions
 

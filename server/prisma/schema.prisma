@@ -26,8 +26,6 @@ enum Role {
 enum MediaType {
     MOVIE
     SERIE
-    SEASON
-    EPISODE
     BOOK
     MUSIC
     GAME
@@ -102,8 +100,6 @@ model Media {
 
     movie       Movie?
     serie       Serie?
-    season      Season?
-    episode     Episode?
     collections CollectionMedia[]
 
     @@unique([ownerId, type, externalId], where: { externalId: { not: null } })
@@ -129,31 +125,4 @@ model Serie {
     id       String  @id @db.Uuid
     overview String? @db.Text
     media    Media   @relation(fields: [id], references: [id], onDelete: Cascade)
-
-    seasons Season[]
-}
-
-model Season {
-    id       String  @id @db.Uuid
-    number   Int
-    overview String? @db.Text
-    media    Media   @relation(fields: [id], references: [id], onDelete: Cascade)
-    serieId  String  @db.Uuid
-    serie    Serie   @relation(fields: [serieId], references: [id], onDelete: Cascade)
-
-    episodes Episode[]
-
-    @@unique([serieId, number])
-}
-
-model Episode {
-    id       String  @id @db.Uuid
-    number   Int
-    overview String? @db.Text
-    media    Media   @relation(fields: [id], references: [id], onDelete: Cascade)
-
-    seasonId String @db.Uuid
-    season   Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-
-    @@unique([seasonId, number])
 }
