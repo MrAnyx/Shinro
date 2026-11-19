@@ -1,5 +1,14 @@
 <template>
-	<div class="flex gap-8 w-full">
+	<UEmpty
+		v-if="isNotFound"
+		title="Movie not found"
+		description="This movie does not exist or is no longer in your list."
+		icon="i-lucide-film"
+		variant="naked"
+		class="flex-1"
+		:actions="notFoundActions"
+	/>
+	<div v-else class="flex gap-8 w-full">
 		<!-- Side bar with image and actions -->
 		<aside>
 			<UCard :ui="{ body: 'flex flex-col gap-y-4' }" variant="subtle" class="w-80">
@@ -172,7 +181,7 @@
 	</div>
 </template>
 <script setup lang="ts">
-import type { TabsItem, TableColumn } from "@nuxt/ui";
+import type { ButtonProps, TabsItem, TableColumn } from "@nuxt/ui";
 import { useDebounceFn } from "@vueuse/core";
 
 import { LazyMovieFormModal } from "#components";
@@ -204,13 +213,37 @@ const isExternal = computed(() => sourceType.value === MediaSourceTypes.external
 const isInternal = computed(() => sourceType.value === MediaSourceTypes.internal);
 
 // Fetch the page data: internal movies come from my list, external ones from TMDB (NOT_FOUND shows no toast)
-const { data: movieDetails, pending: isFetchingDetails } = useClientAsyncData<MovieDetails | undefined>(async () => {
-	if (isInternal.value) {
-		return trpc.movie.getInternalDetails.query({ id: routeMovieId.value });
-	} else {
-		return trpc.movie.getExternalDetails.query({ externalMovieId: routeMovieId.value });
-	}
-});
+const isNotFoundError = (err: unknown) => {
+	const code = getTRPCErrorCode(err);
+	return code === "NOT_FOUND" || code === "BAD_REQUEST";
+};
+
+const {
+	data: movieDetails,
+	pending: isFetchingDetails,
+	error: detailsError,
+} = useClientAsyncData<MovieDetails | undefined>(
+	async () => {
+		if (isInternal.value) {
+			return trpc.movie.getInternalDetails.query({ id: routeMovieId.value });
+		} else {
+			return trpc.movie.getExternalDetails.query({ externalMovieId: routeMovieId.value });
+		}
+	},
+	{
+		onError: (err) => {
+			if (!isNotFoundError(err)) {
+				toast.error(err);
+			}
+		},
+	},
+);
+
+const isNotFound = computed(() => !!detailsError.value && isNotFoundError(detailsError.value.cause));
+const notFoundActions: ButtonProps[] = [
+	{ label: "Back to my movies", icon: "i-lucide-arrow-left", to: "/app/movies" },
+	{ label: "Search movies", icon: "i-lucide-search", to: "/app/movies/search", variant: "subtle" },
+];
 
 // Pending values are shown right away while the update (debounced for rating) is in flight
 const pendingCollectionIds = usePendingValue<string[]>();

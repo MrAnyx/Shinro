@@ -1,4 +1,5 @@
-import { ofetch } from "ofetch";
+import { TRPCError } from "@trpc/server";
+import { FetchError, ofetch } from "ofetch";
 import type { ZodType } from "zod";
 
 const TMDB_API_BASE_URL = "https://api.themoviedb.org/3";
@@ -24,7 +25,15 @@ export const tmdb = async <T = unknown>(url: string, options?: FetchOptions<T>):
 	const { schema, ...fetchOptions } = options ?? {};
 	const fetch = await _tmdb();
 
-	const raw = await fetch(url, fetchOptions);
+	let raw: unknown;
+	try {
+		raw = await fetch(url, fetchOptions);
+	} catch (err) {
+		if (err instanceof FetchError && err.statusCode === 404) {
+			throw new TRPCError({ code: "NOT_FOUND", message: "Resource not found" });
+		}
+		throw err;
+	}
 
 	if (schema) {
 		return schema.parseAsync(raw);

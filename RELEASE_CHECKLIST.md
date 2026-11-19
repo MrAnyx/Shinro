@@ -144,6 +144,9 @@ Use only the disposable staging database/accounts.
 - [ ] Open an unknown or malformed movie ID. Expected: controlled not-found state; app remains usable and does not expose another user's record.
 - [ ] Call `movie.getExternalDetails`, `movie.createFromExternal`, and `movie.getById` (`type: "externalMovieId"`) directly with non-numeric TMDb ids such as `../account`, `550?append_to_response=videos`, `550/credits`, `0`, `-1`, `abc`, and an 11-digit number. Expected: `BAD_REQUEST` validation error, no TMDb request is made, and no new `tmdb:movie:*` Redis key is created.
 - [ ] Open `/app/movies/external/abc`. Expected: controlled error state; the app remains usable.
+- [ ] Open `/app/movies/external/<numeric id unknown to TMDb>`, `/app/movies/internal/<unknown id>`, `/app/movies/internal/<malformed id>`, and another user's internal movie ID. Expected: a "Movie not found" empty state with "Back to my movies" and "Search movies" actions that navigate correctly; no error toast; `movie.getExternalDetails` returns `NOT_FOUND` (not `INTERNAL_SERVER_ERROR`) for the TMDb 404 and no `tmdb:movie:*` Redis key is created for it.
+- [ ] With TMDb unreachable or rate-limited, open an external movie detail page. Expected: an error toast is shown and the not-found empty state is not displayed.
+- [ ] Check the movie not-found empty state on mobile width and with keyboard only. Expected: content is centered without overflow and both actions are reachable and operable with Tab and Enter.
 
 ## 8. Check Series
 
