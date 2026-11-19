@@ -6,19 +6,32 @@
 				description="Update your password to keep your account secure. Other devices will be signed out."
 			>
 				<UForm
+					ref="passwordForm"
 					class="flex-1 my-auto flex flex-col gap-y-3"
 					:state="passwordState"
 					:schema="passwordSchema"
 					@submit="onSavePassword"
 					:validate-on="['change']"
 				>
+					<UFormField name="current_password">
+						<UInput
+							v-model="passwordState.current_password"
+							class="w-full"
+							placeholder="Current password"
+							icon="i-lucide-lock-keyhole"
+							type="password"
+							autocomplete="current-password"
+						/>
+					</UFormField>
+
 					<UFormField name="password">
 						<UInput
 							v-model="passwordState.password"
 							class="w-full"
-							placeholder="Password"
+							placeholder="New password"
 							icon="i-lucide-lock"
 							type="password"
+							autocomplete="new-password"
 						/>
 					</UFormField>
 
@@ -26,9 +39,10 @@
 						<UInput
 							v-model="passwordState.password_confirmation"
 							class="w-full"
-							placeholder="Password confirmation"
+							placeholder="New password confirmation"
 							icon="i-lucide-lock"
 							type="password"
+							autocomplete="new-password"
 						/>
 					</UFormField>
 
@@ -75,9 +89,11 @@ const toast = useStatusToast();
 
 // Password
 const isLoadingPassword = ref(false);
+const passwordForm = useTemplateRef("passwordForm");
 
 const passwordSchema = z
 	.object({
+		current_password: ClientUserValidation.password,
 		password: ClientUserValidation.password,
 		password_confirmation: ClientUserValidation.password,
 	})
@@ -89,6 +105,7 @@ const passwordSchema = z
 type PasswordSchema = z.output<typeof passwordSchema>;
 
 const passwordState = reactive<PasswordSchema>({
+	current_password: "",
 	password: "",
 	password_confirmation: "",
 });
@@ -97,13 +114,22 @@ const onSavePassword = async (payload: FormSubmitEvent<PasswordSchema>) => {
 	try {
 		isLoadingPassword.value = true;
 
-		await userStore.updateMe({ password: payload.data.password });
+		await userStore.updateMe({
+			password: payload.data.password,
+			currentPassword: payload.data.current_password,
+		});
 
+		passwordState.current_password = "";
 		passwordState.password = "";
 		passwordState.password_confirmation = "";
 
 		toast.success({ description: `Password has been updated` });
 	} catch (err) {
+		if (getTRPCErrorCode(err) === "FORBIDDEN") {
+			passwordForm.value?.setErrors([{ name: "current_password", message: "Incorrect password" }]);
+			return;
+		}
+
 		toast.error(err);
 	} finally {
 		isLoadingPassword.value = false;

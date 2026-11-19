@@ -186,7 +186,11 @@ Use only the disposable staging database/accounts.
 
 - [ ] Change username to a valid unused name. Expected: new name persists after refresh and can be used to log in.
 - [ ] Try to change username to another user's name and to invalid boundary values. Expected: update is rejected and existing username remains unchanged.
-- [ ] In Settings > Security, change password with matching confirmation. Expected: the password form is no longer on Settings > Profile; new password works; old password no longer works; password fields clear after success.
+- [ ] In Settings > Security, change password with the correct current password and matching confirmation. Expected: the password form is no longer on Settings > Profile; new password works; old password no longer works; all password fields clear after success.
+- [ ] Submit the password form with an incorrect current password. Expected: "Incorrect password" shows under the current password field, the password is unchanged, and other sessions stay signed in.
+- [ ] Submit the password form with an empty current password. Expected: client validation error and no request is sent.
+- [ ] Call `user.updateMe` directly with `password` but without `currentPassword`, and with a wrong `currentPassword`. Expected: `BAD_REQUEST` and `FORBIDDEN` respectively; the password is unchanged.
+- [ ] Call `user.updateMe` directly with only `username`. Expected: the username changes without requiring `currentPassword`.
 - [ ] Submit mismatched password confirmation and invalid password values. Expected: clear validation error and no password change.
 - [ ] Sign in with the same account in two browsers (A and B), then change the username in A. Expected: A stays signed in; B's next protected request returns `UNAUTHORIZED` and redirects to login; only A's `Session` row remains.
 - [ ] Repeat with a password change in A. Expected: same result, B is signed out and A stays signed in.

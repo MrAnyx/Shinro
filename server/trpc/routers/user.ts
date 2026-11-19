@@ -157,9 +157,14 @@ export default router({
 				.object({
 					username: ServerUserValidation.username.optional(),
 					password: ServerUserValidation.password.optional(),
+					currentPassword: ServerUserValidation.password.optional(),
 				})
 				.refine((input) => input.username !== undefined || input.password !== undefined, {
 					message: "At least one profile field must be provided",
+				})
+				.refine((input) => input.password === undefined || input.currentPassword !== undefined, {
+					message: "Current password is required to change the password",
+					path: ["currentPassword"],
 				}),
 		)
 		.output(UserSchema)
@@ -172,6 +177,7 @@ export default router({
 					select: {
 						id: true,
 						username: true,
+						passwordHash: true,
 					},
 				});
 
@@ -179,6 +185,16 @@ export default router({
 					throw new TRPCError({
 						code: "NOT_FOUND",
 						message: "User not found",
+					});
+				}
+
+				if (
+					input.password !== undefined &&
+					!(await bcrypt.compare(input.currentPassword ?? "", user.passwordHash))
+				) {
+					throw new TRPCError({
+						code: "FORBIDDEN",
+						message: "Current password is incorrect",
 					});
 				}
 
