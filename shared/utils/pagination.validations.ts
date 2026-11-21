@@ -5,6 +5,14 @@ export const PaginationPageSchemaBase = z
 	.min(1, "Pagination page must be positive")
 	.default(1);
 
-export const PaginationSearchSchemaBase = z.string("Pagination search query must be a valid string").trim();
+export const PAGINATION_SEARCH_MAX_LENGTH = 100;
+
+export const PaginationSearchSchemaBase = z
+	.string("Pagination search query must be a valid string")
+	.trim()
+	.max(
+		PAGINATION_SEARCH_MAX_LENGTH,
+		`Pagination search query must be less than ${PAGINATION_SEARCH_MAX_LENGTH} characters`,
+	);
 
 export const PaginationForceSchemaBase = z.boolean("Pagination force must be a valid boolean").default(false);

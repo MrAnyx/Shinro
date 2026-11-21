@@ -1,5 +1,11 @@
 <template>
-	<UInput ref="uInputRef" v-model="search" placeholder="Search..." leading-icon="i-lucide-search">
+	<UInput
+		ref="uInputRef"
+		v-model="search"
+		placeholder="Search..."
+		leading-icon="i-lucide-search"
+		:maxlength="PAGINATION_SEARCH_MAX_LENGTH"
+	>
 		<template v-if="length > 0" #trailing>
 			<UButton color="neutral" variant="link" size="sm" icon="i-lucide-x" @click="resetSearchField" />
 		</template>

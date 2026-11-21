@@ -21,11 +21,14 @@ export default router({
 				};
 			}
 
-			const tmdbMovies = await useCache(`tmdb:movie:search:${input.search}:${input.page}`, () =>
+			// Hashed so user input never shapes the Redis key
+			const { normalized: search, hash: searchHash } = normalizeAndHash(input.search);
+
+			const tmdbMovies = await useCache(`tmdb:movie:search:${searchHash}:${input.page}`, () =>
 				tmdb("/search/movie", {
 					schema: TmdbMovieSearchResponseSchema,
 					query: {
-						query: input.search,
+						query: search,
 						page: input.page,
 					},
 				}),

@@ -486,7 +486,7 @@ export default router({
 				const collectionId = detailsResponse.belongs_to_collection.id;
 
 				const sagaResponse = await useCache(`tmdb:movie:saga:${collectionId}`, () =>
-					tmdb(`/collection/${collectionId}`, {
+					tmdb(`/collection/${encodeURIComponent(collectionId)}`, {
 						schema: TmdbMovieCollectionResponseSchema,
 					}),
 				);
