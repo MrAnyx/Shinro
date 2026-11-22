@@ -2,7 +2,7 @@ blockExoticSubdeps: true
 minimumReleaseAge: 4320 # 3 days
 minimumReleaseAgeExclude: []
 trustPolicy: no-downgrade
-audit-level: low
+auditLevel: low
 trustPolicyExclude:
     - "semver@6.3.1"
     - "prisma@7.10.0"
