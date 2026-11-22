@@ -30,7 +30,7 @@ export const tmdb = async <T = unknown>(url: string, options?: FetchOptions<T>):
 		raw = await fetch(url, fetchOptions);
 	} catch (err) {
 		if (err instanceof FetchError && err.statusCode === 404) {
-			throw new TRPCError({ code: "NOT_FOUND", message: "Resource not found" });
+			throw new TRPCError({ code: "NOT_FOUND", message: ERROR_MESSAGES.NOT_FOUND });
 		}
 		throw err;
 	}

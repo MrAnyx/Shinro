@@ -80,7 +80,7 @@ export default router({
 			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					message: "Invalid input type",
+					message: ERROR_MESSAGES.BAD_REQUEST,
 				});
 			}
 
@@ -97,7 +97,7 @@ export default router({
 			if (!media) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
-					message: "Media not found",
+					message: ERROR_MESSAGES.NOT_FOUND,
 				});
 			}
 
@@ -145,7 +145,7 @@ export default router({
 				if (!media) {
 					throw new TRPCError({
 						code: "NOT_FOUND",
-						message: "Media not found",
+						message: ERROR_MESSAGES.NOT_FOUND,
 					});
 				}
 

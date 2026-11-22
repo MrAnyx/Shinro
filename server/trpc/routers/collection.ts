@@ -44,28 +44,10 @@ export default router({
 		)
 		.output(BaseCollectionSchema)
 		.mutation(async ({ input, ctx }) => {
-			return await prisma.$transaction(async (tx) => {
-				const existingCollection = await tx.collection.findFirst({
-					where: {
-						id: input.id,
-						ownerId: ctx.user.id,
-					},
-					select: {
-						id: true,
-						ownerId: true,
-					},
-				});
+			const { name = Prisma.skip, description = Prisma.skip, favorite = Prisma.skip } = input;
 
-				if (!existingCollection) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Collection not found",
-					});
-				}
-
-				const { name = Prisma.skip, description = Prisma.skip, favorite = Prisma.skip } = input;
-
-				const collection = await tx.collection.update({
+			try {
+				return await prisma.collection.update({
 					where: {
 						id: input.id,
 						ownerId: ctx.user.id,
@@ -76,9 +58,15 @@ export default router({
 						favorite,
 					},
 				});
-
-				return collection;
-			});
+			} catch (error) {
+				if (isPrismaError(error, PrismaErrorCode.RecordNotFound)) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: ERROR_MESSAGES.NOT_FOUND,
+					});
+				}
+				throw error;
+			}
 		}),
 
 	/**
@@ -92,32 +80,22 @@ export default router({
 		)
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
-			await prisma.$transaction(async (tx) => {
-				const existingCollection = await tx.collection.findFirst({
+			try {
+				await prisma.collection.delete({
 					where: {
 						id: input.id,
 						ownerId: ctx.user.id,
 					},
-					select: {
-						id: true,
-						ownerId: true,
-					},
 				});
-
-				if (!existingCollection) {
+			} catch (error) {
+				if (isPrismaError(error, PrismaErrorCode.RecordNotFound)) {
 					throw new TRPCError({
 						code: "NOT_FOUND",
-						message: "Collection not found",
+						message: ERROR_MESSAGES.NOT_FOUND,
 					});
 				}
-
-				await tx.collection.delete({
-					where: {
-						id: input.id,
-						ownerId: ctx.user.id,
-					},
-				});
-			});
+				throw error;
+			}
 		}),
 
 	/**
@@ -223,7 +201,7 @@ export default router({
 			if (!collection) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
-					message: "Collection not found",
+					message: ERROR_MESSAGES.NOT_FOUND,
 				});
 			}
 

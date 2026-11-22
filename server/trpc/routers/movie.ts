@@ -70,28 +70,8 @@ export default router({
 				schema: TmdbMovieDetailsResponseSchema,
 			});
 
-			return await prisma.$transaction(async (tx) => {
-				const movieExist = await tx.movie.findFirst({
-					where: {
-						media: {
-							ownerId: ctx.user.id,
-							type: MediaType.MOVIE,
-							externalId: input.externalMovieId,
-						},
-					},
-					select: {
-						id: true,
-					},
-				});
-
-				if (movieExist) {
-					throw new TRPCError({
-						code: "CONFLICT",
-						message: "This movie has already been added",
-					});
-				}
-
-				const movie = await tx.movie.create({
+			try {
+				return await prisma.movie.create({
 					data: {
 						media: {
 							create: {
@@ -110,9 +90,16 @@ export default router({
 						media: true,
 					},
 				});
-
-				return movie;
-			});
+			} catch (error) {
+				// The (ownerId, type, externalId) unique index rejects duplicates, including concurrent adds
+				if (isPrismaError(error, PrismaErrorCode.UniqueConstraintFailed)) {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: ERROR_MESSAGES.CONFLICT,
+					});
+				}
+				throw error;
+			}
 		}),
 
 	/**
@@ -134,68 +121,54 @@ export default router({
 		)
 		.output(MovieWithCollectionsSchema)
 		.mutation(async ({ input, ctx }) => {
-			return await prisma.$transaction(async (tx) => {
-				const existingMovie = await tx.movie.findFirst({
-					where: {
-						id: input.id,
-						media: {
-							ownerId: ctx.user.id,
-						},
-					},
-					select: {
-						id: true,
-						media: {
-							select: {
-								ownerId: true,
+			const {
+				name = Prisma.skip,
+				rating = Prisma.skip,
+				overview = Prisma.skip,
+				note = Prisma.skip,
+				status = Prisma.skip,
+			} = input;
+
+			try {
+				return await prisma.$transaction(async (tx) => {
+					const movie = await tx.movie.update({
+						where: {
+							id: input.id,
+							media: {
+								ownerId: ctx.user.id,
 							},
 						},
-					},
-				});
+						data: {
+							media: {
+								update: {
+									name,
+									rating,
+									note,
+									status,
+								},
+							},
+							overview,
+						},
+						include: {
+							media: true,
+						},
+					});
 
-				if (!existingMovie) {
+					const collections = input.collectionIds
+						? await setMediaCollections(ctx.user.id, movie.id, input.collectionIds, { db: tx })
+						: await getMediaCollections(ctx.user.id, movie.id, { db: tx });
+
+					return { ...movie, collections };
+				});
+			} catch (error) {
+				if (isPrismaError(error, PrismaErrorCode.RecordNotFound)) {
 					throw new TRPCError({
 						code: "NOT_FOUND",
-						message: "Movie not found",
+						message: ERROR_MESSAGES.NOT_FOUND,
 					});
 				}
-
-				const {
-					name = Prisma.skip,
-					rating = Prisma.skip,
-					overview = Prisma.skip,
-					note = Prisma.skip,
-					status = Prisma.skip,
-				} = input;
-
-				const movie = await tx.movie.update({
-					where: {
-						id: input.id,
-						media: {
-							ownerId: ctx.user.id,
-						},
-					},
-					data: {
-						media: {
-							update: {
-								name,
-								rating,
-								note,
-								status,
-							},
-						},
-						overview,
-					},
-					include: {
-						media: true,
-					},
-				});
-
-				const collections = input.collectionIds
-					? await setMediaCollections(ctx.user.id, movie.id, input.collectionIds, { db: tx })
-					: await getMediaCollections(ctx.user.id, movie.id, { db: tx });
-
-				return { ...movie, collections };
-			});
+				throw error;
+			}
 		}),
 
 	/**
@@ -210,39 +183,21 @@ export default router({
 		)
 		.output(z.void())
 		.mutation(async ({ input, ctx }) => {
-			await prisma.$transaction(async (tx) => {
-				const existingMovie = await tx.movie.findFirst({
-					where: {
-						id: input.id,
-						media: {
-							ownerId: ctx.user.id,
-						},
-					},
-					select: {
-						id: true,
-						media: {
-							select: {
-								ownerId: true,
-							},
-						},
-					},
-				});
-
-				if (!existingMovie) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "Movie not found",
-					});
-				}
-
-				// Use the media model to leverage the cascade on delete feature
-				await tx.media.deleteMany({
-					where: {
-						ownerId: ctx.user.id,
-						id: input.id,
-					},
-				});
+			// Use the media model to leverage the cascade on delete feature
+			const { count } = await prisma.media.deleteMany({
+				where: {
+					ownerId: ctx.user.id,
+					id: input.id,
+					type: MediaType.MOVIE,
+				},
 			});
+
+			if (count === 0) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: ERROR_MESSAGES.NOT_FOUND,
+				});
+			}
 		}),
 
 	/**
@@ -358,7 +313,7 @@ export default router({
 			} else {
 				throw new TRPCError({
 					code: "BAD_REQUEST",
-					message: "Invalid input type",
+					message: ERROR_MESSAGES.BAD_REQUEST,
 				});
 			}
 
@@ -372,7 +327,7 @@ export default router({
 			if (!movie) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
-					message: "Movie not found",
+					message: ERROR_MESSAGES.NOT_FOUND,
 				});
 			}
 
@@ -406,7 +361,7 @@ export default router({
 			if (!movie) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
-					message: "Movie not found",
+					message: ERROR_MESSAGES.NOT_FOUND,
 				});
 			}
 

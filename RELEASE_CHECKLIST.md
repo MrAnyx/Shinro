@@ -70,6 +70,8 @@ Use only the disposable staging database/accounts.
 - [ ] Verify the first account has ADMIN role using an approved test/admin inspection method.
 - [ ] Sign out, then register a second account. Expected: it is created with USER role, not ADMIN.
 - [ ] Try registering a username that already exists. Expected: request is rejected with a useful error; no second account is created.
+- [ ] Send two concurrent `user.register` requests with the same new username. Expected: exactly one account and one `Session` row are created; the other request returns `CONFLICT` ("This resource already exists"), never `INTERNAL_SERVER_ERROR`.
+- [ ] Trigger a not-found, conflict, and invalid-input error on any router procedure. Expected: messages are the generic "Resource not found", "This resource already exists", and "Invalid request" and never name the entity, table, or constraint.
 - [ ] Try blank, too-short, too-long, and otherwise invalid usernames/passwords at the UI. Expected: field validation explains the problem and no account is created.
 - [ ] Repeat invalid registration attempts through the server/API boundary if available. Expected: server validation also rejects them; client checks alone are not relied upon.
 - [ ] Set `NUXT_PUBLIC_ALLOW_REGISTRATION=false` and try the registration route directly.
@@ -105,7 +107,7 @@ Use only the disposable staging database/accounts.
 - [ ] Use all shipped sidebar links. Expected: correct page opens and selected navigation state is accurate.
 - [ ] Use browser back/forward and direct URLs for shipped pages. Expected: navigation works and private data does not flash before authentication finishes.
 - [ ] Inspect Books, Music, Games, and Stats entries. Expected: incomplete/disabled features are clearly presented as unavailable and do not masquerade as working flows.
-- [ ] Verify the dashboard and collection empty states, movie-search no-results state, duplicate-movie response, and duplicate-username response copy. Expected: text reads "Add your first media...", "No movies exist with this title", "This movie has already been added", and "Username already exists" with no typos.
+- [ ] Verify the dashboard and collection empty states, movie-search no-results state, duplicate-movie response, and duplicate-username response copy. Expected: text reads "Add your first media...", "No movies exist with this title", and "This resource already exists" (for both) with no typos.
 
 ## 7. Check Movies
 
@@ -117,7 +119,7 @@ Use only the disposable staging database/accounts.
 - [ ] Search TMDb for a known movie. Expected: correct result identity, title, release date, poster, and available metadata are shown.
 - [ ] Add the movie from TMDb. Expected: it appears once in the library and remains after refresh.
 - [ ] Attempt to add the same TMDb movie again. Expected: duplicate is rejected or handled idempotently; no duplicate record appears.
-- [ ] Send two concurrent `movie.createFromExternal` requests for the same TMDb id. Expected: exactly one `Media` row exists for that `(ownerId, type, externalId)`.
+- [ ] Send two concurrent `movie.createFromExternal` requests for the same TMDb id. Expected: exactly one `Media` row exists for that `(ownerId, type, externalId)`; one request succeeds and the other returns `CONFLICT` ("This resource already exists"), never `INTERNAL_SERVER_ERROR`.
 - [ ] Insert (via a disposable DB) a non-MOVIE media with the same `externalId` as a saved TMDb movie for the same user. Expected: the insert succeeds; movie search, saga, and external details still resolve only the movie.
 - [ ] Open the movie detail page. Expected: correct metadata/credits/franchise information when available; absent optional data and missing artwork use graceful fallbacks.
 - [ ] View items with missing artwork (posters, backdrops, cast photos) at several sizes, in light and dark mode, with the browser network panel open. Expected: the local `images/placeholder.svg` renders centered and uncropped at every size, no request goes to `placehold.co` or any other third-party host, resizing the window triggers no new placeholder requests, and the placeholder still loads when `NUXT_APP_BASE_URL` is set to a subpath.
@@ -142,6 +144,7 @@ Use only the disposable staging database/accounts.
 - [ ] Repeat a TMDb request, then clear cache as ADMIN and repeat. Expected: cached data is correct; cache clearing does not delete user data or library records.
 - [ ] Test adult-content results with the configured policy. Expected: results obey `TMDB_INCLUDE_NSFW` and the intended content policy.
 - [ ] Open an unknown or malformed movie ID. Expected: controlled not-found state; app remains usable and does not expose another user's record.
+- [ ] Call `movie.update` and `movie.delete` directly with an unknown ID, another user's movie ID, and (for `movie.delete`) the ID of a non-MOVIE media. Expected: `NOT_FOUND` ("Resource not found"), never `INTERNAL_SERVER_ERROR`; no record is changed or deleted. Repeat with `collection.update` and `collection.delete` using an unknown or another user's collection ID. Expected: `NOT_FOUND` ("Resource not found") and no change.
 - [ ] Call `movie.getExternalDetails`, `movie.createFromExternal`, and `movie.getById` (`type: "externalMovieId"`) directly with non-numeric TMDb ids such as `../account`, `550?append_to_response=videos`, `550/credits`, `0`, `-1`, `abc`, and an 11-digit number. Expected: `BAD_REQUEST` validation error, no TMDb request is made, and no new `tmdb:movie:*` Redis key is created.
 - [ ] Open `/app/movies/external/abc`. Expected: controlled error state; the app remains usable.
 - [ ] Search TMDb for `Matrix`, `matrix`, and `  MATRIX  `. Expected: identical results; only one `cache:tmdb:movie:search:<sha256 hex>:1` Redis key is created and no key contains the raw search text.
@@ -191,6 +194,7 @@ Use only the disposable staging database/accounts.
 
 - [ ] Change username to a valid unused name. Expected: new name persists after refresh and can be used to log in.
 - [ ] Try to change username to another user's name and to invalid boundary values. Expected: update is rejected and existing username remains unchanged.
+- [ ] Sign in with the same account in browsers A and B, then in A try to change the username to another user's name. Expected: `CONFLICT` ("This resource already exists"), never `INTERNAL_SERVER_ERROR`; B stays signed in (sessions are not revoked by a failed update).
 - [ ] In Settings > Security, change password with the correct current password and matching confirmation. Expected: the password form is no longer on Settings > Profile; new password works; old password no longer works; all password fields clear after success.
 - [ ] Submit the password form with an incorrect current password. Expected: "Incorrect password" shows under the current password field, the password is unchanged, and other sessions stay signed in.
 - [ ] Submit the password form with an empty current password. Expected: client validation error and no request is sent.

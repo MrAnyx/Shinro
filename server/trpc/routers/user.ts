@@ -26,38 +26,36 @@ export default router({
 				});
 			}
 
-			const { user, sessionToken } = await prisma.$transaction(async (tx) => {
-				const userExists = await tx.user.findUnique({
-					where: { username: input.username },
-					select: { id: true },
+			const passwordHash = await bcrypt.hash(input.password, 10);
+
+			try {
+				const { user, sessionToken } = await prisma.$transaction(async (tx) => {
+					// Registration never grants ADMIN; the first admin is claimed with the one-time setup token (see claimAdmin)
+					const newUser = await tx.user.create({
+						data: {
+							passwordHash,
+							username: input.username,
+							role: Role.USER,
+						},
+					});
+
+					const sessionToken = await createSession(newUser.id, { db: tx });
+
+					return { user: newUser, sessionToken };
 				});
 
-				if (userExists) {
+				setSessionCookie(ctx.event, sessionToken);
+
+				return user;
+			} catch (error) {
+				if (isPrismaError(error, PrismaErrorCode.UniqueConstraintFailed)) {
 					throw new TRPCError({
 						code: "CONFLICT",
-						message: "Choose a different username to create your account",
+						message: ERROR_MESSAGES.CONFLICT,
 					});
 				}
-
-				const passwordHash = await bcrypt.hash(input.password, 10);
-
-				// Registration never grants ADMIN; the first admin is claimed with the one-time setup token (see claimAdmin)
-				const newUser = await tx.user.create({
-					data: {
-						passwordHash,
-						username: input.username,
-						role: Role.USER,
-					},
-				});
-
-				const sessionToken = await createSession(newUser.id, { db: tx });
-
-				return { user: newUser, sessionToken };
-			});
-
-			setSessionCookie(ctx.event, sessionToken);
-
-			return user;
+				throw error;
+			}
 		}),
 
 	login: publicProcedure
@@ -144,7 +142,7 @@ export default router({
 			if (!user) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
-					message: "User not found",
+					message: ERROR_MESSAGES.NOT_FOUND,
 				});
 			}
 
@@ -169,77 +167,69 @@ export default router({
 		)
 		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
-			return await prisma.$transaction(async (tx) => {
-				const user = await tx.user.findUnique({
-					where: {
-						id: ctx.user.id,
-					},
-					select: {
-						id: true,
-						username: true,
-						passwordHash: true,
-					},
-				});
-
-				if (!user) {
-					throw new TRPCError({
-						code: "NOT_FOUND",
-						message: "User not found",
-					});
-				}
-
-				if (
-					input.password !== undefined &&
-					!(await bcrypt.compare(input.currentPassword ?? "", user.passwordHash))
-				) {
-					throw new TRPCError({
-						code: "FORBIDDEN",
-						message: "Current password is incorrect",
-					});
-				}
-
-				if (input.username) {
-					const usernameExists = await tx.user.findUnique({
+			try {
+				return await prisma.$transaction(async (tx) => {
+					const user = await tx.user.findUnique({
 						where: {
-							username: input.username,
+							id: ctx.user.id,
 						},
 						select: {
 							id: true,
+							username: true,
+							passwordHash: true,
 						},
 					});
 
-					if (usernameExists && usernameExists.id !== user.id) {
+					if (!user) {
 						throw new TRPCError({
-							code: "CONFLICT",
-							message: "Username already exists",
+							code: "NOT_FOUND",
+							message: ERROR_MESSAGES.NOT_FOUND,
 						});
 					}
-				}
 
-				const password = input.password ? await bcrypt.hash(input.password, 10) : undefined;
+					if (
+						input.password !== undefined &&
+						!(await bcrypt.compare(input.currentPassword ?? "", user.passwordHash))
+					) {
+						throw new TRPCError({
+							code: "FORBIDDEN",
+							message: "Current password is incorrect",
+						});
+					}
 
-				// Changing a credential (username or password) revokes every other session of the user
-				const isUsernameChanged = input.username !== undefined && input.username !== user.username;
+					const password = input.password ? await bcrypt.hash(input.password, 10) : undefined;
 
-				if (password || isUsernameChanged) {
-					await tx.session.deleteMany({
+					// Changing a credential (username or password) revokes every other session of the user
+					const isUsernameChanged = input.username !== undefined && input.username !== user.username;
+
+					if (password || isUsernameChanged) {
+						await tx.session.deleteMany({
+							where: {
+								userId: ctx.user.id,
+								id: { not: ctx.sessionId },
+							},
+						});
+					}
+
+					return await tx.user.update({
 						where: {
-							userId: ctx.user.id,
-							id: { not: ctx.sessionId },
+							id: ctx.user.id,
+						},
+						data: {
+							username: input.username ?? Prisma.skip,
+							passwordHash: password ?? Prisma.skip,
 						},
 					});
-				}
-
-				return await tx.user.update({
-					where: {
-						id: ctx.user.id,
-					},
-					data: {
-						username: input.username ?? Prisma.skip,
-						passwordHash: password ?? Prisma.skip,
-					},
 				});
-			});
+			} catch (error) {
+				if (isPrismaError(error, PrismaErrorCode.UniqueConstraintFailed)) {
+					throw new TRPCError({
+						code: "CONFLICT",
+						message: ERROR_MESSAGES.CONFLICT,
+					});
+				}
+				throw error;
+			}
 		}),
 
 	deleteMe: protectedProcedure
@@ -275,7 +265,7 @@ export default router({
 			if (!user) {
 				throw new TRPCError({
 					code: "NOT_FOUND",
-					message: "User not found",
+					message: ERROR_MESSAGES.NOT_FOUND,
 				});
 			}
 
