@@ -84,6 +84,11 @@ Use only the disposable staging database/accounts.
 - [ ] Sign in using a correct username and incorrect password. Expected: authentication fails and no session is created.
 - [ ] Try a nonexistent username and invalid/empty credentials. Expected: login fails safely without an unhandled error or session.
 - [ ] Compare a login with a nonexistent username against one with an existing username and wrong password. Expected: both return `UNAUTHORIZED` with the same "Invalid username or password" message and similar response times (no user enumeration).
+- [ ] Register a user and change a password in Settings > Profile, then inspect `User.passwordHash`. Expected: both values start with `$argon2id$v=19$m=19456,t=2,p=1$` and differ for identical passwords (random salt).
+- [ ] Sign in with a password longer than 72 bytes, then with the same password with its last character changed. Expected: the first succeeds and the second fails (the full password is hashed).
+- [ ] Register, sign in, and change the password with exactly 1024 characters, then with 1025 characters, both in the UI and directly through `user.register`, `user.login`, and `user.updateMe`. Expected: 1024 is accepted; 1025 is rejected with "User password can not exceed 1024 characters" on the client and `BAD_REQUEST` on the server, without hashing or creating a session.
+- [ ] Set a user's `passwordHash` to a legacy bcrypt (`$2b$...`) or malformed value in a disposable database and sign in. Expected: login fails with `UNAUTHORIZED` ("Invalid username or password"), never `INTERNAL_SERVER_ERROR`.
+- [ ] Build the Docker image (or run `pnpm build`) on the target platform (e.g. `linux/amd64`, `linux/arm64`, Alpine/musl) and sign in. Expected: the `@node-rs/argon2` native binding for that platform is present in `.output/server/node_modules/@node-rs/` and login works.
 - [ ] Inspect browser cookies. Expected: `session_id` is HttpOnly, SameSite=Strict, scoped to `/`, expires according to policy, Secure over HTTPS (including behind a reverse proxy sending `X-Forwarded-Proto`), and not Secure over plain HTTP so LAN installs can sign in. `COOKIE_SECURE=true|false` overrides the detection.
 - [ ] Inspect browser storage and network activity. Expected: session ID is not stored in localStorage/sessionStorage or exposed to application JavaScript; password is not echoed or logged.
 - [ ] Refresh a protected page while signed in. Expected: session remains valid and private data loads.
@@ -104,7 +109,7 @@ Use only the disposable staging database/accounts.
 - [ ] Trigger a login limit, then restart the app. Expected: the limit is cleared (counters are in memory only) and the app boots without Redis-related rate-limit errors.
 - [ ] Behind a reverse proxy, note that all clients currently share the proxy IP (until `TRUST_PROXY`, SEC-04). Expected: per-IP limits are reached only under abnormal traffic; record the behaviour in the release notes.
 
-**Mandatory stop condition:** the current code in `server/trpc/routers/user.ts` appears to reject a password when `bcrypt.compare()` returns true, and continue when it returns false. If the correct-password test fails or an incorrect-password test succeeds, mark this section failed and stop release testing for a NO-GO decision until fixed and retested.
+**Mandatory stop condition:** the current code in `server/trpc/routers/user.ts` appears to reject a password when `verifyPassword()` returns true, and continue when it returns false. If the correct-password test fails or an incorrect-password test succeeds, mark this section failed and stop release testing for a NO-GO decision until fixed and retested.
 
 ## 6. Check Dashboard And Navigation
 

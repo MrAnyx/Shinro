@@ -20,9 +20,13 @@ export const UserAdminSetupTokenSchemaBase = z
 		`Setup token can not exceed ${USER_ADMIN_SETUP_TOKEN_MAX_LENGTH} characters`,
 	);
 
+// Argon2 has no input length limit; the cap only bounds request size and hashing work
+export const USER_PASSWORD_MAX_LENGTH = 1024;
+
 export const UserPasswordSchemaBase = z
 	.string("User password must be a valid string")
 	.min(16, "User password must be at least 16 characters")
+	.max(USER_PASSWORD_MAX_LENGTH, `User password can not exceed ${USER_PASSWORD_MAX_LENGTH} characters`)
 	.refine((password) => /[A-Z]/.test(password), "User password must contain uppercase characters")
 	.refine((password) => /[a-z]/.test(password), "User password must contain lowercase characters")
 	.refine((password) => /[0-9]/.test(password), "User password must contain digits")

@@ -1,13 +1,12 @@
 import { TRPCError } from "@trpc/server";
-import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 import { Prisma } from "#prisma/client";
 import { Role } from "#prisma/enums";
 import { router, publicProcedure, protectedProcedure, rateLimitMiddleware } from "#server/trpc/init";
 
-// Same cost factor as real password hashes so failed lookups and wrong passwords take the same time
-const DUMMY_PASSWORD_HASH = bcrypt.hashSync("shinro-dummy-password", 10);
+// Same parameters as real password hashes so failed lookups and wrong passwords take the same time
+const DUMMY_PASSWORD_HASH = hashPassword("shinro-dummy-password");
 
 export default router({
 	register: publicProcedure
@@ -27,7 +26,7 @@ export default router({
 				});
 			}
 
-			const passwordHash = await bcrypt.hash(input.password, 10);
+			const passwordHash = await hashPassword(input.password);
 
 			try {
 				const { user, sessionToken } = await prisma.$transaction(async (tx) => {
@@ -85,8 +84,11 @@ export default router({
 					},
 				});
 
-				// Always run bcrypt so unknown usernames take as long as wrong passwords
-				const isPasswordValid = await bcrypt.compare(input.password, user?.passwordHash ?? DUMMY_PASSWORD_HASH);
+				// Always verify a hash so unknown usernames take as long as wrong passwords
+				const isPasswordValid = await verifyPassword(
+					input.password,
+					user?.passwordHash ?? (await DUMMY_PASSWORD_HASH),
+				);
 
 				if (!user || !isPasswordValid) {
 					throw new TRPCError({
@@ -198,7 +200,7 @@ export default router({
 
 					if (
 						input.password !== undefined &&
-						!(await bcrypt.compare(input.currentPassword ?? "", user.passwordHash))
+						!(await verifyPassword(input.currentPassword ?? "", user.passwordHash))
 					) {
 						throw new TRPCError({
 							code: "FORBIDDEN",
@@ -206,7 +208,7 @@ export default router({
 						});
 					}
 
-					const password = input.password ? await bcrypt.hash(input.password, 10) : undefined;
+					const password = input.password ? await hashPassword(input.password) : undefined;
 
 					// Changing a credential (username or password) revokes every other session of the user
 					const isUsernameChanged = input.username !== undefined && input.username !== user.username;
@@ -285,7 +287,7 @@ export default router({
 				});
 			}
 
-			return await bcrypt.compare(input.password, user.passwordHash);
+			return await verifyPassword(input.password, user.passwordHash);
 		}),
 
 	adminSetupStatus: protectedProcedure
