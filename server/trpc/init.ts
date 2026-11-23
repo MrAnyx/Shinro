@@ -94,6 +94,35 @@ export const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
 	return next();
 });
 
+interface RateLimitOptions<TInput> {
+	name: string;
+	limit: number;
+	windowSeconds: number;
+	// Narrows the limit to the client IP + this value (e.g. a username); omit to limit by IP only
+	key?: (opts: { ctx: Context; input: TInput }) => string | undefined;
+}
+
+// Sliding-window rate limiter. Chain it after `.input()` when `key` reads the input.
+export const rateLimitMiddleware = <TInput = unknown>({ name, limit, windowSeconds, key }: RateLimitOptions<TInput>) =>
+	trpc.middleware(({ ctx, input, next }) => {
+		const ip = getClientIP(ctx.event);
+		const extraKey = key?.({ ctx, input: input as TInput });
+		const identifier = extraKey === undefined ? ip : `${ip}:${extraKey}`;
+
+		const { allowed, retryAfterSeconds } = consumeRateLimit(`${name}:${identifier}`, { limit, windowSeconds });
+
+		if (!allowed) {
+			setResponseHeader(ctx.event, "Retry-After", retryAfterSeconds);
+
+			throw new TRPCError({
+				code: "TOO_MANY_REQUESTS",
+				message: `Too many attempts, please try again in ${Math.ceil(retryAfterSeconds / 60)} minute(s)`,
+			});
+		}
+
+		return next();
+	});
+
 type FeatureOf<T> = T extends `NUXT_PUBLIC_ENABLE_${infer F}` ? Lowercase<F> : never;
 type Feature = FeatureOf<keyof typeof serverEnv>;
 

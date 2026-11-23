@@ -96,6 +96,13 @@ Use only the disposable staging database/accounts.
 - [ ] Make an authenticated request after the session lifetime has elapsed (or after manually setting `expiresAt` in the past). Expected: the request is rejected with `UNAUTHORIZED`, the session row is deleted, and the user must sign in again.
 - [ ] Sign out in one tab, then try an action in both tabs. Expected: server-side session is invalidated and protected actions require login again.
 - [ ] While signed in, open login and registration directly. Expected: guest-only routes redirect appropriately and do not create another session/account.
+- [ ] Submit 5 login attempts for the same username from one IP within 15 minutes, then a 6th (even with the correct password). Expected: the 6th returns `TOO_MANY_REQUESTS` with a `Retry-After` header and a "try again in N minute(s)" message; no session is created. Changing only the username case (`Alice` vs `alice`) does not bypass the limit.
+- [ ] While one username is throttled, sign in with a different username from the same IP. Expected: login succeeds until 30 attempts from that IP are reached within 15 minutes, after which every login from that IP returns `TOO_MANY_REQUESTS`.
+- [ ] Wait for the `Retry-After` delay. Expected: login is accepted again without restarting the app. Attempts rejected while blocked do not extend the block.
+- [ ] Send 6 `user.register` requests from one IP within an hour (including rejected ones such as duplicate usernames or disabled registration). Expected: the 6th returns `TOO_MANY_REQUESTS`.
+- [ ] Call `user.verifyPassword` 6 times within 15 minutes from the same session. Expected: the 6th returns `TOO_MANY_REQUESTS`.
+- [ ] Trigger a login limit, then restart the app. Expected: the limit is cleared (counters are in memory only) and the app boots without Redis-related rate-limit errors.
+- [ ] Behind a reverse proxy, note that all clients currently share the proxy IP (until `TRUST_PROXY`, SEC-04). Expected: per-IP limits are reached only under abnormal traffic; record the behaviour in the release notes.
 
 **Mandatory stop condition:** the current code in `server/trpc/routers/user.ts` appears to reject a password when `bcrypt.compare()` returns true, and continue when it returns false. If the correct-password test fails or an incorrect-password test succeeds, mark this section failed and stop release testing for a NO-GO decision until fixed and retested.
 

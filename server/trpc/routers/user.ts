@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { Prisma } from "#prisma/client";
 import { Role } from "#prisma/enums";
-import { router, publicProcedure, protectedProcedure } from "#server/trpc/init";
+import { router, publicProcedure, protectedProcedure, rateLimitMiddleware } from "#server/trpc/init";
 
 // Same cost factor as real password hashes so failed lookups and wrong passwords take the same time
 const DUMMY_PASSWORD_HASH = bcrypt.hashSync("shinro-dummy-password", 10);
@@ -17,6 +17,7 @@ export default router({
 				password: ServerUserValidation.password,
 			}),
 		)
+		.use(rateLimitMiddleware({ name: "register", ...AUTH_RATE_LIMITS.register }))
 		.output(UserSchema)
 		.mutation(async ({ input, ctx }) => {
 			if (!serverEnv.NUXT_PUBLIC_ALLOW_REGISTRATION) {
@@ -63,6 +64,14 @@ export default router({
 			z.object({
 				username: ServerUserValidation.username,
 				password: ServerUserValidation.password,
+			}),
+		)
+		.use(rateLimitMiddleware({ name: "login:ip", ...AUTH_RATE_LIMITS.loginIp }))
+		.use(
+			rateLimitMiddleware<{ username: string }>({
+				name: "login",
+				...AUTH_RATE_LIMITS.login,
+				key: ({ input }) => input.username.toLowerCase(),
 			}),
 		)
 		.output(UserSchema)
@@ -249,6 +258,13 @@ export default router({
 		.input(
 			z.object({
 				password: ServerUserValidation.password,
+			}),
+		)
+		.use(
+			rateLimitMiddleware({
+				name: "verify-password",
+				...AUTH_RATE_LIMITS.verifyPassword,
+				key: ({ ctx }) => getSessionCookie(ctx.event),
 			}),
 		)
 		.output(z.boolean())
