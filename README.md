@@ -51,26 +51,26 @@ cp .env.example .env
 
 On Windows PowerShell, use `Copy-Item .env.example .env` instead. Review every value before startup. Boolean values must be written as `true` or `false`, and an empty required value is rejected by the environment validator.
 
-The database and Redis examples match the services in `docker-compose.yaml`. The `.env.example` defaults are intended for local development; replace credentials and database URLs for other environments. `SPOTIFY_*` values are currently required by the environment schema even though the integration is not exposed in the app.
+The database and Redis examples match the services in `docker-compose.yaml`. The `.env.example` defaults are intended for local development; replace credentials and database URLs for other environments. Integration variables are only required when their feature is enabled: `TMDB_*` with `NUXT_PUBLIC_ENABLE_MOVIES=true`, `SPOTIFY_*` with `NUXT_PUBLIC_ENABLE_MUSICS=true`. Startup fails with a message naming each missing variable.
 
-| Variable                         | Required      | Default in `.env.example` | Description                                                                                                                              |
-| -------------------------------- | ------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `NODE_ENV`                       | Yes           | `development`             | Runtime mode. Accepted values: `development`, `production`.                                                                              |
-| `DATABASE_URL`                   | Yes           | Local Docker Compose URL  | PostgreSQL connection URL used by Prisma.                                                                                                |
-| `REDIS_URL`                      | Yes           | Local Docker Compose URL  | Redis connection URL used for caching and first-admin setup.                                                                             |
-| `COOKIE_SECURE`                  | No            | Auto-detect               | Forces the session cookie Secure flag. Use `true` or `false`; leave empty to follow the request protocol, including `X-Forwarded-Proto`. |
-| `SESSION_LIFETIME_DAYS`          | No            | `10`                      | Fixed session lifetime, in whole days. Accepted range: `1`-`365`; activity does not extend it.                                           |
-| `TMDB_TOKEN`                     | Yes           | None                      | TMDb API Read Access Token (v4 bearer token). This is not the v3 API key.                                                                |
-| `TMDB_LANGUAGE`                  | Yes           | `en-US`                   | TMDb response language in ISO 639-1 form, optionally followed by an ISO 3166-1 region, such as `en-US` or `fr-FR`.                       |
-| `TMDB_INCLUDE_NSFW`              | Yes           | `false`                   | Controls adult results from TMDb. Use `true` or `false`.                                                                                 |
-| `SPOTIFY_CLIENT_ID`              | Yes currently | None                      | Spotify client ID required by the current environment schema. Spotify is not currently exposed in the app.                               |
-| `SPOTIFY_CLIENT_SECRET`          | Yes currently | None                      | Spotify client secret required by the current environment schema. Keep it private and do not commit it.                                  |
-| `NUXT_PUBLIC_ALLOW_REGISTRATION` | Yes           | `false`                   | Allows visitors to create accounts. Use `true` or `false`; the value is public in the client bundle.                                     |
-| `NUXT_PUBLIC_ENABLE_MOVIES`      | Yes           | `true`                    | Enables movie navigation and routes. Use `true` or `false`; the value is public.                                                         |
-| `NUXT_PUBLIC_ENABLE_SERIES`      | Yes           | `false`                   | Enables series navigation. Series pages are not currently implemented. Use `true` or `false`; the value is public.                       |
-| `NUXT_PUBLIC_ENABLE_MUSICS`      | Yes           | `false`                   | Enables music navigation. Music pages are not currently implemented. Use `true` or `false`; the value is public.                         |
-| `NUXT_PUBLIC_ENABLE_BOOKS`       | Yes           | `false`                   | Enables books navigation. Books pages are not currently implemented. Use `true` or `false`; the value is public.                         |
-| `NUXT_PUBLIC_ENABLE_GAMES`       | Yes           | `false`                   | Enables games navigation. Games pages are not currently implemented. Use `true` or `false`; the value is public.                         |
+| Variable                         | Required  | Default in `.env.example` | Description                                                                                                                              |
+| -------------------------------- | --------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `NODE_ENV`                       | Yes       | `development`             | Runtime mode. Accepted values: `development`, `production`.                                                                              |
+| `DATABASE_URL`                   | Yes       | Local Docker Compose URL  | PostgreSQL connection URL used by Prisma.                                                                                                |
+| `REDIS_URL`                      | Yes       | Local Docker Compose URL  | Redis connection URL used for caching and first-admin setup.                                                                             |
+| `COOKIE_SECURE`                  | No        | Auto-detect               | Forces the session cookie Secure flag. Use `true` or `false`; leave empty to follow the request protocol, including `X-Forwarded-Proto`. |
+| `SESSION_LIFETIME_DAYS`          | No        | `10`                      | Fixed session lifetime, in whole days. Accepted range: `1`-`365`; activity does not extend it.                                           |
+| `TMDB_TOKEN`                     | If movies | None                      | TMDb API Read Access Token (v4 bearer token). This is not the v3 API key.                                                                |
+| `TMDB_LANGUAGE`                  | If movies | `en-US`                   | TMDb response language in ISO 639-1 form, optionally followed by an ISO 3166-1 region, such as `en-US` or `fr-FR`.                       |
+| `TMDB_INCLUDE_NSFW`              | If movies | `false`                   | Controls adult results from TMDb. Use `true` or `false`.                                                                                 |
+| `SPOTIFY_CLIENT_ID`              | If musics | None                      | Spotify client ID. Spotify is not currently exposed in the app.                                                                          |
+| `SPOTIFY_CLIENT_SECRET`          | If musics | None                      | Spotify client secret. Keep it private and do not commit it.                                                                             |
+| `NUXT_PUBLIC_ALLOW_REGISTRATION` | Yes       | `false`                   | Allows visitors to create accounts. Use `true` or `false`; the value is public in the client bundle.                                     |
+| `NUXT_PUBLIC_ENABLE_MOVIES`      | Yes       | `true`                    | Enables movie navigation and routes. Use `true` or `false`; the value is public.                                                         |
+| `NUXT_PUBLIC_ENABLE_SERIES`      | Yes       | `false`                   | Enables series navigation. Series pages are not currently implemented. Use `true` or `false`; the value is public.                       |
+| `NUXT_PUBLIC_ENABLE_MUSICS`      | Yes       | `false`                   | Enables music navigation. Music pages are not currently implemented. Use `true` or `false`; the value is public.                         |
+| `NUXT_PUBLIC_ENABLE_BOOKS`       | Yes       | `false`                   | Enables books navigation. Books pages are not currently implemented. Use `true` or `false`; the value is public.                         |
+| `NUXT_PUBLIC_ENABLE_GAMES`       | Yes       | `false`                   | Enables games navigation. Games pages are not currently implemented. Use `true` or `false`; the value is public.                         |
 
 Restart the Nuxt process after changing environment values so the server configuration and public runtime configuration are rebuilt. Never place secrets in variables prefixed with `NUXT_PUBLIC_`, because those values are exposed to the browser.
 
